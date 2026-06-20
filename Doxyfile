@@ -68,6 +68,9 @@ EXCLUDE_PATTERNS       = */tests/* */systests/* */scripts/* */vendor/*
 # (the spec is the param reference). They're verified by the Vulkan compile/coverage gate, not the
 # strict hand-written-API doc gate — exclude them here.
 EXCLUDE_PATTERNS      += */gpu/vulkan/*.hpp
+# The Metal backend (metal-cpp surface + the software-emulation runtime + the platform shim) is built
+# and tested by the separate Metal gate (scripts/metal_gate.sh), not the strict host doc/coverage gate.
+EXCLUDE_PATTERNS      += */gpu/metal/*
 # Internal implementation helpers (any `detail` namespace) are NOT public API.
 EXCLUDE_SYMBOLS        = *::detail::* *::detail
 

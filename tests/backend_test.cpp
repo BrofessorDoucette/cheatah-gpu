@@ -31,3 +31,33 @@ TEST(Backend, IsActive) {
     EXPECT_FALSE(g::is_active(g::Backend::metal));     // false branch (Metal isn't active here)
 }
 static_assert(g::is_active(g::Backend::vulkan));
+
+TEST(Backend, Resolution) {
+    // No CHEATAH_GPU_BACKEND_* is forced and this isn't Apple, so the requested backend is the active
+    // one (Vulkan) and nothing was switched or flagged suboptimal.
+    EXPECT_EQ(g::requested_backend, g::Backend::vulkan);
+    EXPECT_FALSE(g::metal_available);
+    EXPECT_FALSE(g::backend_was_switched);
+    EXPECT_FALSE(g::backend_is_suboptimal);
+}
+static_assert(g::requested_backend == g::Backend::vulkan);
+static_assert(!g::backend_was_switched && !g::backend_is_suboptimal);
+
+TEST(Backend, WarnSwitched) {
+    // The selection is optimal in this build, so the runtime notice is a no-op: nothing is printed and
+    // the one-shot guard stays clear. (The switched/suboptimal message paths are exercised by the
+    // wrong-backend system test, which compiles a forced backend on this platform.)
+    EXPECT_FALSE(g::warn_backend_selection(stderr));
+    EXPECT_FALSE(g::backend_warning_emitted());
+}
+
+TEST(Backend, Silence) {
+    g::silence_backend_warning(true);              // mute (default arg path covered below)
+    EXPECT_TRUE(g::backend_warning_silenced());
+    EXPECT_FALSE(g::warn_backend_selection());
+    g::silence_backend_warning(false);             // re-enable (false arm)
+    EXPECT_FALSE(g::backend_warning_silenced());
+    g::silence_backend_warning();                  // default argument = true
+    EXPECT_TRUE(g::backend_warning_silenced());
+    g::silence_backend_warning(false);             // leave clean for other tests
+}

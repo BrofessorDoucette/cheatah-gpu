@@ -110,8 +110,8 @@ cmake/      CPM.cmake, Vulkan.cmake (provisions volk/VMA + the GPU stack)
 <!-- coverage:start -->
 | Metric | gpu package |
 |--------|-------------|
-| **Lines** | 100.00% (22/22) |
-| **Functions** | 100.00% (7/7) |
+| **Lines** | 100.00% (37/37) |
+| **Functions** | 100.00% (11/11) |
 | Regions | 100.00% |
 | Branches | 100.00% |
 <!-- coverage:end -->

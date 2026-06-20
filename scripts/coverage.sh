@@ -26,7 +26,7 @@ PROF="-instr-profile=$B/merged.profdata"
 # The hand-written, host-testable surface (git's '*' spans '/'). The generated Vulkan forwarders
 # (gpu/vulkan/*) need a GPU + the 3-device matrix, so they are covered by the separate Vulkan gate,
 # not this host gate — excluded here and graduated in as they get tests.
-SRCS=$(git ls-files 'gpu/*.hpp' | grep -vE '/tests/|^gpu/vulkan/')
+SRCS=$(git ls-files 'gpu/*.hpp' | grep -vE '/tests/|^gpu/vulkan/|^gpu/metal/')
 
 case "${1:-report}" in
     show)  llvm-cov show   "${OBJS[@]}" $PROF "${2:?usage: coverage.sh show <file>}" 2>/dev/null \
