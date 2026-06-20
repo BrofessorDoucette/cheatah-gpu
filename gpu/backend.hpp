@@ -40,12 +40,16 @@
 #endif
 
 /// @def CHEATAH_GPU_METAL_AVAILABLE
-/// 1 when native Metal can run on this platform (Apple), 0 otherwise. Vulkan is assumed available
+/// 1 when Metal can run here — Apple platforms, OR a build that opts in by pre-defining it (the
+/// software-emulated Metal device sets it to 1 so the Metal surface is selected off Apple for
+/// testing). Inferred from the platform when the build hasn't set it. Vulkan is assumed available
 /// everywhere (on Apple via MoltenVK).
-#if defined(__APPLE__)
-#  define CHEATAH_GPU_METAL_AVAILABLE 1
-#else
-#  define CHEATAH_GPU_METAL_AVAILABLE 0
+#if !defined(CHEATAH_GPU_METAL_AVAILABLE)
+#  if defined(__APPLE__)
+#    define CHEATAH_GPU_METAL_AVAILABLE 1
+#  else
+#    define CHEATAH_GPU_METAL_AVAILABLE 0
+#  endif
 #endif
 
 /// @def CHEATAH_GPU_REQUESTED_METAL
