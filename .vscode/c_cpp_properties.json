@@ -1,0 +1,20 @@
+{
+  "//": "Generic, portable IntelliSense config — NO absolute paths. Vulkan is found via the VULKAN_SDK",
+  "//2": "environment variable the SDK exports (same var CMake's find_package(Vulkan) uses), so the",
+  "//3": "editor resolves whatever Vulkan version you have installed (e.g. 1.4) on its own. The build's",
+  "//4": "compile_commands.json (CMAKE_EXPORT_COMPILE_COMMANDS=ON) supplies exact per-file flags.",
+  "configurations": [
+    {
+      "name": "cheatah-gpu",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "${env:VULKAN_SDK}/include"
+      ],
+      "cStandard": "c17",
+      "cppStandard": "c++20",
+      "intelliSenseMode": "linux-clang-x64",
+      "compileCommands": "${workspaceFolder}/build/debug/compile_commands.json"
+    }
+  ],
+  "version": 4
+}

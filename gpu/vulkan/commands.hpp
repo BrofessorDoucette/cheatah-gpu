@@ -17,6 +17,8 @@
 
 namespace cheatah::gpu::vulkan {
 
+#if defined(VK_VERSION_1_0)
+
 /**
  * Inline forwarder for
  * [`vkCreateInstance`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCreateInstance.html)
@@ -1633,6 +1635,10 @@ inline void CmdNextSubpass(VkCommandBuffer commandBuffer, VkSubpassContents cont
  */
 inline void CmdEndRenderPass(VkCommandBuffer commandBuffer) { ::vkCmdEndRenderPass(commandBuffer); }
 
+#endif // VK_VERSION_1_0
+
+#if defined(VK_VERSION_1_1)
+
 /**
  * Inline forwarder for
  * [`vkEnumerateInstanceVersion`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkEnumerateInstanceVersion.html)
@@ -1965,6 +1971,10 @@ inline void DestroySamplerYcbcrConversion(VkDevice device,
     ::vkDestroySamplerYcbcrConversion(device, ycbcrConversion, pAllocator);
 }
 
+#endif // VK_VERSION_1_1
+
+#if defined(VK_VERSION_1_2)
+
 /**
  * Inline forwarder for
  * [`vkResetQueryPool`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkResetQueryPool.html)
@@ -2109,6 +2119,10 @@ inline void CmdEndRenderPass2(VkCommandBuffer commandBuffer,
                               const VkSubpassEndInfo* pSubpassEndInfo) {
     ::vkCmdEndRenderPass2(commandBuffer, pSubpassEndInfo);
 }
+
+#endif // VK_VERSION_1_2
+
+#if defined(VK_VERSION_1_3)
 
 /**
  * Inline forwarder for
@@ -2502,6 +2516,10 @@ inline void CmdSetPrimitiveRestartEnable(VkCommandBuffer commandBuffer,
     ::vkCmdSetPrimitiveRestartEnable(commandBuffer, primitiveRestartEnable);
 }
 
+#endif // VK_VERSION_1_3
+
+#if defined(VK_VERSION_1_4)
+
 /**
  * Inline forwarder for
  * [`vkMapMemory2`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkMapMemory2.html) —
@@ -2710,5 +2728,7 @@ inline void CmdSetRenderingInputAttachmentIndices(
     const VkRenderingInputAttachmentIndexInfo* pInputAttachmentIndexInfo) {
     ::vkCmdSetRenderingInputAttachmentIndices(commandBuffer, pInputAttachmentIndexInfo);
 }
+
+#endif // VK_VERSION_1_4
 
 } // namespace cheatah::gpu::vulkan

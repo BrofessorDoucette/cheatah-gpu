@@ -16,6 +16,37 @@ FetchContent_Declare(VulkanMemoryAllocator
     GIT_REPOSITORY https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
     GIT_TAG        v3.1.0)
 
+# --- Always prefer the NEWEST installed Vulkan SDK (self-heals on uninstall/reinstall) ----------
+# Search the standard SDK roots, natural-sort the version dirs, and take the highest — no hardcoded
+# path. This makes find_package(Vulkan) below (and, through compile_commands.json, the editor) track
+# whatever the newest SDK is. An explicit $VULKAN_SDK or system install still works; this only adds
+# the newest discovered SDK as the top search hint, so reinstalling a newer SDK is picked up on the
+# next configure.
+set(_vk_roots "$ENV{HOME}/Tools/vulkan-sdk" "$ENV{HOME}/VulkanSDK"
+              "/opt/vulkan-sdk" "/opt/VulkanSDK" "C:/VulkanSDK")
+set(_vk_found "")
+foreach(_root IN LISTS _vk_roots)
+    if(IS_DIRECTORY "${_root}")
+        file(GLOB _vers RELATIVE "${_root}" "${_root}/*")
+        foreach(_v IN LISTS _vers)
+            if(IS_DIRECTORY "${_root}/${_v}")
+                list(APPEND _vk_found "${_v}=${_root}/${_v}")
+            endif()
+        endforeach()
+    endif()
+endforeach()
+if(_vk_found)
+    list(SORT _vk_found COMPARE NATURAL ORDER DESCENDING)   # highest version first
+    list(GET _vk_found 0 _vk_newest)
+    string(REGEX REPLACE "^[^=]+=" "" _vk_newest "${_vk_newest}")
+    if(IS_DIRECTORY "${_vk_newest}/x86_64")                  # Linux SDK keeps include/+lib/ here
+        set(_vk_newest "${_vk_newest}/x86_64")
+    endif()
+    set(ENV{VULKAN_SDK} "${_vk_newest}")
+    list(PREPEND CMAKE_PREFIX_PATH "${_vk_newest}")
+    message(STATUS "cheatah-gpu: newest Vulkan SDK -> ${_vk_newest}")
+endif()
+
 # The Vulkan loader + headers are system-level. Find them; if absent, fetch just the headers (volk
 # loads the loader at runtime) and route the user to scripts/install-deps.sh for the loader/driver.
 find_package(Vulkan QUIET)
