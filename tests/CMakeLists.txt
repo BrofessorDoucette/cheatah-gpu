@@ -23,3 +23,20 @@ if(CHEATAH_GPU_SANITIZE)
 endif()
 
 gtest_discover_tests(cheatah_gpu_tests)
+
+# --- Vulkan tests (need volk + a real device; built only with CHEATAH_GPU_BUILD_VULKAN) ----------
+# Generated presence checks (100% of the forwarder surface, capability-gated) + handwritten
+# behavioral tests, run across every enumerated device by the harness.
+if(CHEATAH_GPU_BUILD_VULKAN)
+    add_executable(cheatah_gpu_vulkan_tests
+        vulkan/generated_presence_checks.cpp
+        vulkan/handwritten_test.cpp
+    )
+    target_compile_definitions(cheatah_gpu_vulkan_tests PRIVATE VK_NO_PROTOTYPES)
+    target_include_directories(cheatah_gpu_vulkan_tests PRIVATE
+        ${CMAKE_SOURCE_DIR}                     # for "gpu/vulkan/commands.hpp"
+        ${CMAKE_CURRENT_SOURCE_DIR}/vulkan      # for "harness.hpp"
+    )
+    target_link_libraries(cheatah_gpu_vulkan_tests PRIVATE volk GTest::gtest_main)
+    gtest_discover_tests(cheatah_gpu_vulkan_tests TEST_PREFIX "vk:")
+endif()
