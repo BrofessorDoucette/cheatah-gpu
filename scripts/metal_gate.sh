@@ -30,6 +30,7 @@ if [ ! -f "$MCPP/Metal/Metal.hpp" ]; then
 fi
 
 TEST="tests/metal/metal_compute_test.cpp"
+MLTEST="tests/metal/metal_multiline_test.cpp"   # mtl.* calls with multi-line arguments
 W="$(mktemp -d)"; trap 'rm -rf "$W"' EXIT
 
 if [ "$(uname -s)" = "Darwin" ]; then
@@ -49,6 +50,11 @@ if [ "$(uname -s)" = "Darwin" ]; then
         || { cat "$W/real_asan.log"; fail "real Metal ASan build"; }
     "$W/metal_real_asan" >/dev/null || fail "real Metal ASan run"
     bold "Real Metal compute (add_arrays + mul_arrays) ran on the GPU and passed."
+    # mtl.* calls with multi-line arguments, on the real GPU.
+    $CXX $CF "$MLTEST" "$IMPL" $FW -o "$W/metal_real_ml" >"$W/real_ml.log" 2>&1 \
+        || { cat "$W/real_ml.log"; fail "real Metal multi-line build"; }
+    "$W/metal_real_ml" | sed 's/^/    /' || fail "real Metal multi-line run"
+    "$W/metal_real_ml" | grep -q "RESULT: PASS" || fail "real Metal multi-line did not pass"
 else
     # ===== Off Apple: run the SAME test on the software-emulated device (CPU), fully sanitized. ===
     # metal-cpp on a non-Apple OS needs the small Objective-C/CoreFoundation shim + Clang blocks + a
@@ -63,6 +69,12 @@ else
     $CXX $CF -DCHEATAH_GPU_METAL_LEAKCHECK=1 -fsanitize=address,undefined -fno-sanitize=function \
         -g -O1 $EMU "$TEST" -o "$W/metal_asan" >"$W/asan_build.log" 2>&1 || { cat "$W/asan_build.log"; fail "ASan build"; }
     ASAN_OPTIONS=detect_leaks=1 "$W/metal_asan" | sed 's/^/    /' || fail "ASan run (compute or leak check)"
+
+    # mtl.* calls with multi-line arguments (verbose GPU code), under ASan.
+    bold "Building + running the mtl.* multi-line-argument test under ASan…"
+    $CXX $CF -DCHEATAH_GPU_METAL_LEAKCHECK=1 -fsanitize=address,undefined -fno-sanitize=function \
+        -g -O1 $EMU "$MLTEST" -o "$W/metal_ml" >"$W/ml_build.log" 2>&1 || { cat "$W/ml_build.log"; fail "multi-line ASan build"; }
+    ASAN_OPTIONS=detect_leaks=1 "$W/metal_ml" | sed 's/^/    /' || fail "multi-line ASan run"
 
     # Valgrind memcheck (no definite/indirect leaks) + Helgrind (no races).
     if command -v valgrind >/dev/null 2>&1; then

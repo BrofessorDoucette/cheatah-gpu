@@ -1,0 +1,42 @@
+# test_multiline.purr — GPU code gets verbose, so cheatah-gpu's bindings must read well with their
+# arguments spread across multiple lines. This exercises the gpu.vulkan surface with multi-line
+# designated initializers AND multi-line CALL arguments (both the closing `)` on the last argument and
+# the closing `)` on its own line), then creates + destroys a real VkInstance. Run by vulkan_gate.sh.
+#
+# Note: cheatah does not accept a trailing comma before `)`, so the last argument carries no comma.
+
+import io
+import gpu.vulkan as vk
+
+io.print("== gpu.vulkan: multi-line arguments ==")
+
+# Multi-line designated initializer.
+let app = vk.ApplicationInfo({
+    .sType = vk.STRUCTURE_TYPE_APPLICATION_INFO,
+    .pApplicationName = 0,
+    .apiVersion = vk.API_VERSION_1_3,
+})
+let ci = vk.InstanceCreateInfo({
+    .sType = vk.STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+    .pApplicationInfo = &app,
+})
+let inst = vk.Instance()
+
+# Multi-line CALL arguments, closing `)` on the last argument line.
+let r = vk.CreateInstance(
+    &ci,
+    0,
+    &inst)
+io.print("  CreateInstance ->", r)
+
+if r != 0 {
+    io.print("RESULT: FAIL (CreateInstance returned", r, ")")
+} else {
+    # Multi-line CALL arguments, closing `)` on its own line.
+    vk.DestroyInstance(
+        inst,
+        0
+    )
+    io.print("  DestroyInstance -> ok")
+    io.print("RESULT: PASS")
+}
