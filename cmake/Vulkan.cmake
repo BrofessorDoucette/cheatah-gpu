@@ -11,7 +11,7 @@ include(FetchContent)
 # so they're never a manual step. Pin tags deliberately when this backend lands.
 FetchContent_Declare(volk
     GIT_REPOSITORY https://github.com/zeux/volk.git
-    GIT_TAG        1.3.270)
+    GIT_TAG        1.4.350)  # >= the vendored vk.xml/SDK (1.4.341) so all 1.4 entry points are declared
 FetchContent_Declare(VulkanMemoryAllocator
     GIT_REPOSITORY https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
     GIT_TAG        v3.1.0)
@@ -29,22 +29,34 @@ foreach(_root IN LISTS _vk_roots)
     if(IS_DIRECTORY "${_root}")
         file(GLOB _vers RELATIVE "${_root}" "${_root}/*")
         foreach(_v IN LISTS _vers)
-            if(IS_DIRECTORY "${_root}/${_v}")
-                list(APPEND _vk_found "${_v}=${_root}/${_v}")
+            if(NOT _v MATCHES "^[0-9]")            # only version-named dirs (skip "Releases", etc.)
+                continue()
+            endif()
+            # The headers live in <ver>/x86_64/include (Linux SDK) or <ver>/include. Require the real
+            # vulkan_core.h so we never pick an installer/stub dir.
+            set(_inc "")
+            if(EXISTS "${_root}/${_v}/x86_64/include/vulkan/vulkan_core.h")
+                set(_inc "${_root}/${_v}/x86_64/include")
+            elseif(EXISTS "${_root}/${_v}/include/vulkan/vulkan_core.h")
+                set(_inc "${_root}/${_v}/include")
+            endif()
+            if(_inc)
+                list(APPEND _vk_found "${_v}=${_inc}")
             endif()
         endforeach()
     endif()
 endforeach()
 if(_vk_found)
     list(SORT _vk_found COMPARE NATURAL ORDER DESCENDING)   # highest version first
-    list(GET _vk_found 0 _vk_newest)
-    string(REGEX REPLACE "^[^=]+=" "" _vk_newest "${_vk_newest}")
-    if(IS_DIRECTORY "${_vk_newest}/x86_64")                  # Linux SDK keeps include/+lib/ here
-        set(_vk_newest "${_vk_newest}/x86_64")
-    endif()
-    set(ENV{VULKAN_SDK} "${_vk_newest}")
-    list(PREPEND CMAKE_PREFIX_PATH "${_vk_newest}")
-    message(STATUS "cheatah-gpu: newest Vulkan SDK -> ${_vk_newest}")
+    list(GET _vk_found 0 _vk_entry)
+    string(REGEX REPLACE "^[^=]+=" "" _vk_inc "${_vk_entry}")        # the include dir
+    get_filename_component(_vk_sdk "${_vk_inc}" DIRECTORY)           # the SDK arch root
+    set(ENV{VULKAN_SDK} "${_vk_sdk}")
+    list(PREPEND CMAKE_PREFIX_PATH "${_vk_sdk}")
+    # Exported so the Vulkan test target includes the NEWEST headers ahead of any older system headers
+    # — otherwise the latest commands (the 1.4 promotions) compile out and go untested.
+    set(CHEATAH_GPU_VULKAN_INCLUDE "${_vk_inc}" CACHE INTERNAL "newest Vulkan SDK include")
+    message(STATUS "cheatah-gpu: newest Vulkan SDK include -> ${_vk_inc}")
 endif()
 
 # The Vulkan loader + headers are system-level. Find them; if absent, fetch just the headers (volk

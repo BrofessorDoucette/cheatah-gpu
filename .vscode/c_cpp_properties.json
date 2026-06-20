@@ -13,7 +13,10 @@
       "cStandard": "c17",
       "cppStandard": "c++20",
       "intelliSenseMode": "linux-clang-x64",
-      "compileCommands": "${workspaceFolder}/build/debug/compile_commands.json"
+      "//cc": "build/vk compiles gpu/vulkan/commands.hpp against the auto-discovered (newest) SDK, so",
+      "//cc2": "IntelliSense resolves every VK_VERSION block. Populate it once with: scripts/vulkan_gate.sh",
+      "//cc3": "(or cmake -B build/vk -DCHEATAH_GPU_BUILD_VULKAN=ON). Falls back to VULKAN_SDK above.",
+      "compileCommands": "${workspaceFolder}/build/vk/compile_commands.json"
     }
   ],
   "version": 4

@@ -37,6 +37,11 @@ if(CHEATAH_GPU_BUILD_VULKAN)
         ${CMAKE_SOURCE_DIR}                     # for "gpu/vulkan/commands.hpp"
         ${CMAKE_CURRENT_SOURCE_DIR}/vulkan      # for "harness.hpp"
     )
+    # Use the NEWEST SDK headers ahead of any older system headers, so the latest commands (the 1.4
+    # promotions) are compiled and tested — not silently #ifdef'd out.
+    if(DEFINED CHEATAH_GPU_VULKAN_INCLUDE)
+        target_include_directories(cheatah_gpu_vulkan_tests BEFORE PRIVATE ${CHEATAH_GPU_VULKAN_INCLUDE})
+    endif()
     target_link_libraries(cheatah_gpu_vulkan_tests PRIVATE volk GTest::gtest_main)
     gtest_discover_tests(cheatah_gpu_vulkan_tests TEST_PREFIX "vk:")
 endif()

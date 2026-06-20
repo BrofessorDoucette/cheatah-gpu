@@ -10,10 +10,8 @@ namespace vk = cheatah::gpu::vulkan;
 
 namespace cheatah::gpu::vktest {
 
-// 100% of the generated surface, run on every physical device (software/integrated/discrete).
-TEST(VulkanGenerated, PresenceOnAllDevices) {
-    run_all_devices(&run_generated_presence_checks);
-}
+// (The generated per-function presence tests live in generated_presence_checks.cpp as one TEST_F
+// each — 234 individually-named tests. The tests below are the handwritten behavioral ones.)
 
 // Handwritten: drive instance + device lifecycle through OUR forwarders, honouring the @destroy
 // contracts. Proves the forwarders actually call through to the real entry points and round-trip.
