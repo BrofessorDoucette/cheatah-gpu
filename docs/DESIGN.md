@@ -56,3 +56,12 @@ Motivated by a refusal to repeat Unity's painful asynchronous-GPU API. The agree
 - **Windowing is out of scope** — a consumer concern (GLFW vs SDL). cheatah-gpu provides
   surface/swapchain primitives so a windowing extension brings a window up in a breeze; GLFW is a
   test-only dependency here.
+
+## Platform support
+
+- **Linux** (apt/dnf/pacman) and **macOS** (brew; native Metal preferred, MoltenVK fallback) are
+  first-class today.
+- **Windows** is a **roadmap side quest** — not a current priority. `scripts/install-deps.sh` prints
+  manual guidance there for now (Vulkan SDK + driver + optional GLFW); a winget/vcpkg one-shot lands
+  later. The Vulkan C-API + volk + Slang stack is already Windows-portable, so it's provisioning, not
+  porting.

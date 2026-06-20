@@ -31,6 +31,19 @@ if [ "$(uname -s)" = "Darwin" ]; then
     exit 0
 fi
 
+# --- Windows (roadmap — a side quest, not wired up yet) ----------------------------------------
+case "$(uname -s)" in
+    MINGW*|MSYS*|CYGWIN*)
+        cat <<'EOF'
+Windows support is on the roadmap (a side quest for now). For today, install manually:
+  • the LunarG Vulkan SDK (loader + slangc):  https://vulkan.lunarg.com/sdk/home
+  • a GPU driver from your vendor (NVIDIA / AMD / Intel)
+  • GLFW (e.g. via vcpkg) — only if you want the presentation tests
+Then run scripts/doctor.sh. A winget/vcpkg one-shot will land later.
+EOF
+        exit 0 ;;
+esac
+
 # --- Linux (apt / dnf / pacman) ---------------------------------------------------------------
 SUDO=""; [ "$(id -u)" = "0" ] || SUDO="sudo"
 
