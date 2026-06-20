@@ -7,11 +7,11 @@ CPU-side math the Vulkan backend (roadmap, see [`../vulkan`](../vulkan)) feeds s
 `vkCmdDispatch`.
 
 ```purr
-import gpu.dispatch as gd
+import gpu.dispatch as dispatch
 
 # cover 1,000,000 items at local_size_x = 256
-let groups = gd.group_count_1d(1000000, 256)        # 3907
-let safe   = gd.clamp_group_count(groups, 65535)    # clamp to maxComputeWorkGroupCount[0]
+let groups = dispatch.group_count_1d(1000000, 256)        # 3907
+let safe   = dispatch.clamp_group_count(groups, 65535)    # clamp to maxComputeWorkGroupCount[0]
 ```
 
 ## Why `uint32_t` everywhere

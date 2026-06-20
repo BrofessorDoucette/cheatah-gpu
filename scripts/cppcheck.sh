@@ -27,6 +27,7 @@ cppcheck \
     -q \
     -j "$(nproc)" \
     -i build \
+    -i gpu/vulkan \
     gpu tests \
     || { echo "[cppcheck] performance/security findings above — fix them or annotate with // cppcheck-suppress"; exit 1; }
 

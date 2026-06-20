@@ -1,0 +1,10 @@
+# cheatah-gpu C++ style. Applied to hand-written headers AND the generated Vulkan/Metal surfaces
+# (the generator runs clang-format so the committed output is beautiful and consistent).
+BasedOnStyle: LLVM
+ColumnLimit: 100
+IndentWidth: 4
+PointerAlignment: Left
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: WithoutElse
+BinPackParameters: false
+AlignAfterOpenBracket: Align

@@ -64,6 +64,10 @@ FILE_PATTERNS          = *.hpp *.cpp *.md
 RECURSIVE              = YES
 IMPLICIT_DIR_DOCS      = NO
 EXCLUDE_PATTERNS       = */tests/* */systests/* */scripts/* */vendor/*
+# Generated Vulkan forwarders carry brief + spec link + ownership tags, but not per-@param prose
+# (the spec is the param reference). They're verified by the Vulkan compile/coverage gate, not the
+# strict hand-written-API doc gate — exclude them here.
+EXCLUDE_PATTERNS      += */gpu/vulkan/*.hpp
 # Internal implementation helpers (any `detail` namespace) are NOT public API.
 EXCLUDE_SYMBOLS        = *::detail::* *::detail
 

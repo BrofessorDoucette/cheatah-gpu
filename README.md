@@ -4,9 +4,12 @@
 > One shared interface over the native GPU APIs — **Vulkan** and **Metal** — so you can start doing
 > things with your GPU, for *any* reason, without the usual bring-up pain.
 
-🚧 **Work in progress.** The compute-dimensioning core and the compile-time backend-selection layer
-are working and fully tested; the Vulkan/Metal backends are on the roadmap (see each module's
-README). Source under `gpu/` is hand-authored, header-only C++20.
+**Version: `v0.1.0-prealpha`** &nbsp;·&nbsp; 🚧 early, pre-alpha work in progress.
+
+The compute-dimensioning core and the compile-time backend-selection layer are working and fully
+tested. The full Vulkan surface is generated (in cheatah) from the registry and committed under
+`gpu/vulkan/` as source — its tests + 3-device coverage land in the next release. The native Metal
+backend is on the roadmap. Source under `gpu/` is hand-authored or generated, header-only C++20.
 
 ## What it is
 
@@ -27,12 +30,15 @@ biome add cheatah-gpu      # pulls the extension + provisions the GPU userspace 
 ```
 
 ```purr
-import gpu.dispatch as gd
+import gpu.dispatch as dispatch
 
 # how many workgroups to cover 1,000,000 items at local_size_x = 256?
-let groups = gd.group_count_1d(1000000, 256)        # 3907
-let safe   = gd.clamp_group_count(groups, 65535)    # clamp to the device limit
+let groups = dispatch.group_count_1d(1000000, 256)        # 3907
+let safe   = dispatch.clamp_group_count(groups, 65535)    # clamp to the device limit
 ```
+
+Import convention: alias each submodule to its last segment — `import gpu.dispatch as dispatch`,
+`import gpu.vulkan as vulkan`, `import gpu.metal as metal` — while the easy layer stays `import gpu`.
 
 Then write a [Slang](https://shader-slang.org/) shader (see [`shaders/hello.slang`](shaders/hello.slang))
 and run it. Bringing up a **window** is intentionally *not* this library's job — that's
@@ -104,7 +110,7 @@ cmake/      CPM.cmake, Vulkan.cmake (provisions volk/VMA + the GPU stack)
 <!-- coverage:start -->
 | Metric | gpu package |
 |--------|-------------|
-| **Lines** | 100.00% (14/14) |
+| **Lines** | 100.00% (22/22) |
 | **Functions** | 100.00% (7/7) |
 | Regions | 100.00% |
 | Branches | 100.00% |

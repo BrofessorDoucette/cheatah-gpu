@@ -1,0 +1,249 @@
+# tools/vulkan-gen/generate.purr — cheatah codegen for the Vulkan forwarder surface.
+#
+# Written in cheatah (dogfooding the language; compiles to native, so it's fast). This is
+# RELEASE-TIME codegen: regenerate.sh refreshes vk.xml to the latest Khronos registry, runs this,
+# and the output (gpu/vulkan/commands.hpp) is committed as normal source — a user of cheatah-gpu
+# never runs codegen, and every release tracks the most current Vulkan surface.
+#
+# Each core Vulkan command becomes one `inline` forwarder in `cheatah::gpu::vulkan` that calls the
+# real `vk*` entry point through volk (loader.hpp): the bare Vulkan call at runtime, no overhead, no
+# Vulkan-Hpp templates. Parameters keep the EXACT Vulkan integer widths (uint32_t / VkDeviceSize / …)
+# so the cheatah binding narrows cheatah's 64-bit int to the proper size at the call boundary.
+#
+# Run from the repo root:  purrc tools/vulkan-gen/generate.purr -o /tmp/gen.so && cheatah /tmp/gen.so
+# Scope today: the core feature set (VK_VERSION_1_0 … 1_4). Platform-guarded extensions are next.
+
+import io
+import string
+import os
+
+let XML_PATH = "tools/vulkan-gen/vk.xml"
+let OUT_PATH = "gpu/vulkan/commands.hpp"
+
+struct Proto {
+    ret: str
+    name: str
+}
+
+# Value of attribute key="..." in chunk, or "" if absent.
+fn attr(chunk, key) {
+    let pat = key + "=\""
+    let i = string.find(chunk, pat)
+    if i < 0 { return "" }
+    let rest = chunk[i + len(pat):]
+    let j = string.find(rest, "\"")
+    if j < 0 { return "" }
+    return rest[:j]
+}
+
+# Text between the first `a` and the following `b`, or "" if not found.
+fn between(s, a, b) {
+    let i = string.find(s, a)
+    if i < 0 { return "" }
+    let rest = s[i + len(a):]
+    let j = string.find(rest, b)
+    if j < 0 { return "" }
+    return rest[:j]
+}
+
+# Drop the registry tag markers but keep their content (so `<type>X</type>* <name>p</name>` becomes
+# `X* p`, and array sizes like `[<enum>VK_UUID_SIZE</enum>]` keep `VK_UUID_SIZE`).
+fn strip_tags(s) {
+    let r = s
+    r = string.replace(r, "<type>", "")
+    r = string.replace(r, "</type>", "")
+    r = string.replace(r, "<name>", "")
+    r = string.replace(r, "</name>", "")
+    r = string.replace(r, "<enum>", "")
+    r = string.replace(r, "</enum>", "")
+    return r
+}
+
+# Collapse all whitespace runs to single spaces and trim.
+fn collapse_ws(s) {
+    return string.join(" ", string.split(s))
+}
+
+# True iff the feature's `api` attribute lists the `vulkan` token (so "vulkansc" alone is excluded).
+fn api_has_vulkan(api) {
+    for t in string.split(api, ",") {
+        if t == "vulkan" {
+            return true
+        }
+    }
+    return false
+}
+
+# Parse a command block's <proto> into (return type, vk name).
+fn parse_proto(block) {
+    let proto = between(block, "<proto>", "</proto>")
+    let nm = between(proto, "<name>", "</name>")
+    let flat = collapse_ws(strip_tags(proto))
+    # flat is e.g. "VkResult vkCreateInstance" — strip the trailing name to get the return type.
+    let ret = flat
+    if string.endswith(flat, nm) {
+        ret = string.strip(flat[:len(flat) - len(nm)])
+    }
+    return Proto(ret, nm)
+}
+
+# The destroy/free counterpart's SHORT name for a create/allocate command, or "" if none exists.
+fn destroy_for(name, cmd_block) {
+    let cand = ""
+    if string.startswith(name, "vkCreate") {
+        cand = "vkDestroy" + name[8:]
+    } elif string.startswith(name, "vkAllocate") {
+        cand = "vkFree" + name[10:]
+    }
+    if cand != "" and (cand in cmd_block) {
+        return cand[2:]
+    }
+    return ""
+}
+
+# The Javadoc block for one forwarder: a one-line brief linking the spec, plus the value-adding tags.
+fn doc_block(name, cmd_block) {
+    let spec = "https://registry.khronos.org/vulkan/specs/latest/man/html/"
+    let out = "/**\n"
+    out = out + " * Inline forwarder for [`" + name + "`](" + spec + name + ".html)"
+    out = out + " — the real Vulkan call via volk.\n"
+    if name == "vkAllocateMemory" {
+        out = out + " * @gpualloc allocates device (GPU) memory.\n"
+    }
+    let d = destroy_for(name, cmd_block)
+    if d != "" {
+        out = out + " * @destroy the returned handle must be released with `" + d + "()`.\n"
+    }
+    out = out + " */\n"
+    return out
+}
+
+# One inline forwarder for command `name` given its block (proto + params).
+fn forwarder(name, block, cmd_block) {
+    let p = parse_proto(block)
+    let decls: list[str] = []
+    let names: list[str] = []
+    # Params are everything after </proto>; split on </param>.
+    let tail = block[string.find(block, "</proto>") + len("</proto>"):]
+    for seg in string.split(tail, "</param>") {
+        let pi = string.find(seg, "<param")
+        if pi < 0 { continue }
+        let head = seg[pi:]
+        let gt = string.find(head, ">")
+        if gt < 0 { continue }
+        let opentag = head[:gt]
+        if string.contains(opentag, "vulkansc") and not string.contains(opentag, "vulkan,") {
+            continue
+        }
+        let inner = head[gt + 1:]
+        let pn = between(inner, "<name>", "</name>")
+        if pn == "" { continue }
+        decls.append(collapse_ws(strip_tags(inner)))
+        names.append(pn)
+    }
+    let fname = name
+    if string.startswith(name, "vk") { fname = name[2:] }
+    let sig = string.join(", ", decls)
+    let call = string.join(", ", names)
+    let lead = "return "
+    if p.ret == "void" { lead = "" }
+    let body = lead + "::" + name + "(" + call + ");"
+    return doc_block(name, cmd_block) + "inline " + p.ret + " " + fname + "(" + sig + ") { " + body + " }\n\n"
+}
+
+# --- driver ---------------------------------------------------------------------------------------
+let xml = io.read_file(XML_PATH)
+
+# 1) Index every real <command> (proto + params) by its vk name; record alias -> target.
+let cmd_block: dict[str, str] = {}
+let alias_map: dict[str, str] = {}
+let commands_xml = xml[string.find(xml, "<commands "):string.find(xml, "</commands>")]
+for chunk in string.split(commands_xml, "</command>") {
+    if string.contains(chunk, "<proto>") {
+        let nm = between(between(chunk, "<proto>", "</proto>"), "<name>", "</name>")
+        if nm != "" {
+            cmd_block[nm] = chunk[string.find(chunk, "<proto>"):]
+        }
+    } elif string.contains(chunk, "alias=") {
+        let nm = attr(chunk, "name")
+        let al = attr(chunk, "alias")
+        if nm != "" and al != "" { alias_map[nm] = al }
+    }
+}
+
+# 2) Collect the core command names, in order, from the vulkan-api VK_VERSION_* features.
+let core: list[str] = []
+let seen: dict[str, str] = {}
+let fsegs = string.split(xml, "<feature ")
+for seg in fsegs {
+    let fe = string.find(seg, "</feature>")
+    if fe < 0 { continue }
+    let head = seg[:string.find(seg, ">")]
+    let name = attr(head, "name")
+    let api = attr(head, "api")
+    if not string.contains(name, "_VERSION_") { continue }
+    if not api_has_vulkan(api) { continue }
+    let body = seg[:fe]
+    let parts = string.split(body, "<command name=\"")
+    let first = true
+    for cs in parts {
+        if first {
+            first = false
+            continue
+        }
+        let cn = cs[:string.find(cs, "\"")]
+        if not (cn in seen) {
+            seen[cn] = "1"
+            core.append(cn)
+        }
+    }
+}
+
+# 3) Emit the header.
+let body = ""
+let emitted = 0
+let skipped = 0
+for n in core {
+    let real = n
+    if (not (n in cmd_block)) and (n in alias_map) { real = alias_map[n] }
+    if real in cmd_block {
+        body = body + forwarder(n, cmd_block[real], cmd_block)
+        emitted = emitted + 1
+    } else {
+        skipped = skipped + 1
+    }
+}
+
+let head = "#pragma once\n\n"
+head = head + "// GENERATED by tools/vulkan-gen/generate.purr from tools/vulkan-gen/vk.xml — DO NOT EDIT.\n"
+head = head + "// Regenerated at release time against the latest Khronos registry (see regenerate.sh).\n\n"
+head = head + "/**\n"
+head = head + " * @file commands.hpp\n"
+head = head + " * @brief gpu.vulkan — inline forwarders for the core Vulkan API (the real `vk*` calls).\n"
+head = head + " *\n"
+head = head + " * One `inline` wrapper per core Vulkan command in `cheatah::gpu::vulkan`, each forwarding to\n"
+head = head + " * the genuine `vk*` entry point through volk (loader.hpp). Parameters keep the exact Vulkan\n"
+head = head + " * integer widths so cheatah's int binds to the proper size. This is the faithful native\n"
+head = head + " * surface (`import gpu.vulkan`); the ergonomic cross-platform layer is `import gpu`.\n"
+head = head + " */\n\n"
+head = head + "#include \"loader.hpp\"\n\n"
+head = head + "namespace cheatah::gpu::vulkan {\n\n"
+
+let footer = "}  // namespace cheatah::gpu::vulkan\n"
+
+let f = io.open(OUT_PATH, "w")
+f.write(head + body + footer)
+f.close()
+
+io.print("generate.purr: emitted", emitted, "core forwarders ->", OUT_PATH)
+if skipped > 0 {
+    io.print("generate.purr: skipped", skipped, "unresolved commands")
+}
+
+# Make the committed output beautiful + consistent: clang-format is the source of truth for layout.
+let rc = os.system("clang-format -i " + OUT_PATH)
+if rc == 0 {
+    io.print("generate.purr: clang-format applied.")
+} else {
+    io.print("generate.purr: clang-format unavailable (rc", rc, ") — output left unformatted.")
+}

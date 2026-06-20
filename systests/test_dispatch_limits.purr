@@ -1,19 +1,19 @@
 # gpu.dispatch — device-limit clamping, exercised through the imported library.
 import io
-import gpu.dispatch as gd
+import gpu.dispatch as dispatch
 import check
 
 io.print("== gpu.dispatch: device-limit clamping ==")
 let f = 0
 
 # clamp_group_count vs maxComputeWorkGroupCount[0] (65535 on most desktop GPUs).
-f += check.eq_int("clamp under cap", gd.clamp_group_count(10, 65535),    10)
-f += check.eq_int("clamp at cap",    gd.clamp_group_count(65535, 65535), 65535)
-f += check.eq_int("clamp over cap",  gd.clamp_group_count(70000, 65535), 65535)
+f += check.eq_int("clamp under cap", dispatch.clamp_group_count(10, 65535),    10)
+f += check.eq_int("clamp at cap",    dispatch.clamp_group_count(65535, 65535), 65535)
+f += check.eq_int("clamp over cap",  dispatch.clamp_group_count(70000, 65535), 65535)
 
 # a real launch: dimension 4,000,000 items, then clamp to the device limit.
-let want = gd.group_count_1d(4000000, 64)
+let want = dispatch.group_count_1d(4000000, 64)
 f += check.eq_int("groups 4e6@64",   want, 62500)
-f += check.eq_int("clamped to limit", gd.clamp_group_count(want, 65535), 62500)
+f += check.eq_int("clamped to limit", dispatch.clamp_group_count(want, 65535), 62500)
 
 check.result(f)
