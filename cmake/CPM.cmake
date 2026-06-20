@@ -14,7 +14,7 @@ endif()
 get_filename_component(CPM_DOWNLOAD_LOCATION "${CPM_DOWNLOAD_LOCATION}" ABSOLUTE)
 
 if(NOT (EXISTS ${CPM_DOWNLOAD_LOCATION}))
-  message(STATUS "cheatah-space: downloading CPM.cmake v${CPM_DOWNLOAD_VERSION}")
+  message(STATUS "cheatah-gpu: downloading CPM.cmake v${CPM_DOWNLOAD_VERSION}")
   file(DOWNLOAD
     https://github.com/cpm-cmake/CPM.cmake/releases/download/v${CPM_DOWNLOAD_VERSION}/CPM.cmake
     ${CPM_DOWNLOAD_LOCATION})
