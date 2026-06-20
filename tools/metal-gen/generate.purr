@@ -1,0 +1,283 @@
+# tools/metal-gen/generate.purr — cheatah codegen for the Metal surface, the Apple counterpart to
+# tools/vulkan-gen. It turns Apple's metal-cpp headers into the SAME kind of cheatah-facing layer the
+# Vulkan generator emits: thin `using` aliases + enum constants in `cheatah::gpu::metal`, so a cheatah
+# user calls Metal the EXACT same way they call Vulkan —
+#
+#     import gpu.metal as mtl
+#     let dev = mtl.CreateSystemDefaultDevice()        # free function, like vk.CreateInstance
+#     let q   = dev.newCommandQueue()                  # methods on the object (metal-cpp is OO)
+#     let buf = dev.newBuffer(256, mtl.ResourceStorageModeShared)   # mtl.<Constant>, like vk.VK_*
+#
+# RELEASE-TIME codegen (regenerate.sh): the output (gpu/metal/types.hpp + symbols.json) is committed as
+# normal source. Reads two concatenated single-namespace blobs the driver prepares: MTL (Metal/*.hpp)
+# and NS (Foundation/*.hpp).
+
+import io
+import string
+
+let MTL_IN = "tools/metal-gen/_inputs/mtl.hpp"
+let NS_IN = "tools/metal-gen/_inputs/ns.hpp"
+let OUT = "gpu/metal/types.hpp"
+let SYMS = "gpu/metal/symbols.json"
+let DOCBASE = "https://developer.apple.com/documentation"
+
+# Text between the first `a` and the following `b`, or "" if not found.
+fn between(s, a, b) {
+    let i = string.find(s, a)
+    if i < 0 { return "" }
+    let rest = s[i + len(a):]
+    let j = string.find(rest, b)
+    if j < 0 { return "" }
+    return rest[:j]
+}
+
+# True iff `s` begins with an uppercase letter — public Metal classes/enums are PascalCase, which
+# screens out stray lowercase artifacts (a macro parameter named `name`, a method, …).
+fn upper_first(s) {
+    if s == "" { return false }
+    return string.find("ABCDEFGHIJKLMNOPQRSTUVWXYZ", s[:1]) >= 0
+}
+
+# ASCII lowercase (for building Apple doc URLs, which are all lowercase).
+fn lower(s) {
+    let up = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    let lo = "abcdefghijklmnopqrstuvwxyz"
+    let out = ""
+    let i = 0
+    while i < len(s) {
+        let c = s[i:i + 1]
+        let j = string.find(up, c)
+        if j >= 0 { out = out + lo[j:j + 1] } else { out = out + c }
+        i = i + 1
+    }
+    return out
+}
+
+# The Apple documentation URL for a specific symbol — the page for THAT object in THAT framework, e.g.
+# MTL::Device -> developer.apple.com/documentation/metal/mtldevice, NS::String -> .../foundation/nsstring.
+fn doc_url(prefix, name) {
+    let base = "https://developer.apple.com/documentation"
+    if prefix == "NS" { return base + "/foundation/ns" + lower(name) }
+    if prefix == "MTL4" { return base + "/metal/mtl4" + lower(name) }
+    return base + "/metal/mtl" + lower(name)
+}
+
+# The leading identifier of `s`: everything up to the earliest delimiter (so "Device : public …"
+# yields "Device", and "ResourceStorageModeShared = 0x0," yields "ResourceStorageModeShared").
+fn cut(s) {
+    let delims = [" ", "\t", "=", ",", ";", ":", "(", "[", "{", "}", "\n", "<", "*"]
+    let best = len(s)
+    for d in delims {
+        let i = string.find(s, d)
+        if i >= 0 and i < best { best = i }
+    }
+    return s[:best]
+}
+
+# Collect class names (one `using` alias each) from a single-namespace blob. Only real DEFINITIONS
+# (`class X : …` or `class X {`) are taken; forward declarations (`class X;`) are skipped — a regular
+# header may forward-declare a class that is actually DEFINED in another namespace (e.g. MTL4), and
+# aliasing that to this namespace would not compile.
+fn classes(blob) {
+    let out: list[str] = []
+    let first = true
+    for chunk in string.split(blob, "\nclass ") {
+        if first { first = false; continue }
+        let nm = cut(chunk)
+        if nm == "" { continue }
+        if not upper_first(nm) { continue }              # not a public PascalCase class
+        let after = string.strip(chunk[len(nm):])
+        if string.startswith(after, ";") { continue }   # forward declaration, not a definition
+        out.append(nm)
+    }
+    return out
+}
+
+# Collect value-struct names (MTL::Size, MTL::Origin, MTL::Region, …) — same rules as classes().
+fn structs(blob) {
+    let out: list[str] = []
+    let first = true
+    for chunk in string.split(blob, "\nstruct ") {
+        if first { first = false; continue }
+        let nm = cut(chunk)
+        if nm == "" { continue }
+        if not upper_first(nm) { continue }
+        let after = string.strip(chunk[len(nm):])
+        if string.startswith(after, ";") { continue }
+        out.append(nm)
+    }
+    return out
+}
+
+# Collect (enum type name, [constant names]) from each _XXX_ENUM / _XXX_OPTIONS block of a blob.
+fn enum_types(blob, marker) {
+    let out: list[str] = []
+    let first = true
+    for chunk in string.split(blob, marker) {
+        if first { first = false; continue }
+        let nm = string.strip(between(chunk, ",", ")"))
+        if nm != "" and upper_first(nm) { out.append(nm) }
+    }
+    return out
+}
+
+fn enum_consts(blob, marker) {
+    let out: list[str] = []
+    let first = true
+    for chunk in string.split(blob, marker) {
+        if first { first = false; continue }
+        let body = between(chunk, "{", "};")
+        for line in string.split(body, "\n") {
+            let t = string.strip(line)
+            if t == "" { continue }
+            if string.contains(t, "[[") or string.contains(t, "deprecated") { continue }  # skip deprecated enumerators
+            if not (string.contains(t, "=") or string.contains(t, ",")) { continue }
+            let id = cut(t)
+            if id != "" and upper_first(id) { out.append(id) }
+        }
+    }
+    return out
+}
+
+# --- driver ---------------------------------------------------------------------------------------
+let mtl = io.read_file(MTL_IN)
+let ns = io.read_file(NS_IN)
+let mtl4 = io.read_file("tools/metal-gen/_inputs/mtl4.hpp")
+
+let seen: dict[str, str] = {}
+let body = ""
+let entries: list[str] = []
+let n_class = 0
+let n_enum = 0
+let n_const = 0
+
+# A small set of free functions (the entry points; metal-cpp's surface is otherwise method-based).
+body = body + "// --- entry points (free functions, called like vk.CreateInstance) ---\n"
+body = body + "inline ::MTL::Device* CreateSystemDefaultDevice() { return ::MTL::CreateSystemDefaultDevice(); }\n\n"
+entries.append("    \"CreateSystemDefaultDevice\": {\"kind\": \"function\", \"native\": \"MTL::CreateSystemDefaultDevice\", \"doc\": \"" + DOCBASE + "/metal/mtlcreatesystemdefaultdevice\"}")
+
+# Class aliases for ALL of Metal (namespace MTL), flattened into cheatah::gpu::metal like a flat vk.*.
+body = body + "// --- object types: mtl.Device, mtl.Buffer, … (aliases of every Metal class) ---\n"
+for nm in classes(mtl) {
+    if nm in seen { continue }
+    seen[nm] = "1"
+    body = body + "using " + nm + " = ::MTL::" + nm + ";\n"
+    entries.append("    \"" + nm + "\": {\"kind\": \"class\", \"native\": \"MTL::" + nm + "\", \"doc\": \"" + doc_url("MTL", nm) + "\"}")
+    n_class = n_class + 1
+}
+# Curated Metal value-structs (MTL::Size, MTL::Region, …). Auto-scanning structs picks up Metal 3 types
+# that Metal 4 headers reference, so the common value types are listed explicitly.
+for nm in ["Size", "Origin", "Region", "ScissorRect", "Viewport", "ClearColor", "SamplePosition", "Coordinate2D"] {
+    if nm in seen { continue }
+    seen[nm] = "1"
+    body = body + "using " + nm + " = ::MTL::" + nm + ";\n"
+    entries.append("    \"" + nm + "\": {\"kind\": \"struct\", \"native\": \"MTL::" + nm + "\", \"doc\": \"" + doc_url("MTL", nm) + "\"}")
+    n_class = n_class + 1
+}
+
+# Curated Foundation (NS) glue: the handful of NS types a Metal program needs. Foundation at large has
+# templates (NS::Enumerator<T>), nested types (Condition::Locking) and export-macro'd declarations that
+# do not map to flat aliases — Metal itself is MTL/MTL4; these are just the support objects.
+body = body + "// --- Foundation glue: mtl.String, mtl.Error, mtl.AutoreleasePool, … ---\n"
+for nm in ["Object", "String", "Error", "AutoreleasePool", "Array", "Dictionary", "Number", "Data", "URL", "Bundle"] {
+    if nm in seen { continue }
+    seen[nm] = "1"
+    body = body + "using " + nm + " = ::NS::" + nm + ";\n"
+    entries.append("    \"" + nm + "\": {\"kind\": \"class\", \"native\": \"NS::" + nm + "\", \"doc\": \"" + doc_url("NS", nm) + "\"}")
+    n_class = n_class + 1
+}
+for cn in ["UTF8StringEncoding", "ASCIIStringEncoding", "UnicodeStringEncoding"] {
+    if cn in seen { continue }
+    seen[cn] = "1"
+    body = body + "inline constexpr auto " + cn + " = ::NS::" + cn + ";\n"
+    entries.append("    \"" + cn + "\": {\"kind\": \"constant\", \"native\": \"NS::" + cn + "\", \"doc\": \"" + doc_url("NS", "StringEncoding") + "\"}")
+    n_const = n_const + 1
+}
+
+# Enum type aliases + their constants — all of Metal's enums/options. Processed per block so each
+# constant's doc link points at ITS enum type's page (Apple has no per-value pages).
+body = body + "\n// --- enums + constants: mtl.ResourceOptions, mtl.ResourceStorageModeShared, … ---\n"
+for marker in ["_MTL_ENUM(", "_MTL_OPTIONS("] {
+    let firstb = true
+    for chunk in string.split(mtl, marker) {
+        if firstb { firstb = false; continue }
+        let tn = string.strip(between(chunk, ",", ")"))
+        if tn == "" or not upper_first(tn) { continue }
+        let tdoc = doc_url("MTL", tn)
+        if not (tn in seen) {
+            seen[tn] = "1"
+            body = body + "using " + tn + " = ::MTL::" + tn + ";\n"
+            entries.append("    \"" + tn + "\": {\"kind\": \"enum\", \"native\": \"MTL::" + tn + "\", \"doc\": \"" + tdoc + "\"}")
+            n_enum = n_enum + 1
+        }
+        for line in string.split(between(chunk, "{", "};"), "\n") {
+            let t = string.strip(line)
+            if t == "" { continue }
+            if string.contains(t, "[[") or string.contains(t, "deprecated") { continue }
+            if not (string.contains(t, "=") or string.contains(t, ",")) { continue }
+            let cn = cut(t)
+            if cn == "" or not upper_first(cn) or (cn in seen) { continue }
+            seen[cn] = "1"
+            body = body + "inline constexpr auto " + cn + " = ::MTL::" + cn + ";\n"
+            entries.append("    \"" + cn + "\": {\"kind\": \"constant\", \"native\": \"MTL::" + cn + "\", \"doc\": \"" + tdoc + "\"}")
+            n_const = n_const + 1
+        }
+    }
+}
+
+# Metal 4 (namespace MTL4) — the next-gen surface — lands in its own cheatah namespace (gpu.metal4),
+# since its class names (CommandQueue, CommandBuffer, …) deliberately overlap with Metal 3's.
+# A name already in the Metal 3 set (`seen`) is a Metal 3 type that a Metal 4 header merely references
+# (or a deliberate cross-version name); without full namespace-brace tracking we keep only the names
+# UNIQUE to Metal 4, which are exactly the MTL4-namespace types and compile cleanly.
+let seen4: dict[str, str] = {}
+let body4 = ""
+let n4 = 0
+for nm in classes(mtl4) {
+    if nm in seen4 or nm in seen { continue }
+    seen4[nm] = "1"
+    body4 = body4 + "using " + nm + " = ::MTL4::" + nm + ";\n"
+    n4 = n4 + 1
+}
+for marker in ["_MTL_ENUM(", "_MTL_OPTIONS("] {
+    for nm in enum_types(mtl4, marker) {
+        if nm in seen4 or nm in seen { continue }
+        seen4[nm] = "1"
+        body4 = body4 + "using " + nm + " = ::MTL4::" + nm + ";\n"
+        n4 = n4 + 1
+    }
+    for cn in enum_consts(mtl4, marker) {
+        if cn in seen4 or cn in seen { continue }
+        seen4[cn] = "1"
+        body4 = body4 + "inline constexpr auto " + cn + " = ::MTL4::" + cn + ";\n"
+        n4 = n4 + 1
+    }
+}
+
+let head = "#pragma once\n\n"
+head = head + "// GENERATED by tools/metal-gen/generate.purr from the metal-cpp headers — DO NOT EDIT.\n"
+head = head + "// Regenerated at release time (tools/metal-gen/regenerate.sh).\n\n"
+head = head + "/**\n * @file types.hpp\n"
+head = head + " * @brief gpu.metal — the `mtl.<Name>` cheatah interface to Apple's Metal API (via metal-cpp).\n *\n"
+head = head + " * `using` aliases for every Metal/Foundation class, enum and constant in `cheatah::gpu::metal`,\n"
+head = head + " * so `import gpu.metal as mtl` lets a cheatah program call Metal the SAME way it calls Vulkan:\n"
+head = head + " * `mtl.CreateSystemDefaultDevice()`, `mtl.Device`, `mtl.Buffer`, `mtl.ResourceStorageModeShared`.\n"
+head = head + " * The raw `MTL::` / `NS::` names remain usable in cpp{} escape hatches.\n */\n\n"
+head = head + "#include \"metal.hpp\"\n\n"
+
+let block = "namespace cheatah::gpu::metal {\n\n" + body + "\n}  // namespace cheatah::gpu::metal\n\n"
+block = block + "// Metal 4 (`import gpu.metal4 as mtl4`) — the next-generation surface; its names overlap Metal 3's,\n"
+block = block + "// so it lives in a parallel namespace.\n"
+block = block + "namespace cheatah::gpu::metal4 {\n\n" + body4 + "\n}  // namespace cheatah::gpu::metal4\n"
+
+let f = io.open(OUT, "w")
+f.write(head + block)
+f.close()
+
+let sj = "{\n  \"module\": \"gpu.metal\",\n  \"symbols\": {\n" + string.join(",\n", entries) + "\n  }\n}\n"
+let sf = io.open(SYMS, "w")
+sf.write(sj)
+sf.close()
+
+io.print("metal-gen: gpu.metal —", n_class, "classes,", n_enum, "enums,", n_const, "constants;  gpu.metal4 —", n4, "symbols ->", OUT)
+io.print("metal-gen: emitted", len(entries), "IDE symbols ->", SYMS)

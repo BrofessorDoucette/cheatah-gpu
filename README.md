@@ -4,7 +4,7 @@
 > One shared interface over the native GPU APIs — **Vulkan** and **Metal** — so you can start doing
 > things with your GPU, for *any* reason, without the usual bring-up pain.
 
-**Version: `v0.3.0-prealpha`** &nbsp;·&nbsp; 🚧 early, pre-alpha work in progress.
+**Version: `v0.4.0-prealpha`** &nbsp;·&nbsp; 🚧 early, pre-alpha work in progress.
 
 The compute-dimensioning core and the compile-time backend-selection layer are working and fully
 tested. The full Vulkan surface is generated (in cheatah) from the registry and committed under

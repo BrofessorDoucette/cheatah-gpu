@@ -40,8 +40,12 @@
 #    include "vulkan/commands.hpp"
 #  endif
 #endif
+// Pull in the native Metal surface — every `mtl.<Name>` alias (mtl.Device, mtl.Buffer, …) — when
+// metal-cpp is available, so `import gpu.metal as mtl` just works (call Metal the same way as Vulkan).
 #ifdef CHEATAH_GPU_BACKEND_METAL
-// #include "metal/commands.hpp"  // the native Metal surface, when generated
+#  if __has_include(<Metal/Metal.hpp>)
+#    include "metal/types.hpp"
+#  endif
 #endif
 
 namespace cheatah::gpu {}

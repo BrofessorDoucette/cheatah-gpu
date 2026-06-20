@@ -5,12 +5,15 @@
 // -> library -> function -> pipeline -> queue -> command buffer -> compute encoder -> setBuffer ->
 // dispatchThreads -> commit -> read contents() — and the results are checked bit-for-bit. Two kernels
 // (add, multiply) give "a couple" of real-hardware checks. Leak-clean: everything owned is released.
-#include <Foundation/Foundation.hpp>
-#include <Metal/Metal.hpp>
+// Drive Metal through the cheatah-facing facade (cheatah::gpu::metal, the `mtl.*` surface) — the exact
+// parallel to the Vulkan systest using vk.* — so the generated surface is exercised end-to-end.
+#include "gpu/metal/types.hpp"
 
 #include <cstdint>
 #include <cstdio>
 #include <vector>
+
+namespace mtl = cheatah::gpu::metal;
 
 #ifndef __APPLE__
 #  include "gpu/metal/emulated/emulated.hpp"
@@ -46,26 +49,26 @@ static void mul_arrays(void** b, unsigned n, unsigned long w) {
 #endif
 
 // Run one named kernel of the library over A,B -> C and check against `expect(a,b)`.
-static bool run_kernel(MTL::Device* dev, MTL::Library* lib, MTL::CommandQueue* queue,
+static bool run_kernel(mtl::Device* dev, mtl::Library* lib, mtl::CommandQueue* queue,
                        const char* name, float (*expect)(float, float)) {
     const std::uint32_t N = 8;
-    NS::Error* err = nullptr;
-    NS::String* fname = NS::String::string(name, NS::UTF8StringEncoding);
-    MTL::Function* fn = lib->newFunction(fname);
-    MTL::ComputePipelineState* pso = dev->newComputePipelineState(fn, &err);
+    mtl::Error* err = nullptr;
+    mtl::String* fname = mtl::String::string(name, mtl::UTF8StringEncoding);
+    mtl::Function* fn = lib->newFunction(fname);
+    mtl::ComputePipelineState* pso = dev->newComputePipelineState(fn, &err);
 
-    MTL::Buffer* ba = dev->newBuffer(N * sizeof(float), MTL::ResourceStorageModeShared);
-    MTL::Buffer* bb = dev->newBuffer(N * sizeof(float), MTL::ResourceStorageModeShared);
-    MTL::Buffer* bc = dev->newBuffer(N * sizeof(float), MTL::ResourceStorageModeShared);
+    mtl::Buffer* ba = dev->newBuffer(N * sizeof(float), mtl::ResourceStorageModeShared);
+    mtl::Buffer* bb = dev->newBuffer(N * sizeof(float), mtl::ResourceStorageModeShared);
+    mtl::Buffer* bc = dev->newBuffer(N * sizeof(float), mtl::ResourceStorageModeShared);
     auto* A = static_cast<float*>(ba->contents());
     auto* B = static_cast<float*>(bb->contents());
     for (std::uint32_t i = 0; i < N; ++i) { A[i] = float(i) + 1.0f; B[i] = float(i) * 3.0f; }
 
-    MTL::CommandBuffer* cb = queue->commandBuffer();
-    MTL::ComputeCommandEncoder* enc = cb->computeCommandEncoder();
+    mtl::CommandBuffer* cb = queue->commandBuffer();
+    mtl::ComputeCommandEncoder* enc = cb->computeCommandEncoder();
     enc->setComputePipelineState(pso);
     enc->setBuffer(ba, 0, 0); enc->setBuffer(bb, 0, 1); enc->setBuffer(bc, 0, 2);
-    enc->dispatchThreads(MTL::Size(N, 1, 1), MTL::Size(N, 1, 1));
+    enc->dispatchThreads(mtl::Size(N, 1, 1), mtl::Size(N, 1, 1));
     enc->endEncoding();
     cb->commit();
     cb->waitUntilCompleted();
@@ -97,13 +100,13 @@ int main() {
 #endif
     bool ok = true;
     {
-        NS::AutoreleasePool* pool = NS::AutoreleasePool::alloc()->init();
-        MTL::Device* dev = MTL::CreateSystemDefaultDevice();
+        mtl::AutoreleasePool* pool = mtl::AutoreleasePool::alloc()->init();
+        mtl::Device* dev = mtl::CreateSystemDefaultDevice();
         if (!dev) { std::printf("RESULT: FAIL (no Metal device)\n"); return 1; }
-        MTL::CommandQueue* queue = dev->newCommandQueue();
-        NS::Error* err = nullptr;
-        NS::String* src = NS::String::string(kSource, NS::UTF8StringEncoding);
-        MTL::Library* lib = dev->newLibrary(src, static_cast<const MTL::CompileOptions*>(nullptr), &err);
+        mtl::CommandQueue* queue = dev->newCommandQueue();
+        mtl::Error* err = nullptr;
+        mtl::String* src = mtl::String::string(kSource, mtl::UTF8StringEncoding);
+        mtl::Library* lib = dev->newLibrary(src, static_cast<const mtl::CompileOptions*>(nullptr), &err);
         if (!lib) { std::printf("RESULT: FAIL (library did not compile)\n"); return 1; }
 
         ok &= run_kernel(dev, lib, queue, "add_arrays", &add);
