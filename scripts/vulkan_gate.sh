@@ -16,12 +16,14 @@ cd "$(git rev-parse --show-toplevel)"
 bold() { printf '\n\033[1m[vulkan-gate] %s\033[0m\n' "$*"; }
 fail() { printf '\n\033[31m[vulkan-gate] FAILED: %s\033[0m\n' "$*"; exit 1; }
 
-# 1. Coverage: one generated test per forwarder ---------------------------------------------------
-fwd=$(grep -c '^inline ' gpu/vulkan/commands.hpp)
-chk=$(grep -c 'check(d,' tests/vulkan/generated_presence_checks.cpp)
-[ "$fwd" -gt 0 ] || fail "no forwarders in gpu/vulkan/commands.hpp — run the generator"
-[ "$fwd" = "$chk" ] || fail "coverage gap: $fwd forwarders but $chk generated tests — regenerate"
-bold "Coverage: 100% — $chk generated presence tests for $fwd forwarders."
+# 1. Coverage: one generated TEST_F per command ---------------------------------------------------
+# Count COMMANDS by the exact forwarder's doc marker (each command also has a cheatah-friendly
+# overload, so `^inline` lines are ~2x), and tests by the per-command TEST_F.
+cmds=$(grep -c 'Inline forwarder for' gpu/vulkan/commands.hpp)
+chk=$(grep -c 'TEST_F(VulkanPresence' tests/vulkan/generated_presence_checks.cpp)
+[ "$cmds" -gt 0 ] || fail "no forwarders in gpu/vulkan/commands.hpp — run the generator"
+[ "$cmds" = "$chk" ] || fail "coverage gap: $cmds commands but $chk generated tests — regenerate"
+bold "Coverage: 100% — $chk generated presence tests for $cmds commands."
 
 # 2/3. Build + run the Vulkan tests on every device -----------------------------------------------
 bold "Configuring + building the Vulkan tests (fetches volk; auto-finds newest SDK)…"

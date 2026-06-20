@@ -41,6 +41,14 @@ inline void DestroyInstance(VkInstance instance, const VkAllocationCallbacks* pA
 }
 
 /**
+ * cheatah-friendly overload of `DestroyInstance`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void DestroyInstance(long long instance, const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroyInstance((VkInstance)(instance), pAllocator);
+}
+
+/**
  * Inline forwarder for
  * [`vkEnumeratePhysicalDevices`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkEnumeratePhysicalDevices.html)
  * — the real Vulkan call via volk.
@@ -49,6 +57,17 @@ inline VkResult EnumeratePhysicalDevices(VkInstance instance,
                                          uint32_t* pPhysicalDeviceCount,
                                          VkPhysicalDevice* pPhysicalDevices) {
     return ::vkEnumeratePhysicalDevices(instance, pPhysicalDeviceCount, pPhysicalDevices);
+}
+
+/**
+ * cheatah-friendly overload of `EnumeratePhysicalDevices`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult EnumeratePhysicalDevices(long long instance,
+                                         uint32_t* pPhysicalDeviceCount,
+                                         VkPhysicalDevice* pPhysicalDevices) {
+    return ::vkEnumeratePhysicalDevices((VkInstance)(instance), pPhysicalDeviceCount,
+                                        pPhysicalDevices);
 }
 
 /**
@@ -62,6 +81,15 @@ inline void GetPhysicalDeviceFeatures(VkPhysicalDevice physicalDevice,
 }
 
 /**
+ * cheatah-friendly overload of `GetPhysicalDeviceFeatures`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetPhysicalDeviceFeatures(long long physicalDevice,
+                                      VkPhysicalDeviceFeatures* pFeatures) {
+    ::vkGetPhysicalDeviceFeatures((VkPhysicalDevice)(physicalDevice), pFeatures);
+}
+
+/**
  * Inline forwarder for
  * [`vkGetPhysicalDeviceFormatProperties`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetPhysicalDeviceFormatProperties.html)
  * — the real Vulkan call via volk.
@@ -70,6 +98,17 @@ inline void GetPhysicalDeviceFormatProperties(VkPhysicalDevice physicalDevice,
                                               VkFormat format,
                                               VkFormatProperties* pFormatProperties) {
     ::vkGetPhysicalDeviceFormatProperties(physicalDevice, format, pFormatProperties);
+}
+
+/**
+ * cheatah-friendly overload of `GetPhysicalDeviceFormatProperties`: pass plain ints/floats; the
+ * exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetPhysicalDeviceFormatProperties(long long physicalDevice,
+                                              long long format,
+                                              VkFormatProperties* pFormatProperties) {
+    ::vkGetPhysicalDeviceFormatProperties((VkPhysicalDevice)(physicalDevice), (VkFormat)(format),
+                                          pFormatProperties);
 }
 
 /**
@@ -90,6 +129,24 @@ GetPhysicalDeviceImageFormatProperties(VkPhysicalDevice physicalDevice,
 }
 
 /**
+ * cheatah-friendly overload of `GetPhysicalDeviceImageFormatProperties`: pass plain ints/floats;
+ * the exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult
+GetPhysicalDeviceImageFormatProperties(long long physicalDevice,
+                                       long long format,
+                                       long long type,
+                                       long long tiling,
+                                       long long usage,
+                                       long long flags,
+                                       VkImageFormatProperties* pImageFormatProperties) {
+    return ::vkGetPhysicalDeviceImageFormatProperties(
+        (VkPhysicalDevice)(physicalDevice), (VkFormat)(format), (VkImageType)(type),
+        (VkImageTiling)(tiling), (VkImageUsageFlags)(usage), (VkImageCreateFlags)(flags),
+        pImageFormatProperties);
+}
+
+/**
  * Inline forwarder for
  * [`vkGetPhysicalDeviceProperties`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetPhysicalDeviceProperties.html)
  * — the real Vulkan call via volk.
@@ -97,6 +154,15 @@ GetPhysicalDeviceImageFormatProperties(VkPhysicalDevice physicalDevice,
 inline void GetPhysicalDeviceProperties(VkPhysicalDevice physicalDevice,
                                         VkPhysicalDeviceProperties* pProperties) {
     ::vkGetPhysicalDeviceProperties(physicalDevice, pProperties);
+}
+
+/**
+ * cheatah-friendly overload of `GetPhysicalDeviceProperties`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetPhysicalDeviceProperties(long long physicalDevice,
+                                        VkPhysicalDeviceProperties* pProperties) {
+    ::vkGetPhysicalDeviceProperties((VkPhysicalDevice)(physicalDevice), pProperties);
 }
 
 /**
@@ -113,6 +179,18 @@ GetPhysicalDeviceQueueFamilyProperties(VkPhysicalDevice physicalDevice,
 }
 
 /**
+ * cheatah-friendly overload of `GetPhysicalDeviceQueueFamilyProperties`: pass plain ints/floats;
+ * the exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+GetPhysicalDeviceQueueFamilyProperties(long long physicalDevice,
+                                       uint32_t* pQueueFamilyPropertyCount,
+                                       VkQueueFamilyProperties* pQueueFamilyProperties) {
+    ::vkGetPhysicalDeviceQueueFamilyProperties((VkPhysicalDevice)(physicalDevice),
+                                               pQueueFamilyPropertyCount, pQueueFamilyProperties);
+}
+
+/**
  * Inline forwarder for
  * [`vkGetPhysicalDeviceMemoryProperties`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetPhysicalDeviceMemoryProperties.html)
  * — the real Vulkan call via volk.
@@ -120,6 +198,15 @@ GetPhysicalDeviceQueueFamilyProperties(VkPhysicalDevice physicalDevice,
 inline void GetPhysicalDeviceMemoryProperties(VkPhysicalDevice physicalDevice,
                                               VkPhysicalDeviceMemoryProperties* pMemoryProperties) {
     ::vkGetPhysicalDeviceMemoryProperties(physicalDevice, pMemoryProperties);
+}
+
+/**
+ * cheatah-friendly overload of `GetPhysicalDeviceMemoryProperties`: pass plain ints/floats; the
+ * exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetPhysicalDeviceMemoryProperties(long long physicalDevice,
+                                              VkPhysicalDeviceMemoryProperties* pMemoryProperties) {
+    ::vkGetPhysicalDeviceMemoryProperties((VkPhysicalDevice)(physicalDevice), pMemoryProperties);
 }
 
 /**
@@ -132,12 +219,28 @@ inline PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* p
 }
 
 /**
+ * cheatah-friendly overload of `GetInstanceProcAddr`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline PFN_vkVoidFunction GetInstanceProcAddr(long long instance, const char* pName) {
+    return ::vkGetInstanceProcAddr((VkInstance)(instance), pName);
+}
+
+/**
  * Inline forwarder for
  * [`vkGetDeviceProcAddr`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetDeviceProcAddr.html)
  * — the real Vulkan call via volk.
  */
 inline PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* pName) {
     return ::vkGetDeviceProcAddr(device, pName);
+}
+
+/**
+ * cheatah-friendly overload of `GetDeviceProcAddr`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline PFN_vkVoidFunction GetDeviceProcAddr(long long device, const char* pName) {
+    return ::vkGetDeviceProcAddr((VkDevice)(device), pName);
 }
 
 /**
@@ -154,12 +257,31 @@ inline VkResult CreateDevice(VkPhysicalDevice physicalDevice,
 }
 
 /**
+ * cheatah-friendly overload of `CreateDevice`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreateDevice(long long physicalDevice,
+                             const VkDeviceCreateInfo* pCreateInfo,
+                             const VkAllocationCallbacks* pAllocator,
+                             VkDevice* pDevice) {
+    return ::vkCreateDevice((VkPhysicalDevice)(physicalDevice), pCreateInfo, pAllocator, pDevice);
+}
+
+/**
  * Inline forwarder for
  * [`vkDestroyDevice`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroyDevice.html)
  * — the real Vulkan call via volk.
  */
 inline void DestroyDevice(VkDevice device, const VkAllocationCallbacks* pAllocator) {
     ::vkDestroyDevice(device, pAllocator);
+}
+
+/**
+ * cheatah-friendly overload of `DestroyDevice`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void DestroyDevice(long long device, const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroyDevice((VkDevice)(device), pAllocator);
 }
 
 /**
@@ -187,6 +309,18 @@ inline VkResult EnumerateDeviceExtensionProperties(VkPhysicalDevice physicalDevi
 }
 
 /**
+ * cheatah-friendly overload of `EnumerateDeviceExtensionProperties`: pass plain ints/floats; the
+ * exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult EnumerateDeviceExtensionProperties(long long physicalDevice,
+                                                   const char* pLayerName,
+                                                   uint32_t* pPropertyCount,
+                                                   VkExtensionProperties* pProperties) {
+    return ::vkEnumerateDeviceExtensionProperties((VkPhysicalDevice)(physicalDevice), pLayerName,
+                                                  pPropertyCount, pProperties);
+}
+
+/**
  * Inline forwarder for
  * [`vkEnumerateInstanceLayerProperties`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkEnumerateInstanceLayerProperties.html)
  * — the real Vulkan call via volk.
@@ -208,6 +342,17 @@ inline VkResult EnumerateDeviceLayerProperties(VkPhysicalDevice physicalDevice,
 }
 
 /**
+ * cheatah-friendly overload of `EnumerateDeviceLayerProperties`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult EnumerateDeviceLayerProperties(long long physicalDevice,
+                                               uint32_t* pPropertyCount,
+                                               VkLayerProperties* pProperties) {
+    return ::vkEnumerateDeviceLayerProperties((VkPhysicalDevice)(physicalDevice), pPropertyCount,
+                                              pProperties);
+}
+
+/**
  * Inline forwarder for
  * [`vkGetDeviceQueue`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetDeviceQueue.html)
  * — the real Vulkan call via volk.
@@ -215,6 +360,18 @@ inline VkResult EnumerateDeviceLayerProperties(VkPhysicalDevice physicalDevice,
 inline void
 GetDeviceQueue(VkDevice device, uint32_t queueFamilyIndex, uint32_t queueIndex, VkQueue* pQueue) {
     ::vkGetDeviceQueue(device, queueFamilyIndex, queueIndex, pQueue);
+}
+
+/**
+ * cheatah-friendly overload of `GetDeviceQueue`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetDeviceQueue(long long device,
+                           long long queueFamilyIndex,
+                           long long queueIndex,
+                           VkQueue* pQueue) {
+    ::vkGetDeviceQueue((VkDevice)(device), (uint32_t)(queueFamilyIndex), (uint32_t)(queueIndex),
+                       pQueue);
 }
 
 /**
@@ -228,6 +385,15 @@ QueueSubmit(VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, V
 }
 
 /**
+ * cheatah-friendly overload of `QueueSubmit`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult
+QueueSubmit(long long queue, long long submitCount, const VkSubmitInfo* pSubmits, long long fence) {
+    return ::vkQueueSubmit((VkQueue)(queue), (uint32_t)(submitCount), pSubmits, (VkFence)(fence));
+}
+
+/**
  * Inline forwarder for
  * [`vkQueueWaitIdle`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkQueueWaitIdle.html)
  * — the real Vulkan call via volk.
@@ -235,11 +401,23 @@ QueueSubmit(VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, V
 inline VkResult QueueWaitIdle(VkQueue queue) { return ::vkQueueWaitIdle(queue); }
 
 /**
+ * cheatah-friendly overload of `QueueWaitIdle`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult QueueWaitIdle(long long queue) { return ::vkQueueWaitIdle((VkQueue)(queue)); }
+
+/**
  * Inline forwarder for
  * [`vkDeviceWaitIdle`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDeviceWaitIdle.html)
  * — the real Vulkan call via volk.
  */
 inline VkResult DeviceWaitIdle(VkDevice device) { return ::vkDeviceWaitIdle(device); }
+
+/**
+ * cheatah-friendly overload of `DeviceWaitIdle`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult DeviceWaitIdle(long long device) { return ::vkDeviceWaitIdle((VkDevice)(device)); }
 
 /**
  * Inline forwarder for
@@ -256,6 +434,17 @@ inline VkResult AllocateMemory(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `AllocateMemory`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult AllocateMemory(long long device,
+                               const VkMemoryAllocateInfo* pAllocateInfo,
+                               const VkAllocationCallbacks* pAllocator,
+                               VkDeviceMemory* pMemory) {
+    return ::vkAllocateMemory((VkDevice)(device), pAllocateInfo, pAllocator, pMemory);
+}
+
+/**
  * Inline forwarder for
  * [`vkFreeMemory`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkFreeMemory.html) —
  * the real Vulkan call via volk.
@@ -263,6 +452,15 @@ inline VkResult AllocateMemory(VkDevice device,
 inline void
 FreeMemory(VkDevice device, VkDeviceMemory memory, const VkAllocationCallbacks* pAllocator) {
     ::vkFreeMemory(device, memory, pAllocator);
+}
+
+/**
+ * cheatah-friendly overload of `FreeMemory`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+FreeMemory(long long device, long long memory, const VkAllocationCallbacks* pAllocator) {
+    ::vkFreeMemory((VkDevice)(device), (VkDeviceMemory)(memory), pAllocator);
 }
 
 /**
@@ -280,11 +478,33 @@ inline VkResult MapMemory(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `MapMemory`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult MapMemory(long long device,
+                          long long memory,
+                          long long offset,
+                          long long size,
+                          long long flags,
+                          void** ppData) {
+    return ::vkMapMemory((VkDevice)(device), (VkDeviceMemory)(memory), (VkDeviceSize)(offset),
+                         (VkDeviceSize)(size), (VkMemoryMapFlags)(flags), ppData);
+}
+
+/**
  * Inline forwarder for
  * [`vkUnmapMemory`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkUnmapMemory.html) —
  * the real Vulkan call via volk.
  */
 inline void UnmapMemory(VkDevice device, VkDeviceMemory memory) { ::vkUnmapMemory(device, memory); }
+
+/**
+ * cheatah-friendly overload of `UnmapMemory`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void UnmapMemory(long long device, long long memory) {
+    ::vkUnmapMemory((VkDevice)(device), (VkDeviceMemory)(memory));
+}
 
 /**
  * Inline forwarder for
@@ -295,6 +515,17 @@ inline VkResult FlushMappedMemoryRanges(VkDevice device,
                                         uint32_t memoryRangeCount,
                                         const VkMappedMemoryRange* pMemoryRanges) {
     return ::vkFlushMappedMemoryRanges(device, memoryRangeCount, pMemoryRanges);
+}
+
+/**
+ * cheatah-friendly overload of `FlushMappedMemoryRanges`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult FlushMappedMemoryRanges(long long device,
+                                        long long memoryRangeCount,
+                                        const VkMappedMemoryRange* pMemoryRanges) {
+    return ::vkFlushMappedMemoryRanges((VkDevice)(device), (uint32_t)(memoryRangeCount),
+                                       pMemoryRanges);
 }
 
 /**
@@ -309,6 +540,17 @@ inline VkResult InvalidateMappedMemoryRanges(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `InvalidateMappedMemoryRanges`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult InvalidateMappedMemoryRanges(long long device,
+                                             long long memoryRangeCount,
+                                             const VkMappedMemoryRange* pMemoryRanges) {
+    return ::vkInvalidateMappedMemoryRanges((VkDevice)(device), (uint32_t)(memoryRangeCount),
+                                            pMemoryRanges);
+}
+
+/**
  * Inline forwarder for
  * [`vkGetDeviceMemoryCommitment`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetDeviceMemoryCommitment.html)
  * — the real Vulkan call via volk.
@@ -317,6 +559,17 @@ inline void GetDeviceMemoryCommitment(VkDevice device,
                                       VkDeviceMemory memory,
                                       VkDeviceSize* pCommittedMemoryInBytes) {
     ::vkGetDeviceMemoryCommitment(device, memory, pCommittedMemoryInBytes);
+}
+
+/**
+ * cheatah-friendly overload of `GetDeviceMemoryCommitment`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetDeviceMemoryCommitment(long long device,
+                                      long long memory,
+                                      VkDeviceSize* pCommittedMemoryInBytes) {
+    ::vkGetDeviceMemoryCommitment((VkDevice)(device), (VkDeviceMemory)(memory),
+                                  pCommittedMemoryInBytes);
 }
 
 /**
@@ -332,6 +585,16 @@ inline VkResult BindBufferMemory(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `BindBufferMemory`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult
+BindBufferMemory(long long device, long long buffer, long long memory, long long memoryOffset) {
+    return ::vkBindBufferMemory((VkDevice)(device), (VkBuffer)(buffer), (VkDeviceMemory)(memory),
+                                (VkDeviceSize)(memoryOffset));
+}
+
+/**
  * Inline forwarder for
  * [`vkBindImageMemory`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkBindImageMemory.html)
  * — the real Vulkan call via volk.
@@ -339,6 +602,16 @@ inline VkResult BindBufferMemory(VkDevice device,
 inline VkResult
 BindImageMemory(VkDevice device, VkImage image, VkDeviceMemory memory, VkDeviceSize memoryOffset) {
     return ::vkBindImageMemory(device, image, memory, memoryOffset);
+}
+
+/**
+ * cheatah-friendly overload of `BindImageMemory`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult
+BindImageMemory(long long device, long long image, long long memory, long long memoryOffset) {
+    return ::vkBindImageMemory((VkDevice)(device), (VkImage)(image), (VkDeviceMemory)(memory),
+                               (VkDeviceSize)(memoryOffset));
 }
 
 /**
@@ -353,6 +626,16 @@ inline void GetBufferMemoryRequirements(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `GetBufferMemoryRequirements`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetBufferMemoryRequirements(long long device,
+                                        long long buffer,
+                                        VkMemoryRequirements* pMemoryRequirements) {
+    ::vkGetBufferMemoryRequirements((VkDevice)(device), (VkBuffer)(buffer), pMemoryRequirements);
+}
+
+/**
  * Inline forwarder for
  * [`vkGetImageMemoryRequirements`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetImageMemoryRequirements.html)
  * — the real Vulkan call via volk.
@@ -361,6 +644,16 @@ inline void GetImageMemoryRequirements(VkDevice device,
                                        VkImage image,
                                        VkMemoryRequirements* pMemoryRequirements) {
     ::vkGetImageMemoryRequirements(device, image, pMemoryRequirements);
+}
+
+/**
+ * cheatah-friendly overload of `GetImageMemoryRequirements`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetImageMemoryRequirements(long long device,
+                                       long long image,
+                                       VkMemoryRequirements* pMemoryRequirements) {
+    ::vkGetImageMemoryRequirements((VkDevice)(device), (VkImage)(image), pMemoryRequirements);
 }
 
 /**
@@ -375,6 +668,19 @@ GetImageSparseMemoryRequirements(VkDevice device,
                                  VkSparseImageMemoryRequirements* pSparseMemoryRequirements) {
     ::vkGetImageSparseMemoryRequirements(device, image, pSparseMemoryRequirementCount,
                                          pSparseMemoryRequirements);
+}
+
+/**
+ * cheatah-friendly overload of `GetImageSparseMemoryRequirements`: pass plain ints/floats; the
+ * exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+GetImageSparseMemoryRequirements(long long device,
+                                 long long image,
+                                 uint32_t* pSparseMemoryRequirementCount,
+                                 VkSparseImageMemoryRequirements* pSparseMemoryRequirements) {
+    ::vkGetImageSparseMemoryRequirements((VkDevice)(device), (VkImage)(image),
+                                         pSparseMemoryRequirementCount, pSparseMemoryRequirements);
 }
 
 /**
@@ -396,6 +702,26 @@ GetPhysicalDeviceSparseImageFormatProperties(VkPhysicalDevice physicalDevice,
 }
 
 /**
+ * cheatah-friendly overload of `GetPhysicalDeviceSparseImageFormatProperties`: pass plain
+ * ints/floats; the exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for
+ * you.
+ */
+inline void
+GetPhysicalDeviceSparseImageFormatProperties(long long physicalDevice,
+                                             long long format,
+                                             long long type,
+                                             long long samples,
+                                             long long usage,
+                                             long long tiling,
+                                             uint32_t* pPropertyCount,
+                                             VkSparseImageFormatProperties* pProperties) {
+    ::vkGetPhysicalDeviceSparseImageFormatProperties(
+        (VkPhysicalDevice)(physicalDevice), (VkFormat)(format), (VkImageType)(type),
+        (VkSampleCountFlagBits)(samples), (VkImageUsageFlags)(usage), (VkImageTiling)(tiling),
+        pPropertyCount, pProperties);
+}
+
+/**
  * Inline forwarder for
  * [`vkQueueBindSparse`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkQueueBindSparse.html)
  * — the real Vulkan call via volk.
@@ -405,6 +731,18 @@ inline VkResult QueueBindSparse(VkQueue queue,
                                 const VkBindSparseInfo* pBindInfo,
                                 VkFence fence) {
     return ::vkQueueBindSparse(queue, bindInfoCount, pBindInfo, fence);
+}
+
+/**
+ * cheatah-friendly overload of `QueueBindSparse`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult QueueBindSparse(long long queue,
+                                long long bindInfoCount,
+                                const VkBindSparseInfo* pBindInfo,
+                                long long fence) {
+    return ::vkQueueBindSparse((VkQueue)(queue), (uint32_t)(bindInfoCount), pBindInfo,
+                               (VkFence)(fence));
 }
 
 /**
@@ -421,12 +759,32 @@ inline VkResult CreateFence(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CreateFence`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreateFence(long long device,
+                            const VkFenceCreateInfo* pCreateInfo,
+                            const VkAllocationCallbacks* pAllocator,
+                            VkFence* pFence) {
+    return ::vkCreateFence((VkDevice)(device), pCreateInfo, pAllocator, pFence);
+}
+
+/**
  * Inline forwarder for
  * [`vkDestroyFence`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroyFence.html)
  * — the real Vulkan call via volk.
  */
 inline void DestroyFence(VkDevice device, VkFence fence, const VkAllocationCallbacks* pAllocator) {
     ::vkDestroyFence(device, fence, pAllocator);
+}
+
+/**
+ * cheatah-friendly overload of `DestroyFence`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+DestroyFence(long long device, long long fence, const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroyFence((VkDevice)(device), (VkFence)(fence), pAllocator);
 }
 
 /**
@@ -439,12 +797,28 @@ inline VkResult ResetFences(VkDevice device, uint32_t fenceCount, const VkFence*
 }
 
 /**
+ * cheatah-friendly overload of `ResetFences`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult ResetFences(long long device, long long fenceCount, const VkFence* pFences) {
+    return ::vkResetFences((VkDevice)(device), (uint32_t)(fenceCount), pFences);
+}
+
+/**
  * Inline forwarder for
  * [`vkGetFenceStatus`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetFenceStatus.html)
  * — the real Vulkan call via volk.
  */
 inline VkResult GetFenceStatus(VkDevice device, VkFence fence) {
     return ::vkGetFenceStatus(device, fence);
+}
+
+/**
+ * cheatah-friendly overload of `GetFenceStatus`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult GetFenceStatus(long long device, long long fence) {
+    return ::vkGetFenceStatus((VkDevice)(device), (VkFence)(fence));
 }
 
 /**
@@ -461,6 +835,19 @@ inline VkResult WaitForFences(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `WaitForFences`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult WaitForFences(long long device,
+                              long long fenceCount,
+                              const VkFence* pFences,
+                              long long waitAll,
+                              long long timeout) {
+    return ::vkWaitForFences((VkDevice)(device), (uint32_t)(fenceCount), pFences,
+                             (VkBool32)(waitAll), (uint64_t)(timeout));
+}
+
+/**
  * Inline forwarder for
  * [`vkCreateSemaphore`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCreateSemaphore.html)
  * — the real Vulkan call via volk.
@@ -474,6 +861,17 @@ inline VkResult CreateSemaphore(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CreateSemaphore`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreateSemaphore(long long device,
+                                const VkSemaphoreCreateInfo* pCreateInfo,
+                                const VkAllocationCallbacks* pAllocator,
+                                VkSemaphore* pSemaphore) {
+    return ::vkCreateSemaphore((VkDevice)(device), pCreateInfo, pAllocator, pSemaphore);
+}
+
+/**
  * Inline forwarder for
  * [`vkDestroySemaphore`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroySemaphore.html)
  * — the real Vulkan call via volk.
@@ -481,6 +879,15 @@ inline VkResult CreateSemaphore(VkDevice device,
 inline void
 DestroySemaphore(VkDevice device, VkSemaphore semaphore, const VkAllocationCallbacks* pAllocator) {
     ::vkDestroySemaphore(device, semaphore, pAllocator);
+}
+
+/**
+ * cheatah-friendly overload of `DestroySemaphore`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+DestroySemaphore(long long device, long long semaphore, const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroySemaphore((VkDevice)(device), (VkSemaphore)(semaphore), pAllocator);
 }
 
 /**
@@ -497,6 +904,17 @@ inline VkResult CreateQueryPool(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CreateQueryPool`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreateQueryPool(long long device,
+                                const VkQueryPoolCreateInfo* pCreateInfo,
+                                const VkAllocationCallbacks* pAllocator,
+                                VkQueryPool* pQueryPool) {
+    return ::vkCreateQueryPool((VkDevice)(device), pCreateInfo, pAllocator, pQueryPool);
+}
+
+/**
  * Inline forwarder for
  * [`vkDestroyQueryPool`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroyQueryPool.html)
  * — the real Vulkan call via volk.
@@ -504,6 +922,15 @@ inline VkResult CreateQueryPool(VkDevice device,
 inline void
 DestroyQueryPool(VkDevice device, VkQueryPool queryPool, const VkAllocationCallbacks* pAllocator) {
     ::vkDestroyQueryPool(device, queryPool, pAllocator);
+}
+
+/**
+ * cheatah-friendly overload of `DestroyQueryPool`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+DestroyQueryPool(long long device, long long queryPool, const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroyQueryPool((VkDevice)(device), (VkQueryPool)(queryPool), pAllocator);
 }
 
 /**
@@ -524,6 +951,24 @@ inline VkResult GetQueryPoolResults(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `GetQueryPoolResults`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult GetQueryPoolResults(long long device,
+                                    long long queryPool,
+                                    long long firstQuery,
+                                    long long queryCount,
+                                    long long dataSize,
+                                    void* pData,
+                                    long long stride,
+                                    long long flags) {
+    return ::vkGetQueryPoolResults((VkDevice)(device), (VkQueryPool)(queryPool),
+                                   (uint32_t)(firstQuery), (uint32_t)(queryCount),
+                                   (size_t)(dataSize), pData, (VkDeviceSize)(stride),
+                                   (VkQueryResultFlags)(flags));
+}
+
+/**
  * Inline forwarder for
  * [`vkCreateBuffer`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCreateBuffer.html)
  * — the real Vulkan call via volk.
@@ -537,6 +982,17 @@ inline VkResult CreateBuffer(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CreateBuffer`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreateBuffer(long long device,
+                             const VkBufferCreateInfo* pCreateInfo,
+                             const VkAllocationCallbacks* pAllocator,
+                             VkBuffer* pBuffer) {
+    return ::vkCreateBuffer((VkDevice)(device), pCreateInfo, pAllocator, pBuffer);
+}
+
+/**
  * Inline forwarder for
  * [`vkDestroyBuffer`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroyBuffer.html)
  * — the real Vulkan call via volk.
@@ -544,6 +1000,15 @@ inline VkResult CreateBuffer(VkDevice device,
 inline void
 DestroyBuffer(VkDevice device, VkBuffer buffer, const VkAllocationCallbacks* pAllocator) {
     ::vkDestroyBuffer(device, buffer, pAllocator);
+}
+
+/**
+ * cheatah-friendly overload of `DestroyBuffer`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+DestroyBuffer(long long device, long long buffer, const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroyBuffer((VkDevice)(device), (VkBuffer)(buffer), pAllocator);
 }
 
 /**
@@ -560,12 +1025,32 @@ inline VkResult CreateImage(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CreateImage`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreateImage(long long device,
+                            const VkImageCreateInfo* pCreateInfo,
+                            const VkAllocationCallbacks* pAllocator,
+                            VkImage* pImage) {
+    return ::vkCreateImage((VkDevice)(device), pCreateInfo, pAllocator, pImage);
+}
+
+/**
  * Inline forwarder for
  * [`vkDestroyImage`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroyImage.html)
  * — the real Vulkan call via volk.
  */
 inline void DestroyImage(VkDevice device, VkImage image, const VkAllocationCallbacks* pAllocator) {
     ::vkDestroyImage(device, image, pAllocator);
+}
+
+/**
+ * cheatah-friendly overload of `DestroyImage`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+DestroyImage(long long device, long long image, const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroyImage((VkDevice)(device), (VkImage)(image), pAllocator);
 }
 
 /**
@@ -578,6 +1063,17 @@ inline void GetImageSubresourceLayout(VkDevice device,
                                       const VkImageSubresource* pSubresource,
                                       VkSubresourceLayout* pLayout) {
     ::vkGetImageSubresourceLayout(device, image, pSubresource, pLayout);
+}
+
+/**
+ * cheatah-friendly overload of `GetImageSubresourceLayout`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetImageSubresourceLayout(long long device,
+                                      long long image,
+                                      const VkImageSubresource* pSubresource,
+                                      VkSubresourceLayout* pLayout) {
+    ::vkGetImageSubresourceLayout((VkDevice)(device), (VkImage)(image), pSubresource, pLayout);
 }
 
 /**
@@ -594,6 +1090,17 @@ inline VkResult CreateImageView(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CreateImageView`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreateImageView(long long device,
+                                const VkImageViewCreateInfo* pCreateInfo,
+                                const VkAllocationCallbacks* pAllocator,
+                                VkImageView* pView) {
+    return ::vkCreateImageView((VkDevice)(device), pCreateInfo, pAllocator, pView);
+}
+
+/**
  * Inline forwarder for
  * [`vkDestroyImageView`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroyImageView.html)
  * — the real Vulkan call via volk.
@@ -601,6 +1108,15 @@ inline VkResult CreateImageView(VkDevice device,
 inline void
 DestroyImageView(VkDevice device, VkImageView imageView, const VkAllocationCallbacks* pAllocator) {
     ::vkDestroyImageView(device, imageView, pAllocator);
+}
+
+/**
+ * cheatah-friendly overload of `DestroyImageView`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+DestroyImageView(long long device, long long imageView, const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroyImageView((VkDevice)(device), (VkImageView)(imageView), pAllocator);
 }
 
 /**
@@ -617,6 +1133,17 @@ inline VkResult CreateCommandPool(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CreateCommandPool`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreateCommandPool(long long device,
+                                  const VkCommandPoolCreateInfo* pCreateInfo,
+                                  const VkAllocationCallbacks* pAllocator,
+                                  VkCommandPool* pCommandPool) {
+    return ::vkCreateCommandPool((VkDevice)(device), pCreateInfo, pAllocator, pCommandPool);
+}
+
+/**
  * Inline forwarder for
  * [`vkDestroyCommandPool`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroyCommandPool.html)
  * — the real Vulkan call via volk.
@@ -628,6 +1155,16 @@ inline void DestroyCommandPool(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `DestroyCommandPool`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void DestroyCommandPool(long long device,
+                               long long commandPool,
+                               const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroyCommandPool((VkDevice)(device), (VkCommandPool)(commandPool), pAllocator);
+}
+
+/**
  * Inline forwarder for
  * [`vkResetCommandPool`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkResetCommandPool.html)
  * — the real Vulkan call via volk.
@@ -635,6 +1172,15 @@ inline void DestroyCommandPool(VkDevice device,
 inline VkResult
 ResetCommandPool(VkDevice device, VkCommandPool commandPool, VkCommandPoolResetFlags flags) {
     return ::vkResetCommandPool(device, commandPool, flags);
+}
+
+/**
+ * cheatah-friendly overload of `ResetCommandPool`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult ResetCommandPool(long long device, long long commandPool, long long flags) {
+    return ::vkResetCommandPool((VkDevice)(device), (VkCommandPool)(commandPool),
+                                (VkCommandPoolResetFlags)(flags));
 }
 
 /**
@@ -650,6 +1196,16 @@ inline VkResult AllocateCommandBuffers(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `AllocateCommandBuffers`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult AllocateCommandBuffers(long long device,
+                                       const VkCommandBufferAllocateInfo* pAllocateInfo,
+                                       VkCommandBuffer* pCommandBuffers) {
+    return ::vkAllocateCommandBuffers((VkDevice)(device), pAllocateInfo, pCommandBuffers);
+}
+
+/**
  * Inline forwarder for
  * [`vkFreeCommandBuffers`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkFreeCommandBuffers.html)
  * — the real Vulkan call via volk.
@@ -659,6 +1215,18 @@ inline void FreeCommandBuffers(VkDevice device,
                                uint32_t commandBufferCount,
                                const VkCommandBuffer* pCommandBuffers) {
     ::vkFreeCommandBuffers(device, commandPool, commandBufferCount, pCommandBuffers);
+}
+
+/**
+ * cheatah-friendly overload of `FreeCommandBuffers`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void FreeCommandBuffers(long long device,
+                               long long commandPool,
+                               long long commandBufferCount,
+                               const VkCommandBuffer* pCommandBuffers) {
+    ::vkFreeCommandBuffers((VkDevice)(device), (VkCommandPool)(commandPool),
+                           (uint32_t)(commandBufferCount), pCommandBuffers);
 }
 
 /**
@@ -672,6 +1240,15 @@ inline VkResult BeginCommandBuffer(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `BeginCommandBuffer`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult BeginCommandBuffer(long long commandBuffer,
+                                   const VkCommandBufferBeginInfo* pBeginInfo) {
+    return ::vkBeginCommandBuffer((VkCommandBuffer)(commandBuffer), pBeginInfo);
+}
+
+/**
  * Inline forwarder for
  * [`vkEndCommandBuffer`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkEndCommandBuffer.html)
  * — the real Vulkan call via volk.
@@ -681,12 +1258,29 @@ inline VkResult EndCommandBuffer(VkCommandBuffer commandBuffer) {
 }
 
 /**
+ * cheatah-friendly overload of `EndCommandBuffer`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult EndCommandBuffer(long long commandBuffer) {
+    return ::vkEndCommandBuffer((VkCommandBuffer)(commandBuffer));
+}
+
+/**
  * Inline forwarder for
  * [`vkResetCommandBuffer`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkResetCommandBuffer.html)
  * — the real Vulkan call via volk.
  */
 inline VkResult ResetCommandBuffer(VkCommandBuffer commandBuffer, VkCommandBufferResetFlags flags) {
     return ::vkResetCommandBuffer(commandBuffer, flags);
+}
+
+/**
+ * cheatah-friendly overload of `ResetCommandBuffer`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult ResetCommandBuffer(long long commandBuffer, long long flags) {
+    return ::vkResetCommandBuffer((VkCommandBuffer)(commandBuffer),
+                                  (VkCommandBufferResetFlags)(flags));
 }
 
 /**
@@ -700,6 +1294,19 @@ inline void CmdCopyBuffer(VkCommandBuffer commandBuffer,
                           uint32_t regionCount,
                           const VkBufferCopy* pRegions) {
     ::vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, regionCount, pRegions);
+}
+
+/**
+ * cheatah-friendly overload of `CmdCopyBuffer`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdCopyBuffer(long long commandBuffer,
+                          long long srcBuffer,
+                          long long dstBuffer,
+                          long long regionCount,
+                          const VkBufferCopy* pRegions) {
+    ::vkCmdCopyBuffer((VkCommandBuffer)(commandBuffer), (VkBuffer)(srcBuffer),
+                      (VkBuffer)(dstBuffer), (uint32_t)(regionCount), pRegions);
 }
 
 /**
@@ -719,6 +1326,22 @@ inline void CmdCopyImage(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdCopyImage`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdCopyImage(long long commandBuffer,
+                         long long srcImage,
+                         long long srcImageLayout,
+                         long long dstImage,
+                         long long dstImageLayout,
+                         long long regionCount,
+                         const VkImageCopy* pRegions) {
+    ::vkCmdCopyImage((VkCommandBuffer)(commandBuffer), (VkImage)(srcImage),
+                     (VkImageLayout)(srcImageLayout), (VkImage)(dstImage),
+                     (VkImageLayout)(dstImageLayout), (uint32_t)(regionCount), pRegions);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdCopyBufferToImage`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdCopyBufferToImage.html)
  * — the real Vulkan call via volk.
@@ -731,6 +1354,21 @@ inline void CmdCopyBufferToImage(VkCommandBuffer commandBuffer,
                                  const VkBufferImageCopy* pRegions) {
     ::vkCmdCopyBufferToImage(commandBuffer, srcBuffer, dstImage, dstImageLayout, regionCount,
                              pRegions);
+}
+
+/**
+ * cheatah-friendly overload of `CmdCopyBufferToImage`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdCopyBufferToImage(long long commandBuffer,
+                                 long long srcBuffer,
+                                 long long dstImage,
+                                 long long dstImageLayout,
+                                 long long regionCount,
+                                 const VkBufferImageCopy* pRegions) {
+    ::vkCmdCopyBufferToImage((VkCommandBuffer)(commandBuffer), (VkBuffer)(srcBuffer),
+                             (VkImage)(dstImage), (VkImageLayout)(dstImageLayout),
+                             (uint32_t)(regionCount), pRegions);
 }
 
 /**
@@ -749,6 +1387,21 @@ inline void CmdCopyImageToBuffer(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdCopyImageToBuffer`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdCopyImageToBuffer(long long commandBuffer,
+                                 long long srcImage,
+                                 long long srcImageLayout,
+                                 long long dstBuffer,
+                                 long long regionCount,
+                                 const VkBufferImageCopy* pRegions) {
+    ::vkCmdCopyImageToBuffer((VkCommandBuffer)(commandBuffer), (VkImage)(srcImage),
+                             (VkImageLayout)(srcImageLayout), (VkBuffer)(dstBuffer),
+                             (uint32_t)(regionCount), pRegions);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdUpdateBuffer`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdUpdateBuffer.html)
  * — the real Vulkan call via volk.
@@ -762,6 +1415,19 @@ inline void CmdUpdateBuffer(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdUpdateBuffer`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdUpdateBuffer(long long commandBuffer,
+                            long long dstBuffer,
+                            long long dstOffset,
+                            long long dataSize,
+                            const void* pData) {
+    ::vkCmdUpdateBuffer((VkCommandBuffer)(commandBuffer), (VkBuffer)(dstBuffer),
+                        (VkDeviceSize)(dstOffset), (VkDeviceSize)(dataSize), pData);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdFillBuffer`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdFillBuffer.html)
  * — the real Vulkan call via volk.
@@ -772,6 +1438,19 @@ inline void CmdFillBuffer(VkCommandBuffer commandBuffer,
                           VkDeviceSize size,
                           uint32_t data) {
     ::vkCmdFillBuffer(commandBuffer, dstBuffer, dstOffset, size, data);
+}
+
+/**
+ * cheatah-friendly overload of `CmdFillBuffer`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdFillBuffer(long long commandBuffer,
+                          long long dstBuffer,
+                          long long dstOffset,
+                          long long size,
+                          long long data) {
+    ::vkCmdFillBuffer((VkCommandBuffer)(commandBuffer), (VkBuffer)(dstBuffer),
+                      (VkDeviceSize)(dstOffset), (VkDeviceSize)(size), (uint32_t)(data));
 }
 
 /**
@@ -795,6 +1474,27 @@ inline void CmdPipelineBarrier(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdPipelineBarrier`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdPipelineBarrier(long long commandBuffer,
+                               long long srcStageMask,
+                               long long dstStageMask,
+                               long long dependencyFlags,
+                               long long memoryBarrierCount,
+                               const VkMemoryBarrier* pMemoryBarriers,
+                               long long bufferMemoryBarrierCount,
+                               const VkBufferMemoryBarrier* pBufferMemoryBarriers,
+                               long long imageMemoryBarrierCount,
+                               const VkImageMemoryBarrier* pImageMemoryBarriers) {
+    ::vkCmdPipelineBarrier(
+        (VkCommandBuffer)(commandBuffer), (VkPipelineStageFlags)(srcStageMask),
+        (VkPipelineStageFlags)(dstStageMask), (VkDependencyFlags)(dependencyFlags),
+        (uint32_t)(memoryBarrierCount), pMemoryBarriers, (uint32_t)(bufferMemoryBarrierCount),
+        pBufferMemoryBarriers, (uint32_t)(imageMemoryBarrierCount), pImageMemoryBarriers);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdBeginQuery`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdBeginQuery.html)
  * — the real Vulkan call via volk.
@@ -807,12 +1507,30 @@ inline void CmdBeginQuery(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdBeginQuery`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+CmdBeginQuery(long long commandBuffer, long long queryPool, long long query, long long flags) {
+    ::vkCmdBeginQuery((VkCommandBuffer)(commandBuffer), (VkQueryPool)(queryPool), (uint32_t)(query),
+                      (VkQueryControlFlags)(flags));
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdEndQuery`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdEndQuery.html) —
  * the real Vulkan call via volk.
  */
 inline void CmdEndQuery(VkCommandBuffer commandBuffer, VkQueryPool queryPool, uint32_t query) {
     ::vkCmdEndQuery(commandBuffer, queryPool, query);
+}
+
+/**
+ * cheatah-friendly overload of `CmdEndQuery`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdEndQuery(long long commandBuffer, long long queryPool, long long query) {
+    ::vkCmdEndQuery((VkCommandBuffer)(commandBuffer), (VkQueryPool)(queryPool), (uint32_t)(query));
 }
 
 /**
@@ -828,6 +1546,18 @@ inline void CmdResetQueryPool(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdResetQueryPool`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdResetQueryPool(long long commandBuffer,
+                              long long queryPool,
+                              long long firstQuery,
+                              long long queryCount) {
+    ::vkCmdResetQueryPool((VkCommandBuffer)(commandBuffer), (VkQueryPool)(queryPool),
+                          (uint32_t)(firstQuery), (uint32_t)(queryCount));
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdWriteTimestamp`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdWriteTimestamp.html)
  * — the real Vulkan call via volk.
@@ -837,6 +1567,19 @@ inline void CmdWriteTimestamp(VkCommandBuffer commandBuffer,
                               VkQueryPool queryPool,
                               uint32_t query) {
     ::vkCmdWriteTimestamp(commandBuffer, pipelineStage, queryPool, query);
+}
+
+/**
+ * cheatah-friendly overload of `CmdWriteTimestamp`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdWriteTimestamp(long long commandBuffer,
+                              long long pipelineStage,
+                              long long queryPool,
+                              long long query) {
+    ::vkCmdWriteTimestamp((VkCommandBuffer)(commandBuffer),
+                          (VkPipelineStageFlagBits)(pipelineStage), (VkQueryPool)(queryPool),
+                          (uint32_t)(query));
 }
 
 /**
@@ -857,6 +1600,24 @@ inline void CmdCopyQueryPoolResults(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdCopyQueryPoolResults`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdCopyQueryPoolResults(long long commandBuffer,
+                                    long long queryPool,
+                                    long long firstQuery,
+                                    long long queryCount,
+                                    long long dstBuffer,
+                                    long long dstOffset,
+                                    long long stride,
+                                    long long flags) {
+    ::vkCmdCopyQueryPoolResults((VkCommandBuffer)(commandBuffer), (VkQueryPool)(queryPool),
+                                (uint32_t)(firstQuery), (uint32_t)(queryCount),
+                                (VkBuffer)(dstBuffer), (VkDeviceSize)(dstOffset),
+                                (VkDeviceSize)(stride), (VkQueryResultFlags)(flags));
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdExecuteCommands`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdExecuteCommands.html)
  * — the real Vulkan call via volk.
@@ -865,6 +1626,17 @@ inline void CmdExecuteCommands(VkCommandBuffer commandBuffer,
                                uint32_t commandBufferCount,
                                const VkCommandBuffer* pCommandBuffers) {
     ::vkCmdExecuteCommands(commandBuffer, commandBufferCount, pCommandBuffers);
+}
+
+/**
+ * cheatah-friendly overload of `CmdExecuteCommands`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdExecuteCommands(long long commandBuffer,
+                               long long commandBufferCount,
+                               const VkCommandBuffer* pCommandBuffers) {
+    ::vkCmdExecuteCommands((VkCommandBuffer)(commandBuffer), (uint32_t)(commandBufferCount),
+                           pCommandBuffers);
 }
 
 /**
@@ -881,12 +1653,32 @@ inline VkResult CreateEvent(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CreateEvent`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreateEvent(long long device,
+                            const VkEventCreateInfo* pCreateInfo,
+                            const VkAllocationCallbacks* pAllocator,
+                            VkEvent* pEvent) {
+    return ::vkCreateEvent((VkDevice)(device), pCreateInfo, pAllocator, pEvent);
+}
+
+/**
  * Inline forwarder for
  * [`vkDestroyEvent`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroyEvent.html)
  * — the real Vulkan call via volk.
  */
 inline void DestroyEvent(VkDevice device, VkEvent event, const VkAllocationCallbacks* pAllocator) {
     ::vkDestroyEvent(device, event, pAllocator);
+}
+
+/**
+ * cheatah-friendly overload of `DestroyEvent`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+DestroyEvent(long long device, long long event, const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroyEvent((VkDevice)(device), (VkEvent)(event), pAllocator);
 }
 
 /**
@@ -899,6 +1691,14 @@ inline VkResult GetEventStatus(VkDevice device, VkEvent event) {
 }
 
 /**
+ * cheatah-friendly overload of `GetEventStatus`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult GetEventStatus(long long device, long long event) {
+    return ::vkGetEventStatus((VkDevice)(device), (VkEvent)(event));
+}
+
+/**
  * Inline forwarder for
  * [`vkSetEvent`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkSetEvent.html) — the
  * real Vulkan call via volk.
@@ -906,11 +1706,27 @@ inline VkResult GetEventStatus(VkDevice device, VkEvent event) {
 inline VkResult SetEvent(VkDevice device, VkEvent event) { return ::vkSetEvent(device, event); }
 
 /**
+ * cheatah-friendly overload of `SetEvent`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult SetEvent(long long device, long long event) {
+    return ::vkSetEvent((VkDevice)(device), (VkEvent)(event));
+}
+
+/**
  * Inline forwarder for
  * [`vkResetEvent`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkResetEvent.html) —
  * the real Vulkan call via volk.
  */
 inline VkResult ResetEvent(VkDevice device, VkEvent event) { return ::vkResetEvent(device, event); }
+
+/**
+ * cheatah-friendly overload of `ResetEvent`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult ResetEvent(long long device, long long event) {
+    return ::vkResetEvent((VkDevice)(device), (VkEvent)(event));
+}
 
 /**
  * Inline forwarder for
@@ -926,6 +1742,17 @@ inline VkResult CreateBufferView(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CreateBufferView`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreateBufferView(long long device,
+                                 const VkBufferViewCreateInfo* pCreateInfo,
+                                 const VkAllocationCallbacks* pAllocator,
+                                 VkBufferView* pView) {
+    return ::vkCreateBufferView((VkDevice)(device), pCreateInfo, pAllocator, pView);
+}
+
+/**
  * Inline forwarder for
  * [`vkDestroyBufferView`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroyBufferView.html)
  * — the real Vulkan call via volk.
@@ -934,6 +1761,15 @@ inline void DestroyBufferView(VkDevice device,
                               VkBufferView bufferView,
                               const VkAllocationCallbacks* pAllocator) {
     ::vkDestroyBufferView(device, bufferView, pAllocator);
+}
+
+/**
+ * cheatah-friendly overload of `DestroyBufferView`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+DestroyBufferView(long long device, long long bufferView, const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroyBufferView((VkDevice)(device), (VkBufferView)(bufferView), pAllocator);
 }
 
 /**
@@ -950,6 +1786,17 @@ inline VkResult CreateShaderModule(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CreateShaderModule`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreateShaderModule(long long device,
+                                   const VkShaderModuleCreateInfo* pCreateInfo,
+                                   const VkAllocationCallbacks* pAllocator,
+                                   VkShaderModule* pShaderModule) {
+    return ::vkCreateShaderModule((VkDevice)(device), pCreateInfo, pAllocator, pShaderModule);
+}
+
+/**
  * Inline forwarder for
  * [`vkDestroyShaderModule`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroyShaderModule.html)
  * — the real Vulkan call via volk.
@@ -958,6 +1805,16 @@ inline void DestroyShaderModule(VkDevice device,
                                 VkShaderModule shaderModule,
                                 const VkAllocationCallbacks* pAllocator) {
     ::vkDestroyShaderModule(device, shaderModule, pAllocator);
+}
+
+/**
+ * cheatah-friendly overload of `DestroyShaderModule`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void DestroyShaderModule(long long device,
+                                long long shaderModule,
+                                const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroyShaderModule((VkDevice)(device), (VkShaderModule)(shaderModule), pAllocator);
 }
 
 /**
@@ -974,6 +1831,17 @@ inline VkResult CreatePipelineCache(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CreatePipelineCache`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreatePipelineCache(long long device,
+                                    const VkPipelineCacheCreateInfo* pCreateInfo,
+                                    const VkAllocationCallbacks* pAllocator,
+                                    VkPipelineCache* pPipelineCache) {
+    return ::vkCreatePipelineCache((VkDevice)(device), pCreateInfo, pAllocator, pPipelineCache);
+}
+
+/**
  * Inline forwarder for
  * [`vkDestroyPipelineCache`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroyPipelineCache.html)
  * — the real Vulkan call via volk.
@@ -982,6 +1850,16 @@ inline void DestroyPipelineCache(VkDevice device,
                                  VkPipelineCache pipelineCache,
                                  const VkAllocationCallbacks* pAllocator) {
     ::vkDestroyPipelineCache(device, pipelineCache, pAllocator);
+}
+
+/**
+ * cheatah-friendly overload of `DestroyPipelineCache`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void DestroyPipelineCache(long long device,
+                                 long long pipelineCache,
+                                 const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroyPipelineCache((VkDevice)(device), (VkPipelineCache)(pipelineCache), pAllocator);
 }
 
 /**
@@ -997,6 +1875,16 @@ inline VkResult GetPipelineCacheData(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `GetPipelineCacheData`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult
+GetPipelineCacheData(long long device, long long pipelineCache, size_t* pDataSize, void* pData) {
+    return ::vkGetPipelineCacheData((VkDevice)(device), (VkPipelineCache)(pipelineCache), pDataSize,
+                                    pData);
+}
+
+/**
  * Inline forwarder for
  * [`vkMergePipelineCaches`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkMergePipelineCaches.html)
  * — the real Vulkan call via volk.
@@ -1006,6 +1894,18 @@ inline VkResult MergePipelineCaches(VkDevice device,
                                     uint32_t srcCacheCount,
                                     const VkPipelineCache* pSrcCaches) {
     return ::vkMergePipelineCaches(device, dstCache, srcCacheCount, pSrcCaches);
+}
+
+/**
+ * cheatah-friendly overload of `MergePipelineCaches`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult MergePipelineCaches(long long device,
+                                    long long dstCache,
+                                    long long srcCacheCount,
+                                    const VkPipelineCache* pSrcCaches) {
+    return ::vkMergePipelineCaches((VkDevice)(device), (VkPipelineCache)(dstCache),
+                                   (uint32_t)(srcCacheCount), pSrcCaches);
 }
 
 /**
@@ -1024,6 +1924,21 @@ inline VkResult CreateComputePipelines(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CreateComputePipelines`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreateComputePipelines(long long device,
+                                       long long pipelineCache,
+                                       long long createInfoCount,
+                                       const VkComputePipelineCreateInfo* pCreateInfos,
+                                       const VkAllocationCallbacks* pAllocator,
+                                       VkPipeline* pPipelines) {
+    return ::vkCreateComputePipelines((VkDevice)(device), (VkPipelineCache)(pipelineCache),
+                                      (uint32_t)(createInfoCount), pCreateInfos, pAllocator,
+                                      pPipelines);
+}
+
+/**
  * Inline forwarder for
  * [`vkDestroyPipeline`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroyPipeline.html)
  * — the real Vulkan call via volk.
@@ -1031,6 +1946,15 @@ inline VkResult CreateComputePipelines(VkDevice device,
 inline void
 DestroyPipeline(VkDevice device, VkPipeline pipeline, const VkAllocationCallbacks* pAllocator) {
     ::vkDestroyPipeline(device, pipeline, pAllocator);
+}
+
+/**
+ * cheatah-friendly overload of `DestroyPipeline`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+DestroyPipeline(long long device, long long pipeline, const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroyPipeline((VkDevice)(device), (VkPipeline)(pipeline), pAllocator);
 }
 
 /**
@@ -1047,6 +1971,17 @@ inline VkResult CreatePipelineLayout(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CreatePipelineLayout`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreatePipelineLayout(long long device,
+                                     const VkPipelineLayoutCreateInfo* pCreateInfo,
+                                     const VkAllocationCallbacks* pAllocator,
+                                     VkPipelineLayout* pPipelineLayout) {
+    return ::vkCreatePipelineLayout((VkDevice)(device), pCreateInfo, pAllocator, pPipelineLayout);
+}
+
+/**
  * Inline forwarder for
  * [`vkDestroyPipelineLayout`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroyPipelineLayout.html)
  * — the real Vulkan call via volk.
@@ -1055,6 +1990,16 @@ inline void DestroyPipelineLayout(VkDevice device,
                                   VkPipelineLayout pipelineLayout,
                                   const VkAllocationCallbacks* pAllocator) {
     ::vkDestroyPipelineLayout(device, pipelineLayout, pAllocator);
+}
+
+/**
+ * cheatah-friendly overload of `DestroyPipelineLayout`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void DestroyPipelineLayout(long long device,
+                                  long long pipelineLayout,
+                                  const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroyPipelineLayout((VkDevice)(device), (VkPipelineLayout)(pipelineLayout), pAllocator);
 }
 
 /**
@@ -1071,6 +2016,17 @@ inline VkResult CreateSampler(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CreateSampler`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreateSampler(long long device,
+                              const VkSamplerCreateInfo* pCreateInfo,
+                              const VkAllocationCallbacks* pAllocator,
+                              VkSampler* pSampler) {
+    return ::vkCreateSampler((VkDevice)(device), pCreateInfo, pAllocator, pSampler);
+}
+
+/**
  * Inline forwarder for
  * [`vkDestroySampler`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroySampler.html)
  * — the real Vulkan call via volk.
@@ -1078,6 +2034,15 @@ inline VkResult CreateSampler(VkDevice device,
 inline void
 DestroySampler(VkDevice device, VkSampler sampler, const VkAllocationCallbacks* pAllocator) {
     ::vkDestroySampler(device, sampler, pAllocator);
+}
+
+/**
+ * cheatah-friendly overload of `DestroySampler`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+DestroySampler(long long device, long long sampler, const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroySampler((VkDevice)(device), (VkSampler)(sampler), pAllocator);
 }
 
 /**
@@ -1094,6 +2059,17 @@ inline VkResult CreateDescriptorSetLayout(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CreateDescriptorSetLayout`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreateDescriptorSetLayout(long long device,
+                                          const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
+                                          const VkAllocationCallbacks* pAllocator,
+                                          VkDescriptorSetLayout* pSetLayout) {
+    return ::vkCreateDescriptorSetLayout((VkDevice)(device), pCreateInfo, pAllocator, pSetLayout);
+}
+
+/**
  * Inline forwarder for
  * [`vkDestroyDescriptorSetLayout`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroyDescriptorSetLayout.html)
  * — the real Vulkan call via volk.
@@ -1102,6 +2078,17 @@ inline void DestroyDescriptorSetLayout(VkDevice device,
                                        VkDescriptorSetLayout descriptorSetLayout,
                                        const VkAllocationCallbacks* pAllocator) {
     ::vkDestroyDescriptorSetLayout(device, descriptorSetLayout, pAllocator);
+}
+
+/**
+ * cheatah-friendly overload of `DestroyDescriptorSetLayout`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void DestroyDescriptorSetLayout(long long device,
+                                       long long descriptorSetLayout,
+                                       const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroyDescriptorSetLayout((VkDevice)(device), (VkDescriptorSetLayout)(descriptorSetLayout),
+                                   pAllocator);
 }
 
 /**
@@ -1118,6 +2105,17 @@ inline VkResult CreateDescriptorPool(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CreateDescriptorPool`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreateDescriptorPool(long long device,
+                                     const VkDescriptorPoolCreateInfo* pCreateInfo,
+                                     const VkAllocationCallbacks* pAllocator,
+                                     VkDescriptorPool* pDescriptorPool) {
+    return ::vkCreateDescriptorPool((VkDevice)(device), pCreateInfo, pAllocator, pDescriptorPool);
+}
+
+/**
  * Inline forwarder for
  * [`vkDestroyDescriptorPool`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroyDescriptorPool.html)
  * — the real Vulkan call via volk.
@@ -1129,6 +2127,16 @@ inline void DestroyDescriptorPool(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `DestroyDescriptorPool`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void DestroyDescriptorPool(long long device,
+                                  long long descriptorPool,
+                                  const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroyDescriptorPool((VkDevice)(device), (VkDescriptorPool)(descriptorPool), pAllocator);
+}
+
+/**
  * Inline forwarder for
  * [`vkResetDescriptorPool`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkResetDescriptorPool.html)
  * — the real Vulkan call via volk.
@@ -1137,6 +2145,15 @@ inline VkResult ResetDescriptorPool(VkDevice device,
                                     VkDescriptorPool descriptorPool,
                                     VkDescriptorPoolResetFlags flags) {
     return ::vkResetDescriptorPool(device, descriptorPool, flags);
+}
+
+/**
+ * cheatah-friendly overload of `ResetDescriptorPool`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult ResetDescriptorPool(long long device, long long descriptorPool, long long flags) {
+    return ::vkResetDescriptorPool((VkDevice)(device), (VkDescriptorPool)(descriptorPool),
+                                   (VkDescriptorPoolResetFlags)(flags));
 }
 
 /**
@@ -1152,6 +2169,16 @@ inline VkResult AllocateDescriptorSets(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `AllocateDescriptorSets`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult AllocateDescriptorSets(long long device,
+                                       const VkDescriptorSetAllocateInfo* pAllocateInfo,
+                                       VkDescriptorSet* pDescriptorSets) {
+    return ::vkAllocateDescriptorSets((VkDevice)(device), pAllocateInfo, pDescriptorSets);
+}
+
+/**
  * Inline forwarder for
  * [`vkFreeDescriptorSets`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkFreeDescriptorSets.html)
  * — the real Vulkan call via volk.
@@ -1161,6 +2188,18 @@ inline VkResult FreeDescriptorSets(VkDevice device,
                                    uint32_t descriptorSetCount,
                                    const VkDescriptorSet* pDescriptorSets) {
     return ::vkFreeDescriptorSets(device, descriptorPool, descriptorSetCount, pDescriptorSets);
+}
+
+/**
+ * cheatah-friendly overload of `FreeDescriptorSets`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult FreeDescriptorSets(long long device,
+                                   long long descriptorPool,
+                                   long long descriptorSetCount,
+                                   const VkDescriptorSet* pDescriptorSets) {
+    return ::vkFreeDescriptorSets((VkDevice)(device), (VkDescriptorPool)(descriptorPool),
+                                  (uint32_t)(descriptorSetCount), pDescriptorSets);
 }
 
 /**
@@ -1178,6 +2217,19 @@ inline void UpdateDescriptorSets(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `UpdateDescriptorSets`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void UpdateDescriptorSets(long long device,
+                                 long long descriptorWriteCount,
+                                 const VkWriteDescriptorSet* pDescriptorWrites,
+                                 long long descriptorCopyCount,
+                                 const VkCopyDescriptorSet* pDescriptorCopies) {
+    ::vkUpdateDescriptorSets((VkDevice)(device), (uint32_t)(descriptorWriteCount),
+                             pDescriptorWrites, (uint32_t)(descriptorCopyCount), pDescriptorCopies);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdBindPipeline`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdBindPipeline.html)
  * — the real Vulkan call via volk.
@@ -1186,6 +2238,16 @@ inline void CmdBindPipeline(VkCommandBuffer commandBuffer,
                             VkPipelineBindPoint pipelineBindPoint,
                             VkPipeline pipeline) {
     ::vkCmdBindPipeline(commandBuffer, pipelineBindPoint, pipeline);
+}
+
+/**
+ * cheatah-friendly overload of `CmdBindPipeline`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+CmdBindPipeline(long long commandBuffer, long long pipelineBindPoint, long long pipeline) {
+    ::vkCmdBindPipeline((VkCommandBuffer)(commandBuffer), (VkPipelineBindPoint)(pipelineBindPoint),
+                        (VkPipeline)(pipeline));
 }
 
 /**
@@ -1207,6 +2269,24 @@ inline void CmdBindDescriptorSets(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdBindDescriptorSets`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdBindDescriptorSets(long long commandBuffer,
+                                  long long pipelineBindPoint,
+                                  long long layout,
+                                  long long firstSet,
+                                  long long descriptorSetCount,
+                                  const VkDescriptorSet* pDescriptorSets,
+                                  long long dynamicOffsetCount,
+                                  const uint32_t* pDynamicOffsets) {
+    ::vkCmdBindDescriptorSets((VkCommandBuffer)(commandBuffer),
+                              (VkPipelineBindPoint)(pipelineBindPoint), (VkPipelineLayout)(layout),
+                              (uint32_t)(firstSet), (uint32_t)(descriptorSetCount), pDescriptorSets,
+                              (uint32_t)(dynamicOffsetCount), pDynamicOffsets);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdClearColorImage`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdClearColorImage.html)
  * — the real Vulkan call via volk.
@@ -1218,6 +2298,20 @@ inline void CmdClearColorImage(VkCommandBuffer commandBuffer,
                                uint32_t rangeCount,
                                const VkImageSubresourceRange* pRanges) {
     ::vkCmdClearColorImage(commandBuffer, image, imageLayout, pColor, rangeCount, pRanges);
+}
+
+/**
+ * cheatah-friendly overload of `CmdClearColorImage`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdClearColorImage(long long commandBuffer,
+                               long long image,
+                               long long imageLayout,
+                               const VkClearColorValue* pColor,
+                               long long rangeCount,
+                               const VkImageSubresourceRange* pRanges) {
+    ::vkCmdClearColorImage((VkCommandBuffer)(commandBuffer), (VkImage)(image),
+                           (VkImageLayout)(imageLayout), pColor, (uint32_t)(rangeCount), pRanges);
 }
 
 /**
@@ -1233,6 +2327,18 @@ inline void CmdDispatch(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdDispatch`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdDispatch(long long commandBuffer,
+                        long long groupCountX,
+                        long long groupCountY,
+                        long long groupCountZ) {
+    ::vkCmdDispatch((VkCommandBuffer)(commandBuffer), (uint32_t)(groupCountX),
+                    (uint32_t)(groupCountY), (uint32_t)(groupCountZ));
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdDispatchIndirect`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdDispatchIndirect.html)
  * — the real Vulkan call via volk.
@@ -1240,6 +2346,15 @@ inline void CmdDispatch(VkCommandBuffer commandBuffer,
 inline void
 CmdDispatchIndirect(VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize offset) {
     ::vkCmdDispatchIndirect(commandBuffer, buffer, offset);
+}
+
+/**
+ * cheatah-friendly overload of `CmdDispatchIndirect`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdDispatchIndirect(long long commandBuffer, long long buffer, long long offset) {
+    ::vkCmdDispatchIndirect((VkCommandBuffer)(commandBuffer), (VkBuffer)(buffer),
+                            (VkDeviceSize)(offset));
 }
 
 /**
@@ -1253,6 +2368,15 @@ CmdSetEvent(VkCommandBuffer commandBuffer, VkEvent event, VkPipelineStageFlags s
 }
 
 /**
+ * cheatah-friendly overload of `CmdSetEvent`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdSetEvent(long long commandBuffer, long long event, long long stageMask) {
+    ::vkCmdSetEvent((VkCommandBuffer)(commandBuffer), (VkEvent)(event),
+                    (VkPipelineStageFlags)(stageMask));
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdResetEvent`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdResetEvent.html)
  * — the real Vulkan call via volk.
@@ -1260,6 +2384,15 @@ CmdSetEvent(VkCommandBuffer commandBuffer, VkEvent event, VkPipelineStageFlags s
 inline void
 CmdResetEvent(VkCommandBuffer commandBuffer, VkEvent event, VkPipelineStageFlags stageMask) {
     ::vkCmdResetEvent(commandBuffer, event, stageMask);
+}
+
+/**
+ * cheatah-friendly overload of `CmdResetEvent`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdResetEvent(long long commandBuffer, long long event, long long stageMask) {
+    ::vkCmdResetEvent((VkCommandBuffer)(commandBuffer), (VkEvent)(event),
+                      (VkPipelineStageFlags)(stageMask));
 }
 
 /**
@@ -1284,6 +2417,28 @@ inline void CmdWaitEvents(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdWaitEvents`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdWaitEvents(long long commandBuffer,
+                          long long eventCount,
+                          const VkEvent* pEvents,
+                          long long srcStageMask,
+                          long long dstStageMask,
+                          long long memoryBarrierCount,
+                          const VkMemoryBarrier* pMemoryBarriers,
+                          long long bufferMemoryBarrierCount,
+                          const VkBufferMemoryBarrier* pBufferMemoryBarriers,
+                          long long imageMemoryBarrierCount,
+                          const VkImageMemoryBarrier* pImageMemoryBarriers) {
+    ::vkCmdWaitEvents((VkCommandBuffer)(commandBuffer), (uint32_t)(eventCount), pEvents,
+                      (VkPipelineStageFlags)(srcStageMask), (VkPipelineStageFlags)(dstStageMask),
+                      (uint32_t)(memoryBarrierCount), pMemoryBarriers,
+                      (uint32_t)(bufferMemoryBarrierCount), pBufferMemoryBarriers,
+                      (uint32_t)(imageMemoryBarrierCount), pImageMemoryBarriers);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdPushConstants`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdPushConstants.html)
  * — the real Vulkan call via volk.
@@ -1295,6 +2450,21 @@ inline void CmdPushConstants(VkCommandBuffer commandBuffer,
                              uint32_t size,
                              const void* pValues) {
     ::vkCmdPushConstants(commandBuffer, layout, stageFlags, offset, size, pValues);
+}
+
+/**
+ * cheatah-friendly overload of `CmdPushConstants`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdPushConstants(long long commandBuffer,
+                             long long layout,
+                             long long stageFlags,
+                             long long offset,
+                             long long size,
+                             const void* pValues) {
+    ::vkCmdPushConstants((VkCommandBuffer)(commandBuffer), (VkPipelineLayout)(layout),
+                         (VkShaderStageFlags)(stageFlags), (uint32_t)(offset), (uint32_t)(size),
+                         pValues);
 }
 
 /**
@@ -1313,6 +2483,21 @@ inline VkResult CreateGraphicsPipelines(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CreateGraphicsPipelines`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreateGraphicsPipelines(long long device,
+                                        long long pipelineCache,
+                                        long long createInfoCount,
+                                        const VkGraphicsPipelineCreateInfo* pCreateInfos,
+                                        const VkAllocationCallbacks* pAllocator,
+                                        VkPipeline* pPipelines) {
+    return ::vkCreateGraphicsPipelines((VkDevice)(device), (VkPipelineCache)(pipelineCache),
+                                       (uint32_t)(createInfoCount), pCreateInfos, pAllocator,
+                                       pPipelines);
+}
+
+/**
  * Inline forwarder for
  * [`vkCreateFramebuffer`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCreateFramebuffer.html)
  * — the real Vulkan call via volk.
@@ -1326,6 +2511,17 @@ inline VkResult CreateFramebuffer(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CreateFramebuffer`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreateFramebuffer(long long device,
+                                  const VkFramebufferCreateInfo* pCreateInfo,
+                                  const VkAllocationCallbacks* pAllocator,
+                                  VkFramebuffer* pFramebuffer) {
+    return ::vkCreateFramebuffer((VkDevice)(device), pCreateInfo, pAllocator, pFramebuffer);
+}
+
+/**
  * Inline forwarder for
  * [`vkDestroyFramebuffer`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroyFramebuffer.html)
  * — the real Vulkan call via volk.
@@ -1334,6 +2530,16 @@ inline void DestroyFramebuffer(VkDevice device,
                                VkFramebuffer framebuffer,
                                const VkAllocationCallbacks* pAllocator) {
     ::vkDestroyFramebuffer(device, framebuffer, pAllocator);
+}
+
+/**
+ * cheatah-friendly overload of `DestroyFramebuffer`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void DestroyFramebuffer(long long device,
+                               long long framebuffer,
+                               const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroyFramebuffer((VkDevice)(device), (VkFramebuffer)(framebuffer), pAllocator);
 }
 
 /**
@@ -1350,6 +2556,17 @@ inline VkResult CreateRenderPass(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CreateRenderPass`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreateRenderPass(long long device,
+                                 const VkRenderPassCreateInfo* pCreateInfo,
+                                 const VkAllocationCallbacks* pAllocator,
+                                 VkRenderPass* pRenderPass) {
+    return ::vkCreateRenderPass((VkDevice)(device), pCreateInfo, pAllocator, pRenderPass);
+}
+
+/**
  * Inline forwarder for
  * [`vkDestroyRenderPass`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroyRenderPass.html)
  * — the real Vulkan call via volk.
@@ -1361,6 +2578,15 @@ inline void DestroyRenderPass(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `DestroyRenderPass`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+DestroyRenderPass(long long device, long long renderPass, const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroyRenderPass((VkDevice)(device), (VkRenderPass)(renderPass), pAllocator);
+}
+
+/**
  * Inline forwarder for
  * [`vkGetRenderAreaGranularity`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetRenderAreaGranularity.html)
  * — the real Vulkan call via volk.
@@ -1368,6 +2594,15 @@ inline void DestroyRenderPass(VkDevice device,
 inline void
 GetRenderAreaGranularity(VkDevice device, VkRenderPass renderPass, VkExtent2D* pGranularity) {
     ::vkGetRenderAreaGranularity(device, renderPass, pGranularity);
+}
+
+/**
+ * cheatah-friendly overload of `GetRenderAreaGranularity`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+GetRenderAreaGranularity(long long device, long long renderPass, VkExtent2D* pGranularity) {
+    ::vkGetRenderAreaGranularity((VkDevice)(device), (VkRenderPass)(renderPass), pGranularity);
 }
 
 /**
@@ -1383,6 +2618,18 @@ inline void CmdSetViewport(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdSetViewport`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdSetViewport(long long commandBuffer,
+                           long long firstViewport,
+                           long long viewportCount,
+                           const VkViewport* pViewports) {
+    ::vkCmdSetViewport((VkCommandBuffer)(commandBuffer), (uint32_t)(firstViewport),
+                       (uint32_t)(viewportCount), pViewports);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdSetScissor`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdSetScissor.html)
  * — the real Vulkan call via volk.
@@ -1395,12 +2642,32 @@ inline void CmdSetScissor(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdSetScissor`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdSetScissor(long long commandBuffer,
+                          long long firstScissor,
+                          long long scissorCount,
+                          const VkRect2D* pScissors) {
+    ::vkCmdSetScissor((VkCommandBuffer)(commandBuffer), (uint32_t)(firstScissor),
+                      (uint32_t)(scissorCount), pScissors);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdSetLineWidth`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdSetLineWidth.html)
  * — the real Vulkan call via volk.
  */
 inline void CmdSetLineWidth(VkCommandBuffer commandBuffer, float lineWidth) {
     ::vkCmdSetLineWidth(commandBuffer, lineWidth);
+}
+
+/**
+ * cheatah-friendly overload of `CmdSetLineWidth`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdSetLineWidth(long long commandBuffer, double lineWidth) {
+    ::vkCmdSetLineWidth((VkCommandBuffer)(commandBuffer), (float)(lineWidth));
 }
 
 /**
@@ -1417,12 +2684,32 @@ inline void CmdSetDepthBias(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdSetDepthBias`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdSetDepthBias(long long commandBuffer,
+                            double depthBiasConstantFactor,
+                            double depthBiasClamp,
+                            double depthBiasSlopeFactor) {
+    ::vkCmdSetDepthBias((VkCommandBuffer)(commandBuffer), (float)(depthBiasConstantFactor),
+                        (float)(depthBiasClamp), (float)(depthBiasSlopeFactor));
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdSetBlendConstants`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdSetBlendConstants.html)
  * — the real Vulkan call via volk.
  */
 inline void CmdSetBlendConstants(VkCommandBuffer commandBuffer, const float blendConstants[4]) {
     ::vkCmdSetBlendConstants(commandBuffer, blendConstants);
+}
+
+/**
+ * cheatah-friendly overload of `CmdSetBlendConstants`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdSetBlendConstants(long long commandBuffer, const float blendConstants[4]) {
+    ::vkCmdSetBlendConstants((VkCommandBuffer)(commandBuffer), blendConstants);
 }
 
 /**
@@ -1433,6 +2720,16 @@ inline void CmdSetBlendConstants(VkCommandBuffer commandBuffer, const float blen
 inline void
 CmdSetDepthBounds(VkCommandBuffer commandBuffer, float minDepthBounds, float maxDepthBounds) {
     ::vkCmdSetDepthBounds(commandBuffer, minDepthBounds, maxDepthBounds);
+}
+
+/**
+ * cheatah-friendly overload of `CmdSetDepthBounds`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+CmdSetDepthBounds(long long commandBuffer, double minDepthBounds, double maxDepthBounds) {
+    ::vkCmdSetDepthBounds((VkCommandBuffer)(commandBuffer), (float)(minDepthBounds),
+                          (float)(maxDepthBounds));
 }
 
 /**
@@ -1447,6 +2744,16 @@ inline void CmdSetStencilCompareMask(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdSetStencilCompareMask`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+CmdSetStencilCompareMask(long long commandBuffer, long long faceMask, long long compareMask) {
+    ::vkCmdSetStencilCompareMask((VkCommandBuffer)(commandBuffer), (VkStencilFaceFlags)(faceMask),
+                                 (uint32_t)(compareMask));
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdSetStencilWriteMask`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdSetStencilWriteMask.html)
  * — the real Vulkan call via volk.
@@ -1455,6 +2762,16 @@ inline void CmdSetStencilWriteMask(VkCommandBuffer commandBuffer,
                                    VkStencilFaceFlags faceMask,
                                    uint32_t writeMask) {
     ::vkCmdSetStencilWriteMask(commandBuffer, faceMask, writeMask);
+}
+
+/**
+ * cheatah-friendly overload of `CmdSetStencilWriteMask`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+CmdSetStencilWriteMask(long long commandBuffer, long long faceMask, long long writeMask) {
+    ::vkCmdSetStencilWriteMask((VkCommandBuffer)(commandBuffer), (VkStencilFaceFlags)(faceMask),
+                               (uint32_t)(writeMask));
 }
 
 /**
@@ -1469,6 +2786,16 @@ inline void CmdSetStencilReference(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdSetStencilReference`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+CmdSetStencilReference(long long commandBuffer, long long faceMask, long long reference) {
+    ::vkCmdSetStencilReference((VkCommandBuffer)(commandBuffer), (VkStencilFaceFlags)(faceMask),
+                               (uint32_t)(reference));
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdBindIndexBuffer`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdBindIndexBuffer.html)
  * — the real Vulkan call via volk.
@@ -1478,6 +2805,18 @@ inline void CmdBindIndexBuffer(VkCommandBuffer commandBuffer,
                                VkDeviceSize offset,
                                VkIndexType indexType) {
     ::vkCmdBindIndexBuffer(commandBuffer, buffer, offset, indexType);
+}
+
+/**
+ * cheatah-friendly overload of `CmdBindIndexBuffer`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdBindIndexBuffer(long long commandBuffer,
+                               long long buffer,
+                               long long offset,
+                               long long indexType) {
+    ::vkCmdBindIndexBuffer((VkCommandBuffer)(commandBuffer), (VkBuffer)(buffer),
+                           (VkDeviceSize)(offset), (VkIndexType)(indexType));
 }
 
 /**
@@ -1494,6 +2833,19 @@ inline void CmdBindVertexBuffers(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdBindVertexBuffers`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdBindVertexBuffers(long long commandBuffer,
+                                 long long firstBinding,
+                                 long long bindingCount,
+                                 const VkBuffer* pBuffers,
+                                 const VkDeviceSize* pOffsets) {
+    ::vkCmdBindVertexBuffers((VkCommandBuffer)(commandBuffer), (uint32_t)(firstBinding),
+                             (uint32_t)(bindingCount), pBuffers, pOffsets);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdDraw`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdDraw.html) — the
  * real Vulkan call via volk.
@@ -1504,6 +2856,19 @@ inline void CmdDraw(VkCommandBuffer commandBuffer,
                     uint32_t firstVertex,
                     uint32_t firstInstance) {
     ::vkCmdDraw(commandBuffer, vertexCount, instanceCount, firstVertex, firstInstance);
+}
+
+/**
+ * cheatah-friendly overload of `CmdDraw`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdDraw(long long commandBuffer,
+                    long long vertexCount,
+                    long long instanceCount,
+                    long long firstVertex,
+                    long long firstInstance) {
+    ::vkCmdDraw((VkCommandBuffer)(commandBuffer), (uint32_t)(vertexCount),
+                (uint32_t)(instanceCount), (uint32_t)(firstVertex), (uint32_t)(firstInstance));
 }
 
 /**
@@ -1522,6 +2887,21 @@ inline void CmdDrawIndexed(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdDrawIndexed`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdDrawIndexed(long long commandBuffer,
+                           long long indexCount,
+                           long long instanceCount,
+                           long long firstIndex,
+                           long long vertexOffset,
+                           long long firstInstance) {
+    ::vkCmdDrawIndexed((VkCommandBuffer)(commandBuffer), (uint32_t)(indexCount),
+                       (uint32_t)(instanceCount), (uint32_t)(firstIndex), (int32_t)(vertexOffset),
+                       (uint32_t)(firstInstance));
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdDrawIndirect`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdDrawIndirect.html)
  * — the real Vulkan call via volk.
@@ -1535,6 +2915,19 @@ inline void CmdDrawIndirect(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdDrawIndirect`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdDrawIndirect(long long commandBuffer,
+                            long long buffer,
+                            long long offset,
+                            long long drawCount,
+                            long long stride) {
+    ::vkCmdDrawIndirect((VkCommandBuffer)(commandBuffer), (VkBuffer)(buffer),
+                        (VkDeviceSize)(offset), (uint32_t)(drawCount), (uint32_t)(stride));
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdDrawIndexedIndirect`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdDrawIndexedIndirect.html)
  * — the real Vulkan call via volk.
@@ -1545,6 +2938,19 @@ inline void CmdDrawIndexedIndirect(VkCommandBuffer commandBuffer,
                                    uint32_t drawCount,
                                    uint32_t stride) {
     ::vkCmdDrawIndexedIndirect(commandBuffer, buffer, offset, drawCount, stride);
+}
+
+/**
+ * cheatah-friendly overload of `CmdDrawIndexedIndirect`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdDrawIndexedIndirect(long long commandBuffer,
+                                   long long buffer,
+                                   long long offset,
+                                   long long drawCount,
+                                   long long stride) {
+    ::vkCmdDrawIndexedIndirect((VkCommandBuffer)(commandBuffer), (VkBuffer)(buffer),
+                               (VkDeviceSize)(offset), (uint32_t)(drawCount), (uint32_t)(stride));
 }
 
 /**
@@ -1565,6 +2971,24 @@ inline void CmdBlitImage(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdBlitImage`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdBlitImage(long long commandBuffer,
+                         long long srcImage,
+                         long long srcImageLayout,
+                         long long dstImage,
+                         long long dstImageLayout,
+                         long long regionCount,
+                         const VkImageBlit* pRegions,
+                         long long filter) {
+    ::vkCmdBlitImage((VkCommandBuffer)(commandBuffer), (VkImage)(srcImage),
+                     (VkImageLayout)(srcImageLayout), (VkImage)(dstImage),
+                     (VkImageLayout)(dstImageLayout), (uint32_t)(regionCount), pRegions,
+                     (VkFilter)(filter));
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdClearDepthStencilImage`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdClearDepthStencilImage.html)
  * — the real Vulkan call via volk.
@@ -1580,6 +3004,21 @@ inline void CmdClearDepthStencilImage(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdClearDepthStencilImage`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdClearDepthStencilImage(long long commandBuffer,
+                                      long long image,
+                                      long long imageLayout,
+                                      const VkClearDepthStencilValue* pDepthStencil,
+                                      long long rangeCount,
+                                      const VkImageSubresourceRange* pRanges) {
+    ::vkCmdClearDepthStencilImage((VkCommandBuffer)(commandBuffer), (VkImage)(image),
+                                  (VkImageLayout)(imageLayout), pDepthStencil,
+                                  (uint32_t)(rangeCount), pRanges);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdClearAttachments`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdClearAttachments.html)
  * — the real Vulkan call via volk.
@@ -1590,6 +3029,19 @@ inline void CmdClearAttachments(VkCommandBuffer commandBuffer,
                                 uint32_t rectCount,
                                 const VkClearRect* pRects) {
     ::vkCmdClearAttachments(commandBuffer, attachmentCount, pAttachments, rectCount, pRects);
+}
+
+/**
+ * cheatah-friendly overload of `CmdClearAttachments`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdClearAttachments(long long commandBuffer,
+                                long long attachmentCount,
+                                const VkClearAttachment* pAttachments,
+                                long long rectCount,
+                                const VkClearRect* pRects) {
+    ::vkCmdClearAttachments((VkCommandBuffer)(commandBuffer), (uint32_t)(attachmentCount),
+                            pAttachments, (uint32_t)(rectCount), pRects);
 }
 
 /**
@@ -1609,6 +3061,22 @@ inline void CmdResolveImage(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdResolveImage`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdResolveImage(long long commandBuffer,
+                            long long srcImage,
+                            long long srcImageLayout,
+                            long long dstImage,
+                            long long dstImageLayout,
+                            long long regionCount,
+                            const VkImageResolve* pRegions) {
+    ::vkCmdResolveImage((VkCommandBuffer)(commandBuffer), (VkImage)(srcImage),
+                        (VkImageLayout)(srcImageLayout), (VkImage)(dstImage),
+                        (VkImageLayout)(dstImageLayout), (uint32_t)(regionCount), pRegions);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdBeginRenderPass`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdBeginRenderPass.html)
  * — the real Vulkan call via volk.
@@ -1617,6 +3085,17 @@ inline void CmdBeginRenderPass(VkCommandBuffer commandBuffer,
                                const VkRenderPassBeginInfo* pRenderPassBegin,
                                VkSubpassContents contents) {
     ::vkCmdBeginRenderPass(commandBuffer, pRenderPassBegin, contents);
+}
+
+/**
+ * cheatah-friendly overload of `CmdBeginRenderPass`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdBeginRenderPass(long long commandBuffer,
+                               const VkRenderPassBeginInfo* pRenderPassBegin,
+                               long long contents) {
+    ::vkCmdBeginRenderPass((VkCommandBuffer)(commandBuffer), pRenderPassBegin,
+                           (VkSubpassContents)(contents));
 }
 
 /**
@@ -1629,11 +3108,27 @@ inline void CmdNextSubpass(VkCommandBuffer commandBuffer, VkSubpassContents cont
 }
 
 /**
+ * cheatah-friendly overload of `CmdNextSubpass`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdNextSubpass(long long commandBuffer, long long contents) {
+    ::vkCmdNextSubpass((VkCommandBuffer)(commandBuffer), (VkSubpassContents)(contents));
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdEndRenderPass`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdEndRenderPass.html)
  * — the real Vulkan call via volk.
  */
 inline void CmdEndRenderPass(VkCommandBuffer commandBuffer) { ::vkCmdEndRenderPass(commandBuffer); }
+
+/**
+ * cheatah-friendly overload of `CmdEndRenderPass`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdEndRenderPass(long long commandBuffer) {
+    ::vkCmdEndRenderPass((VkCommandBuffer)(commandBuffer));
+}
 
 #endif // VK_VERSION_1_0
 
@@ -1660,6 +3155,16 @@ inline VkResult BindBufferMemory2(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `BindBufferMemory2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult BindBufferMemory2(long long device,
+                                  long long bindInfoCount,
+                                  const VkBindBufferMemoryInfo* pBindInfos) {
+    return ::vkBindBufferMemory2((VkDevice)(device), (uint32_t)(bindInfoCount), pBindInfos);
+}
+
+/**
  * Inline forwarder for
  * [`vkBindImageMemory2`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkBindImageMemory2.html)
  * — the real Vulkan call via volk.
@@ -1667,6 +3172,16 @@ inline VkResult BindBufferMemory2(VkDevice device,
 inline VkResult
 BindImageMemory2(VkDevice device, uint32_t bindInfoCount, const VkBindImageMemoryInfo* pBindInfos) {
     return ::vkBindImageMemory2(device, bindInfoCount, pBindInfos);
+}
+
+/**
+ * cheatah-friendly overload of `BindImageMemory2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult BindImageMemory2(long long device,
+                                 long long bindInfoCount,
+                                 const VkBindImageMemoryInfo* pBindInfos) {
+    return ::vkBindImageMemory2((VkDevice)(device), (uint32_t)(bindInfoCount), pBindInfos);
 }
 
 /**
@@ -1684,12 +3199,34 @@ inline void GetDeviceGroupPeerMemoryFeatures(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `GetDeviceGroupPeerMemoryFeatures`: pass plain ints/floats; the
+ * exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetDeviceGroupPeerMemoryFeatures(long long device,
+                                             long long heapIndex,
+                                             long long localDeviceIndex,
+                                             long long remoteDeviceIndex,
+                                             VkPeerMemoryFeatureFlags* pPeerMemoryFeatures) {
+    ::vkGetDeviceGroupPeerMemoryFeatures((VkDevice)(device), (uint32_t)(heapIndex),
+                                         (uint32_t)(localDeviceIndex),
+                                         (uint32_t)(remoteDeviceIndex), pPeerMemoryFeatures);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdSetDeviceMask`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdSetDeviceMask.html)
  * — the real Vulkan call via volk.
  */
 inline void CmdSetDeviceMask(VkCommandBuffer commandBuffer, uint32_t deviceMask) {
     ::vkCmdSetDeviceMask(commandBuffer, deviceMask);
+}
+
+/**
+ * cheatah-friendly overload of `CmdSetDeviceMask`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdSetDeviceMask(long long commandBuffer, long long deviceMask) {
+    ::vkCmdSetDeviceMask((VkCommandBuffer)(commandBuffer), (uint32_t)(deviceMask));
 }
 
 /**
@@ -1706,6 +3243,18 @@ EnumeratePhysicalDeviceGroups(VkInstance instance,
 }
 
 /**
+ * cheatah-friendly overload of `EnumeratePhysicalDeviceGroups`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult
+EnumeratePhysicalDeviceGroups(long long instance,
+                              uint32_t* pPhysicalDeviceGroupCount,
+                              VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties) {
+    return ::vkEnumeratePhysicalDeviceGroups((VkInstance)(instance), pPhysicalDeviceGroupCount,
+                                             pPhysicalDeviceGroupProperties);
+}
+
+/**
  * Inline forwarder for
  * [`vkGetImageMemoryRequirements2`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetImageMemoryRequirements2.html)
  * — the real Vulkan call via volk.
@@ -1717,6 +3266,16 @@ inline void GetImageMemoryRequirements2(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `GetImageMemoryRequirements2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetImageMemoryRequirements2(long long device,
+                                        const VkImageMemoryRequirementsInfo2* pInfo,
+                                        VkMemoryRequirements2* pMemoryRequirements) {
+    ::vkGetImageMemoryRequirements2((VkDevice)(device), pInfo, pMemoryRequirements);
+}
+
+/**
  * Inline forwarder for
  * [`vkGetBufferMemoryRequirements2`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetBufferMemoryRequirements2.html)
  * — the real Vulkan call via volk.
@@ -1725,6 +3284,16 @@ inline void GetBufferMemoryRequirements2(VkDevice device,
                                          const VkBufferMemoryRequirementsInfo2* pInfo,
                                          VkMemoryRequirements2* pMemoryRequirements) {
     ::vkGetBufferMemoryRequirements2(device, pInfo, pMemoryRequirements);
+}
+
+/**
+ * cheatah-friendly overload of `GetBufferMemoryRequirements2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetBufferMemoryRequirements2(long long device,
+                                         const VkBufferMemoryRequirementsInfo2* pInfo,
+                                         VkMemoryRequirements2* pMemoryRequirements) {
+    ::vkGetBufferMemoryRequirements2((VkDevice)(device), pInfo, pMemoryRequirements);
 }
 
 /**
@@ -1742,6 +3311,19 @@ GetImageSparseMemoryRequirements2(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `GetImageSparseMemoryRequirements2`: pass plain ints/floats; the
+ * exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+GetImageSparseMemoryRequirements2(long long device,
+                                  const VkImageSparseMemoryRequirementsInfo2* pInfo,
+                                  uint32_t* pSparseMemoryRequirementCount,
+                                  VkSparseImageMemoryRequirements2* pSparseMemoryRequirements) {
+    ::vkGetImageSparseMemoryRequirements2((VkDevice)(device), pInfo, pSparseMemoryRequirementCount,
+                                          pSparseMemoryRequirements);
+}
+
+/**
  * Inline forwarder for
  * [`vkGetPhysicalDeviceFeatures2`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetPhysicalDeviceFeatures2.html)
  * — the real Vulkan call via volk.
@@ -1749,6 +3331,15 @@ GetImageSparseMemoryRequirements2(VkDevice device,
 inline void GetPhysicalDeviceFeatures2(VkPhysicalDevice physicalDevice,
                                        VkPhysicalDeviceFeatures2* pFeatures) {
     ::vkGetPhysicalDeviceFeatures2(physicalDevice, pFeatures);
+}
+
+/**
+ * cheatah-friendly overload of `GetPhysicalDeviceFeatures2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetPhysicalDeviceFeatures2(long long physicalDevice,
+                                       VkPhysicalDeviceFeatures2* pFeatures) {
+    ::vkGetPhysicalDeviceFeatures2((VkPhysicalDevice)(physicalDevice), pFeatures);
 }
 
 /**
@@ -1762,6 +3353,15 @@ inline void GetPhysicalDeviceProperties2(VkPhysicalDevice physicalDevice,
 }
 
 /**
+ * cheatah-friendly overload of `GetPhysicalDeviceProperties2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetPhysicalDeviceProperties2(long long physicalDevice,
+                                         VkPhysicalDeviceProperties2* pProperties) {
+    ::vkGetPhysicalDeviceProperties2((VkPhysicalDevice)(physicalDevice), pProperties);
+}
+
+/**
  * Inline forwarder for
  * [`vkGetPhysicalDeviceFormatProperties2`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetPhysicalDeviceFormatProperties2.html)
  * — the real Vulkan call via volk.
@@ -1770,6 +3370,17 @@ inline void GetPhysicalDeviceFormatProperties2(VkPhysicalDevice physicalDevice,
                                                VkFormat format,
                                                VkFormatProperties2* pFormatProperties) {
     ::vkGetPhysicalDeviceFormatProperties2(physicalDevice, format, pFormatProperties);
+}
+
+/**
+ * cheatah-friendly overload of `GetPhysicalDeviceFormatProperties2`: pass plain ints/floats; the
+ * exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetPhysicalDeviceFormatProperties2(long long physicalDevice,
+                                               long long format,
+                                               VkFormatProperties2* pFormatProperties) {
+    ::vkGetPhysicalDeviceFormatProperties2((VkPhysicalDevice)(physicalDevice), (VkFormat)(format),
+                                           pFormatProperties);
 }
 
 /**
@@ -1786,6 +3397,18 @@ GetPhysicalDeviceImageFormatProperties2(VkPhysicalDevice physicalDevice,
 }
 
 /**
+ * cheatah-friendly overload of `GetPhysicalDeviceImageFormatProperties2`: pass plain ints/floats;
+ * the exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult
+GetPhysicalDeviceImageFormatProperties2(long long physicalDevice,
+                                        const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
+                                        VkImageFormatProperties2* pImageFormatProperties) {
+    return ::vkGetPhysicalDeviceImageFormatProperties2((VkPhysicalDevice)(physicalDevice),
+                                                       pImageFormatInfo, pImageFormatProperties);
+}
+
+/**
  * Inline forwarder for
  * [`vkGetPhysicalDeviceQueueFamilyProperties2`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetPhysicalDeviceQueueFamilyProperties2.html)
  * — the real Vulkan call via volk.
@@ -1799,6 +3422,18 @@ GetPhysicalDeviceQueueFamilyProperties2(VkPhysicalDevice physicalDevice,
 }
 
 /**
+ * cheatah-friendly overload of `GetPhysicalDeviceQueueFamilyProperties2`: pass plain ints/floats;
+ * the exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+GetPhysicalDeviceQueueFamilyProperties2(long long physicalDevice,
+                                        uint32_t* pQueueFamilyPropertyCount,
+                                        VkQueueFamilyProperties2* pQueueFamilyProperties) {
+    ::vkGetPhysicalDeviceQueueFamilyProperties2((VkPhysicalDevice)(physicalDevice),
+                                                pQueueFamilyPropertyCount, pQueueFamilyProperties);
+}
+
+/**
  * Inline forwarder for
  * [`vkGetPhysicalDeviceMemoryProperties2`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetPhysicalDeviceMemoryProperties2.html)
  * — the real Vulkan call via volk.
@@ -1807,6 +3442,16 @@ inline void
 GetPhysicalDeviceMemoryProperties2(VkPhysicalDevice physicalDevice,
                                    VkPhysicalDeviceMemoryProperties2* pMemoryProperties) {
     ::vkGetPhysicalDeviceMemoryProperties2(physicalDevice, pMemoryProperties);
+}
+
+/**
+ * cheatah-friendly overload of `GetPhysicalDeviceMemoryProperties2`: pass plain ints/floats; the
+ * exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+GetPhysicalDeviceMemoryProperties2(long long physicalDevice,
+                                   VkPhysicalDeviceMemoryProperties2* pMemoryProperties) {
+    ::vkGetPhysicalDeviceMemoryProperties2((VkPhysicalDevice)(physicalDevice), pMemoryProperties);
 }
 
 /**
@@ -1824,6 +3469,20 @@ inline void GetPhysicalDeviceSparseImageFormatProperties2(
 }
 
 /**
+ * cheatah-friendly overload of `GetPhysicalDeviceSparseImageFormatProperties2`: pass plain
+ * ints/floats; the exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for
+ * you.
+ */
+inline void GetPhysicalDeviceSparseImageFormatProperties2(
+    long long physicalDevice,
+    const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo,
+    uint32_t* pPropertyCount,
+    VkSparseImageFormatProperties2* pProperties) {
+    ::vkGetPhysicalDeviceSparseImageFormatProperties2((VkPhysicalDevice)(physicalDevice),
+                                                      pFormatInfo, pPropertyCount, pProperties);
+}
+
+/**
  * Inline forwarder for
  * [`vkTrimCommandPool`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkTrimCommandPool.html)
  * — the real Vulkan call via volk.
@@ -1834,6 +3493,15 @@ TrimCommandPool(VkDevice device, VkCommandPool commandPool, VkCommandPoolTrimFla
 }
 
 /**
+ * cheatah-friendly overload of `TrimCommandPool`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void TrimCommandPool(long long device, long long commandPool, long long flags) {
+    ::vkTrimCommandPool((VkDevice)(device), (VkCommandPool)(commandPool),
+                        (VkCommandPoolTrimFlags)(flags));
+}
+
+/**
  * Inline forwarder for
  * [`vkGetDeviceQueue2`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetDeviceQueue2.html)
  * — the real Vulkan call via volk.
@@ -1841,6 +3509,15 @@ TrimCommandPool(VkDevice device, VkCommandPool commandPool, VkCommandPoolTrimFla
 inline void
 GetDeviceQueue2(VkDevice device, const VkDeviceQueueInfo2* pQueueInfo, VkQueue* pQueue) {
     ::vkGetDeviceQueue2(device, pQueueInfo, pQueue);
+}
+
+/**
+ * cheatah-friendly overload of `GetDeviceQueue2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+GetDeviceQueue2(long long device, const VkDeviceQueueInfo2* pQueueInfo, VkQueue* pQueue) {
+    ::vkGetDeviceQueue2((VkDevice)(device), pQueueInfo, pQueue);
 }
 
 /**
@@ -1857,6 +3534,18 @@ inline void GetPhysicalDeviceExternalBufferProperties(
 }
 
 /**
+ * cheatah-friendly overload of `GetPhysicalDeviceExternalBufferProperties`: pass plain ints/floats;
+ * the exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetPhysicalDeviceExternalBufferProperties(
+    long long physicalDevice,
+    const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
+    VkExternalBufferProperties* pExternalBufferProperties) {
+    ::vkGetPhysicalDeviceExternalBufferProperties((VkPhysicalDevice)(physicalDevice),
+                                                  pExternalBufferInfo, pExternalBufferProperties);
+}
+
+/**
  * Inline forwarder for
  * [`vkGetPhysicalDeviceExternalFenceProperties`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetPhysicalDeviceExternalFenceProperties.html)
  * — the real Vulkan call via volk.
@@ -1870,6 +3559,18 @@ inline void GetPhysicalDeviceExternalFenceProperties(
 }
 
 /**
+ * cheatah-friendly overload of `GetPhysicalDeviceExternalFenceProperties`: pass plain ints/floats;
+ * the exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetPhysicalDeviceExternalFenceProperties(
+    long long physicalDevice,
+    const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
+    VkExternalFenceProperties* pExternalFenceProperties) {
+    ::vkGetPhysicalDeviceExternalFenceProperties((VkPhysicalDevice)(physicalDevice),
+                                                 pExternalFenceInfo, pExternalFenceProperties);
+}
+
+/**
  * Inline forwarder for
  * [`vkGetPhysicalDeviceExternalSemaphoreProperties`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetPhysicalDeviceExternalSemaphoreProperties.html)
  * — the real Vulkan call via volk.
@@ -1880,6 +3581,19 @@ inline void GetPhysicalDeviceExternalSemaphoreProperties(
     VkExternalSemaphoreProperties* pExternalSemaphoreProperties) {
     ::vkGetPhysicalDeviceExternalSemaphoreProperties(physicalDevice, pExternalSemaphoreInfo,
                                                      pExternalSemaphoreProperties);
+}
+
+/**
+ * cheatah-friendly overload of `GetPhysicalDeviceExternalSemaphoreProperties`: pass plain
+ * ints/floats; the exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for
+ * you.
+ */
+inline void GetPhysicalDeviceExternalSemaphoreProperties(
+    long long physicalDevice,
+    const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
+    VkExternalSemaphoreProperties* pExternalSemaphoreProperties) {
+    ::vkGetPhysicalDeviceExternalSemaphoreProperties(
+        (VkPhysicalDevice)(physicalDevice), pExternalSemaphoreInfo, pExternalSemaphoreProperties);
 }
 
 /**
@@ -1899,6 +3613,22 @@ inline void CmdDispatchBase(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdDispatchBase`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdDispatchBase(long long commandBuffer,
+                            long long baseGroupX,
+                            long long baseGroupY,
+                            long long baseGroupZ,
+                            long long groupCountX,
+                            long long groupCountY,
+                            long long groupCountZ) {
+    ::vkCmdDispatchBase((VkCommandBuffer)(commandBuffer), (uint32_t)(baseGroupX),
+                        (uint32_t)(baseGroupY), (uint32_t)(baseGroupZ), (uint32_t)(groupCountX),
+                        (uint32_t)(groupCountY), (uint32_t)(groupCountZ));
+}
+
+/**
  * Inline forwarder for
  * [`vkCreateDescriptorUpdateTemplate`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCreateDescriptorUpdateTemplate.html)
  * — the real Vulkan call via volk.
@@ -1914,6 +3644,19 @@ CreateDescriptorUpdateTemplate(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CreateDescriptorUpdateTemplate`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult
+CreateDescriptorUpdateTemplate(long long device,
+                               const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
+                               const VkAllocationCallbacks* pAllocator,
+                               VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate) {
+    return ::vkCreateDescriptorUpdateTemplate((VkDevice)(device), pCreateInfo, pAllocator,
+                                              pDescriptorUpdateTemplate);
+}
+
+/**
  * Inline forwarder for
  * [`vkDestroyDescriptorUpdateTemplate`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroyDescriptorUpdateTemplate.html)
  * — the real Vulkan call via volk.
@@ -1922,6 +3665,17 @@ inline void DestroyDescriptorUpdateTemplate(VkDevice device,
                                             VkDescriptorUpdateTemplate descriptorUpdateTemplate,
                                             const VkAllocationCallbacks* pAllocator) {
     ::vkDestroyDescriptorUpdateTemplate(device, descriptorUpdateTemplate, pAllocator);
+}
+
+/**
+ * cheatah-friendly overload of `DestroyDescriptorUpdateTemplate`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void DestroyDescriptorUpdateTemplate(long long device,
+                                            long long descriptorUpdateTemplate,
+                                            const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroyDescriptorUpdateTemplate(
+        (VkDevice)(device), (VkDescriptorUpdateTemplate)(descriptorUpdateTemplate), pAllocator);
 }
 
 /**
@@ -1937,6 +3691,19 @@ inline void UpdateDescriptorSetWithTemplate(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `UpdateDescriptorSetWithTemplate`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void UpdateDescriptorSetWithTemplate(long long device,
+                                            long long descriptorSet,
+                                            long long descriptorUpdateTemplate,
+                                            const void* pData) {
+    ::vkUpdateDescriptorSetWithTemplate((VkDevice)(device), (VkDescriptorSet)(descriptorSet),
+                                        (VkDescriptorUpdateTemplate)(descriptorUpdateTemplate),
+                                        pData);
+}
+
+/**
  * Inline forwarder for
  * [`vkGetDescriptorSetLayoutSupport`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetDescriptorSetLayoutSupport.html)
  * — the real Vulkan call via volk.
@@ -1945,6 +3712,16 @@ inline void GetDescriptorSetLayoutSupport(VkDevice device,
                                           const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
                                           VkDescriptorSetLayoutSupport* pSupport) {
     ::vkGetDescriptorSetLayoutSupport(device, pCreateInfo, pSupport);
+}
+
+/**
+ * cheatah-friendly overload of `GetDescriptorSetLayoutSupport`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetDescriptorSetLayoutSupport(long long device,
+                                          const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
+                                          VkDescriptorSetLayoutSupport* pSupport) {
+    ::vkGetDescriptorSetLayoutSupport((VkDevice)(device), pCreateInfo, pSupport);
 }
 
 /**
@@ -1961,6 +3738,18 @@ inline VkResult CreateSamplerYcbcrConversion(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CreateSamplerYcbcrConversion`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreateSamplerYcbcrConversion(long long device,
+                                             const VkSamplerYcbcrConversionCreateInfo* pCreateInfo,
+                                             const VkAllocationCallbacks* pAllocator,
+                                             VkSamplerYcbcrConversion* pYcbcrConversion) {
+    return ::vkCreateSamplerYcbcrConversion((VkDevice)(device), pCreateInfo, pAllocator,
+                                            pYcbcrConversion);
+}
+
+/**
  * Inline forwarder for
  * [`vkDestroySamplerYcbcrConversion`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroySamplerYcbcrConversion.html)
  * — the real Vulkan call via volk.
@@ -1969,6 +3758,17 @@ inline void DestroySamplerYcbcrConversion(VkDevice device,
                                           VkSamplerYcbcrConversion ycbcrConversion,
                                           const VkAllocationCallbacks* pAllocator) {
     ::vkDestroySamplerYcbcrConversion(device, ycbcrConversion, pAllocator);
+}
+
+/**
+ * cheatah-friendly overload of `DestroySamplerYcbcrConversion`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void DestroySamplerYcbcrConversion(long long device,
+                                          long long ycbcrConversion,
+                                          const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroySamplerYcbcrConversion((VkDevice)(device),
+                                      (VkSamplerYcbcrConversion)(ycbcrConversion), pAllocator);
 }
 
 #endif // VK_VERSION_1_1
@@ -1986,12 +3786,30 @@ ResetQueryPool(VkDevice device, VkQueryPool queryPool, uint32_t firstQuery, uint
 }
 
 /**
+ * cheatah-friendly overload of `ResetQueryPool`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+ResetQueryPool(long long device, long long queryPool, long long firstQuery, long long queryCount) {
+    ::vkResetQueryPool((VkDevice)(device), (VkQueryPool)(queryPool), (uint32_t)(firstQuery),
+                       (uint32_t)(queryCount));
+}
+
+/**
  * Inline forwarder for
  * [`vkGetSemaphoreCounterValue`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetSemaphoreCounterValue.html)
  * — the real Vulkan call via volk.
  */
 inline VkResult GetSemaphoreCounterValue(VkDevice device, VkSemaphore semaphore, uint64_t* pValue) {
     return ::vkGetSemaphoreCounterValue(device, semaphore, pValue);
+}
+
+/**
+ * cheatah-friendly overload of `GetSemaphoreCounterValue`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult GetSemaphoreCounterValue(long long device, long long semaphore, uint64_t* pValue) {
+    return ::vkGetSemaphoreCounterValue((VkDevice)(device), (VkSemaphore)(semaphore), pValue);
 }
 
 /**
@@ -2005,12 +3823,29 @@ WaitSemaphores(VkDevice device, const VkSemaphoreWaitInfo* pWaitInfo, uint64_t t
 }
 
 /**
+ * cheatah-friendly overload of `WaitSemaphores`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult
+WaitSemaphores(long long device, const VkSemaphoreWaitInfo* pWaitInfo, long long timeout) {
+    return ::vkWaitSemaphores((VkDevice)(device), pWaitInfo, (uint64_t)(timeout));
+}
+
+/**
  * Inline forwarder for
  * [`vkSignalSemaphore`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkSignalSemaphore.html)
  * — the real Vulkan call via volk.
  */
 inline VkResult SignalSemaphore(VkDevice device, const VkSemaphoreSignalInfo* pSignalInfo) {
     return ::vkSignalSemaphore(device, pSignalInfo);
+}
+
+/**
+ * cheatah-friendly overload of `SignalSemaphore`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult SignalSemaphore(long long device, const VkSemaphoreSignalInfo* pSignalInfo) {
+    return ::vkSignalSemaphore((VkDevice)(device), pSignalInfo);
 }
 
 /**
@@ -2024,6 +3859,15 @@ inline VkDeviceAddress GetBufferDeviceAddress(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `GetBufferDeviceAddress`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkDeviceAddress GetBufferDeviceAddress(long long device,
+                                              const VkBufferDeviceAddressInfo* pInfo) {
+    return ::vkGetBufferDeviceAddress((VkDevice)(device), pInfo);
+}
+
+/**
  * Inline forwarder for
  * [`vkGetBufferOpaqueCaptureAddress`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetBufferOpaqueCaptureAddress.html)
  * — the real Vulkan call via volk.
@@ -2031,6 +3875,15 @@ inline VkDeviceAddress GetBufferDeviceAddress(VkDevice device,
 inline uint64_t GetBufferOpaqueCaptureAddress(VkDevice device,
                                               const VkBufferDeviceAddressInfo* pInfo) {
     return ::vkGetBufferOpaqueCaptureAddress(device, pInfo);
+}
+
+/**
+ * cheatah-friendly overload of `GetBufferOpaqueCaptureAddress`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline uint64_t GetBufferOpaqueCaptureAddress(long long device,
+                                              const VkBufferDeviceAddressInfo* pInfo) {
+    return ::vkGetBufferOpaqueCaptureAddress((VkDevice)(device), pInfo);
 }
 
 /**
@@ -2042,6 +3895,16 @@ inline uint64_t
 GetDeviceMemoryOpaqueCaptureAddress(VkDevice device,
                                     const VkDeviceMemoryOpaqueCaptureAddressInfo* pInfo) {
     return ::vkGetDeviceMemoryOpaqueCaptureAddress(device, pInfo);
+}
+
+/**
+ * cheatah-friendly overload of `GetDeviceMemoryOpaqueCaptureAddress`: pass plain ints/floats; the
+ * exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline uint64_t
+GetDeviceMemoryOpaqueCaptureAddress(long long device,
+                                    const VkDeviceMemoryOpaqueCaptureAddressInfo* pInfo) {
+    return ::vkGetDeviceMemoryOpaqueCaptureAddress((VkDevice)(device), pInfo);
 }
 
 /**
@@ -2061,6 +3924,23 @@ inline void CmdDrawIndirectCount(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdDrawIndirectCount`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdDrawIndirectCount(long long commandBuffer,
+                                 long long buffer,
+                                 long long offset,
+                                 long long countBuffer,
+                                 long long countBufferOffset,
+                                 long long maxDrawCount,
+                                 long long stride) {
+    ::vkCmdDrawIndirectCount((VkCommandBuffer)(commandBuffer), (VkBuffer)(buffer),
+                             (VkDeviceSize)(offset), (VkBuffer)(countBuffer),
+                             (VkDeviceSize)(countBufferOffset), (uint32_t)(maxDrawCount),
+                             (uint32_t)(stride));
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdDrawIndexedIndirectCount`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdDrawIndexedIndirectCount.html)
  * — the real Vulkan call via volk.
@@ -2077,6 +3957,23 @@ inline void CmdDrawIndexedIndirectCount(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdDrawIndexedIndirectCount`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdDrawIndexedIndirectCount(long long commandBuffer,
+                                        long long buffer,
+                                        long long offset,
+                                        long long countBuffer,
+                                        long long countBufferOffset,
+                                        long long maxDrawCount,
+                                        long long stride) {
+    ::vkCmdDrawIndexedIndirectCount((VkCommandBuffer)(commandBuffer), (VkBuffer)(buffer),
+                                    (VkDeviceSize)(offset), (VkBuffer)(countBuffer),
+                                    (VkDeviceSize)(countBufferOffset), (uint32_t)(maxDrawCount),
+                                    (uint32_t)(stride));
+}
+
+/**
  * Inline forwarder for
  * [`vkCreateRenderPass2`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCreateRenderPass2.html)
  * — the real Vulkan call via volk.
@@ -2086,6 +3983,17 @@ inline VkResult CreateRenderPass2(VkDevice device,
                                   const VkAllocationCallbacks* pAllocator,
                                   VkRenderPass* pRenderPass) {
     return ::vkCreateRenderPass2(device, pCreateInfo, pAllocator, pRenderPass);
+}
+
+/**
+ * cheatah-friendly overload of `CreateRenderPass2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreateRenderPass2(long long device,
+                                  const VkRenderPassCreateInfo2* pCreateInfo,
+                                  const VkAllocationCallbacks* pAllocator,
+                                  VkRenderPass* pRenderPass) {
+    return ::vkCreateRenderPass2((VkDevice)(device), pCreateInfo, pAllocator, pRenderPass);
 }
 
 /**
@@ -2100,6 +4008,16 @@ inline void CmdBeginRenderPass2(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdBeginRenderPass2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdBeginRenderPass2(long long commandBuffer,
+                                const VkRenderPassBeginInfo* pRenderPassBegin,
+                                const VkSubpassBeginInfo* pSubpassBeginInfo) {
+    ::vkCmdBeginRenderPass2((VkCommandBuffer)(commandBuffer), pRenderPassBegin, pSubpassBeginInfo);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdNextSubpass2`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdNextSubpass2.html)
  * — the real Vulkan call via volk.
@@ -2111,6 +4029,16 @@ inline void CmdNextSubpass2(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdNextSubpass2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdNextSubpass2(long long commandBuffer,
+                            const VkSubpassBeginInfo* pSubpassBeginInfo,
+                            const VkSubpassEndInfo* pSubpassEndInfo) {
+    ::vkCmdNextSubpass2((VkCommandBuffer)(commandBuffer), pSubpassBeginInfo, pSubpassEndInfo);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdEndRenderPass2`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdEndRenderPass2.html)
  * — the real Vulkan call via volk.
@@ -2118,6 +4046,14 @@ inline void CmdNextSubpass2(VkCommandBuffer commandBuffer,
 inline void CmdEndRenderPass2(VkCommandBuffer commandBuffer,
                               const VkSubpassEndInfo* pSubpassEndInfo) {
     ::vkCmdEndRenderPass2(commandBuffer, pSubpassEndInfo);
+}
+
+/**
+ * cheatah-friendly overload of `CmdEndRenderPass2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdEndRenderPass2(long long commandBuffer, const VkSubpassEndInfo* pSubpassEndInfo) {
+    ::vkCmdEndRenderPass2((VkCommandBuffer)(commandBuffer), pSubpassEndInfo);
 }
 
 #endif // VK_VERSION_1_2
@@ -2136,6 +4072,17 @@ inline VkResult GetPhysicalDeviceToolProperties(VkPhysicalDevice physicalDevice,
 }
 
 /**
+ * cheatah-friendly overload of `GetPhysicalDeviceToolProperties`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult GetPhysicalDeviceToolProperties(long long physicalDevice,
+                                                uint32_t* pToolCount,
+                                                VkPhysicalDeviceToolProperties* pToolProperties) {
+    return ::vkGetPhysicalDeviceToolProperties((VkPhysicalDevice)(physicalDevice), pToolCount,
+                                               pToolProperties);
+}
+
+/**
  * Inline forwarder for
  * [`vkCreatePrivateDataSlot`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCreatePrivateDataSlot.html)
  * — the real Vulkan call via volk.
@@ -2149,6 +4096,17 @@ inline VkResult CreatePrivateDataSlot(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CreatePrivateDataSlot`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreatePrivateDataSlot(long long device,
+                                      const VkPrivateDataSlotCreateInfo* pCreateInfo,
+                                      const VkAllocationCallbacks* pAllocator,
+                                      VkPrivateDataSlot* pPrivateDataSlot) {
+    return ::vkCreatePrivateDataSlot((VkDevice)(device), pCreateInfo, pAllocator, pPrivateDataSlot);
+}
+
+/**
  * Inline forwarder for
  * [`vkDestroyPrivateDataSlot`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroyPrivateDataSlot.html)
  * — the real Vulkan call via volk.
@@ -2157,6 +4115,17 @@ inline void DestroyPrivateDataSlot(VkDevice device,
                                    VkPrivateDataSlot privateDataSlot,
                                    const VkAllocationCallbacks* pAllocator) {
     ::vkDestroyPrivateDataSlot(device, privateDataSlot, pAllocator);
+}
+
+/**
+ * cheatah-friendly overload of `DestroyPrivateDataSlot`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void DestroyPrivateDataSlot(long long device,
+                                   long long privateDataSlot,
+                                   const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroyPrivateDataSlot((VkDevice)(device), (VkPrivateDataSlot)(privateDataSlot),
+                               pAllocator);
 }
 
 /**
@@ -2173,6 +4142,20 @@ inline VkResult SetPrivateData(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `SetPrivateData`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult SetPrivateData(long long device,
+                               long long objectType,
+                               long long objectHandle,
+                               long long privateDataSlot,
+                               long long data) {
+    return ::vkSetPrivateData((VkDevice)(device), (VkObjectType)(objectType),
+                              (uint64_t)(objectHandle), (VkPrivateDataSlot)(privateDataSlot),
+                              (uint64_t)(data));
+}
+
+/**
  * Inline forwarder for
  * [`vkGetPrivateData`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetPrivateData.html)
  * — the real Vulkan call via volk.
@@ -2186,6 +4169,19 @@ inline void GetPrivateData(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `GetPrivateData`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetPrivateData(long long device,
+                           long long objectType,
+                           long long objectHandle,
+                           long long privateDataSlot,
+                           uint64_t* pData) {
+    ::vkGetPrivateData((VkDevice)(device), (VkObjectType)(objectType), (uint64_t)(objectHandle),
+                       (VkPrivateDataSlot)(privateDataSlot), pData);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdPipelineBarrier2`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdPipelineBarrier2.html)
  * — the real Vulkan call via volk.
@@ -2193,6 +4189,14 @@ inline void GetPrivateData(VkDevice device,
 inline void CmdPipelineBarrier2(VkCommandBuffer commandBuffer,
                                 const VkDependencyInfo* pDependencyInfo) {
     ::vkCmdPipelineBarrier2(commandBuffer, pDependencyInfo);
+}
+
+/**
+ * cheatah-friendly overload of `CmdPipelineBarrier2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdPipelineBarrier2(long long commandBuffer, const VkDependencyInfo* pDependencyInfo) {
+    ::vkCmdPipelineBarrier2((VkCommandBuffer)(commandBuffer), pDependencyInfo);
 }
 
 /**
@@ -2208,6 +4212,16 @@ inline void CmdWriteTimestamp2(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdWriteTimestamp2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+CmdWriteTimestamp2(long long commandBuffer, long long stage, long long queryPool, long long query) {
+    ::vkCmdWriteTimestamp2((VkCommandBuffer)(commandBuffer), (VkPipelineStageFlags2)(stage),
+                           (VkQueryPool)(queryPool), (uint32_t)(query));
+}
+
+/**
  * Inline forwarder for
  * [`vkQueueSubmit2`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkQueueSubmit2.html)
  * — the real Vulkan call via volk.
@@ -2215,6 +4229,17 @@ inline void CmdWriteTimestamp2(VkCommandBuffer commandBuffer,
 inline VkResult
 QueueSubmit2(VkQueue queue, uint32_t submitCount, const VkSubmitInfo2* pSubmits, VkFence fence) {
     return ::vkQueueSubmit2(queue, submitCount, pSubmits, fence);
+}
+
+/**
+ * cheatah-friendly overload of `QueueSubmit2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult QueueSubmit2(long long queue,
+                             long long submitCount,
+                             const VkSubmitInfo2* pSubmits,
+                             long long fence) {
+    return ::vkQueueSubmit2((VkQueue)(queue), (uint32_t)(submitCount), pSubmits, (VkFence)(fence));
 }
 
 /**
@@ -2228,12 +4253,28 @@ inline void CmdCopyBuffer2(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdCopyBuffer2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdCopyBuffer2(long long commandBuffer, const VkCopyBufferInfo2* pCopyBufferInfo) {
+    ::vkCmdCopyBuffer2((VkCommandBuffer)(commandBuffer), pCopyBufferInfo);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdCopyImage2`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdCopyImage2.html)
  * — the real Vulkan call via volk.
  */
 inline void CmdCopyImage2(VkCommandBuffer commandBuffer, const VkCopyImageInfo2* pCopyImageInfo) {
     ::vkCmdCopyImage2(commandBuffer, pCopyImageInfo);
+}
+
+/**
+ * cheatah-friendly overload of `CmdCopyImage2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdCopyImage2(long long commandBuffer, const VkCopyImageInfo2* pCopyImageInfo) {
+    ::vkCmdCopyImage2((VkCommandBuffer)(commandBuffer), pCopyImageInfo);
 }
 
 /**
@@ -2247,6 +4288,15 @@ inline void CmdCopyBufferToImage2(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdCopyBufferToImage2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdCopyBufferToImage2(long long commandBuffer,
+                                  const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo) {
+    ::vkCmdCopyBufferToImage2((VkCommandBuffer)(commandBuffer), pCopyBufferToImageInfo);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdCopyImageToBuffer2`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdCopyImageToBuffer2.html)
  * — the real Vulkan call via volk.
@@ -2254,6 +4304,15 @@ inline void CmdCopyBufferToImage2(VkCommandBuffer commandBuffer,
 inline void CmdCopyImageToBuffer2(VkCommandBuffer commandBuffer,
                                   const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {
     ::vkCmdCopyImageToBuffer2(commandBuffer, pCopyImageToBufferInfo);
+}
+
+/**
+ * cheatah-friendly overload of `CmdCopyImageToBuffer2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdCopyImageToBuffer2(long long commandBuffer,
+                                  const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {
+    ::vkCmdCopyImageToBuffer2((VkCommandBuffer)(commandBuffer), pCopyImageToBufferInfo);
 }
 
 /**
@@ -2268,6 +4327,16 @@ inline void GetDeviceBufferMemoryRequirements(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `GetDeviceBufferMemoryRequirements`: pass plain ints/floats; the
+ * exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetDeviceBufferMemoryRequirements(long long device,
+                                              const VkDeviceBufferMemoryRequirements* pInfo,
+                                              VkMemoryRequirements2* pMemoryRequirements) {
+    ::vkGetDeviceBufferMemoryRequirements((VkDevice)(device), pInfo, pMemoryRequirements);
+}
+
+/**
  * Inline forwarder for
  * [`vkGetDeviceImageMemoryRequirements`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetDeviceImageMemoryRequirements.html)
  * — the real Vulkan call via volk.
@@ -2276,6 +4345,16 @@ inline void GetDeviceImageMemoryRequirements(VkDevice device,
                                              const VkDeviceImageMemoryRequirements* pInfo,
                                              VkMemoryRequirements2* pMemoryRequirements) {
     ::vkGetDeviceImageMemoryRequirements(device, pInfo, pMemoryRequirements);
+}
+
+/**
+ * cheatah-friendly overload of `GetDeviceImageMemoryRequirements`: pass plain ints/floats; the
+ * exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetDeviceImageMemoryRequirements(long long device,
+                                             const VkDeviceImageMemoryRequirements* pInfo,
+                                             VkMemoryRequirements2* pMemoryRequirements) {
+    ::vkGetDeviceImageMemoryRequirements((VkDevice)(device), pInfo, pMemoryRequirements);
 }
 
 /**
@@ -2293,6 +4372,19 @@ inline void GetDeviceImageSparseMemoryRequirements(
 }
 
 /**
+ * cheatah-friendly overload of `GetDeviceImageSparseMemoryRequirements`: pass plain ints/floats;
+ * the exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetDeviceImageSparseMemoryRequirements(
+    long long device,
+    const VkDeviceImageMemoryRequirements* pInfo,
+    uint32_t* pSparseMemoryRequirementCount,
+    VkSparseImageMemoryRequirements2* pSparseMemoryRequirements) {
+    ::vkGetDeviceImageSparseMemoryRequirements(
+        (VkDevice)(device), pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdSetEvent2`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdSetEvent2.html)
  * — the real Vulkan call via volk.
@@ -2304,6 +4396,15 @@ inline void CmdSetEvent2(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdSetEvent2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+CmdSetEvent2(long long commandBuffer, long long event, const VkDependencyInfo* pDependencyInfo) {
+    ::vkCmdSetEvent2((VkCommandBuffer)(commandBuffer), (VkEvent)(event), pDependencyInfo);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdResetEvent2`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdResetEvent2.html)
  * — the real Vulkan call via volk.
@@ -2311,6 +4412,15 @@ inline void CmdSetEvent2(VkCommandBuffer commandBuffer,
 inline void
 CmdResetEvent2(VkCommandBuffer commandBuffer, VkEvent event, VkPipelineStageFlags2 stageMask) {
     ::vkCmdResetEvent2(commandBuffer, event, stageMask);
+}
+
+/**
+ * cheatah-friendly overload of `CmdResetEvent2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdResetEvent2(long long commandBuffer, long long event, long long stageMask) {
+    ::vkCmdResetEvent2((VkCommandBuffer)(commandBuffer), (VkEvent)(event),
+                       (VkPipelineStageFlags2)(stageMask));
 }
 
 /**
@@ -2326,12 +4436,32 @@ inline void CmdWaitEvents2(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdWaitEvents2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdWaitEvents2(long long commandBuffer,
+                           long long eventCount,
+                           const VkEvent* pEvents,
+                           const VkDependencyInfo* pDependencyInfos) {
+    ::vkCmdWaitEvents2((VkCommandBuffer)(commandBuffer), (uint32_t)(eventCount), pEvents,
+                       pDependencyInfos);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdBlitImage2`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdBlitImage2.html)
  * — the real Vulkan call via volk.
  */
 inline void CmdBlitImage2(VkCommandBuffer commandBuffer, const VkBlitImageInfo2* pBlitImageInfo) {
     ::vkCmdBlitImage2(commandBuffer, pBlitImageInfo);
+}
+
+/**
+ * cheatah-friendly overload of `CmdBlitImage2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdBlitImage2(long long commandBuffer, const VkBlitImageInfo2* pBlitImageInfo) {
+    ::vkCmdBlitImage2((VkCommandBuffer)(commandBuffer), pBlitImageInfo);
 }
 
 /**
@@ -2345,6 +4475,15 @@ inline void CmdResolveImage2(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdResolveImage2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdResolveImage2(long long commandBuffer,
+                             const VkResolveImageInfo2* pResolveImageInfo) {
+    ::vkCmdResolveImage2((VkCommandBuffer)(commandBuffer), pResolveImageInfo);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdBeginRendering`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdBeginRendering.html)
  * — the real Vulkan call via volk.
@@ -2355,11 +4494,27 @@ inline void CmdBeginRendering(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdBeginRendering`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdBeginRendering(long long commandBuffer, const VkRenderingInfo* pRenderingInfo) {
+    ::vkCmdBeginRendering((VkCommandBuffer)(commandBuffer), pRenderingInfo);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdEndRendering`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdEndRendering.html)
  * — the real Vulkan call via volk.
  */
 inline void CmdEndRendering(VkCommandBuffer commandBuffer) { ::vkCmdEndRendering(commandBuffer); }
+
+/**
+ * cheatah-friendly overload of `CmdEndRendering`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdEndRendering(long long commandBuffer) {
+    ::vkCmdEndRendering((VkCommandBuffer)(commandBuffer));
+}
 
 /**
  * Inline forwarder for
@@ -2368,6 +4523,14 @@ inline void CmdEndRendering(VkCommandBuffer commandBuffer) { ::vkCmdEndRendering
  */
 inline void CmdSetCullMode(VkCommandBuffer commandBuffer, VkCullModeFlags cullMode) {
     ::vkCmdSetCullMode(commandBuffer, cullMode);
+}
+
+/**
+ * cheatah-friendly overload of `CmdSetCullMode`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdSetCullMode(long long commandBuffer, long long cullMode) {
+    ::vkCmdSetCullMode((VkCommandBuffer)(commandBuffer), (VkCullModeFlags)(cullMode));
 }
 
 /**
@@ -2380,6 +4543,14 @@ inline void CmdSetFrontFace(VkCommandBuffer commandBuffer, VkFrontFace frontFace
 }
 
 /**
+ * cheatah-friendly overload of `CmdSetFrontFace`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdSetFrontFace(long long commandBuffer, long long frontFace) {
+    ::vkCmdSetFrontFace((VkCommandBuffer)(commandBuffer), (VkFrontFace)(frontFace));
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdSetPrimitiveTopology`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdSetPrimitiveTopology.html)
  * — the real Vulkan call via volk.
@@ -2387,6 +4558,15 @@ inline void CmdSetFrontFace(VkCommandBuffer commandBuffer, VkFrontFace frontFace
 inline void CmdSetPrimitiveTopology(VkCommandBuffer commandBuffer,
                                     VkPrimitiveTopology primitiveTopology) {
     ::vkCmdSetPrimitiveTopology(commandBuffer, primitiveTopology);
+}
+
+/**
+ * cheatah-friendly overload of `CmdSetPrimitiveTopology`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdSetPrimitiveTopology(long long commandBuffer, long long primitiveTopology) {
+    ::vkCmdSetPrimitiveTopology((VkCommandBuffer)(commandBuffer),
+                                (VkPrimitiveTopology)(primitiveTopology));
 }
 
 /**
@@ -2401,6 +4581,17 @@ inline void CmdSetViewportWithCount(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdSetViewportWithCount`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdSetViewportWithCount(long long commandBuffer,
+                                    long long viewportCount,
+                                    const VkViewport* pViewports) {
+    ::vkCmdSetViewportWithCount((VkCommandBuffer)(commandBuffer), (uint32_t)(viewportCount),
+                                pViewports);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdSetScissorWithCount`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdSetScissorWithCount.html)
  * — the real Vulkan call via volk.
@@ -2409,6 +4600,16 @@ inline void CmdSetScissorWithCount(VkCommandBuffer commandBuffer,
                                    uint32_t scissorCount,
                                    const VkRect2D* pScissors) {
     ::vkCmdSetScissorWithCount(commandBuffer, scissorCount, pScissors);
+}
+
+/**
+ * cheatah-friendly overload of `CmdSetScissorWithCount`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+CmdSetScissorWithCount(long long commandBuffer, long long scissorCount, const VkRect2D* pScissors) {
+    ::vkCmdSetScissorWithCount((VkCommandBuffer)(commandBuffer), (uint32_t)(scissorCount),
+                               pScissors);
 }
 
 /**
@@ -2428,12 +4629,35 @@ inline void CmdBindVertexBuffers2(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdBindVertexBuffers2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdBindVertexBuffers2(long long commandBuffer,
+                                  long long firstBinding,
+                                  long long bindingCount,
+                                  const VkBuffer* pBuffers,
+                                  const VkDeviceSize* pOffsets,
+                                  const VkDeviceSize* pSizes,
+                                  const VkDeviceSize* pStrides) {
+    ::vkCmdBindVertexBuffers2((VkCommandBuffer)(commandBuffer), (uint32_t)(firstBinding),
+                              (uint32_t)(bindingCount), pBuffers, pOffsets, pSizes, pStrides);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdSetDepthTestEnable`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdSetDepthTestEnable.html)
  * — the real Vulkan call via volk.
  */
 inline void CmdSetDepthTestEnable(VkCommandBuffer commandBuffer, VkBool32 depthTestEnable) {
     ::vkCmdSetDepthTestEnable(commandBuffer, depthTestEnable);
+}
+
+/**
+ * cheatah-friendly overload of `CmdSetDepthTestEnable`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdSetDepthTestEnable(long long commandBuffer, long long depthTestEnable) {
+    ::vkCmdSetDepthTestEnable((VkCommandBuffer)(commandBuffer), (VkBool32)(depthTestEnable));
 }
 
 /**
@@ -2446,12 +4670,28 @@ inline void CmdSetDepthWriteEnable(VkCommandBuffer commandBuffer, VkBool32 depth
 }
 
 /**
+ * cheatah-friendly overload of `CmdSetDepthWriteEnable`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdSetDepthWriteEnable(long long commandBuffer, long long depthWriteEnable) {
+    ::vkCmdSetDepthWriteEnable((VkCommandBuffer)(commandBuffer), (VkBool32)(depthWriteEnable));
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdSetDepthCompareOp`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdSetDepthCompareOp.html)
  * — the real Vulkan call via volk.
  */
 inline void CmdSetDepthCompareOp(VkCommandBuffer commandBuffer, VkCompareOp depthCompareOp) {
     ::vkCmdSetDepthCompareOp(commandBuffer, depthCompareOp);
+}
+
+/**
+ * cheatah-friendly overload of `CmdSetDepthCompareOp`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdSetDepthCompareOp(long long commandBuffer, long long depthCompareOp) {
+    ::vkCmdSetDepthCompareOp((VkCommandBuffer)(commandBuffer), (VkCompareOp)(depthCompareOp));
 }
 
 /**
@@ -2465,12 +4705,29 @@ inline void CmdSetDepthBoundsTestEnable(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdSetDepthBoundsTestEnable`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdSetDepthBoundsTestEnable(long long commandBuffer, long long depthBoundsTestEnable) {
+    ::vkCmdSetDepthBoundsTestEnable((VkCommandBuffer)(commandBuffer),
+                                    (VkBool32)(depthBoundsTestEnable));
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdSetStencilTestEnable`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdSetStencilTestEnable.html)
  * — the real Vulkan call via volk.
  */
 inline void CmdSetStencilTestEnable(VkCommandBuffer commandBuffer, VkBool32 stencilTestEnable) {
     ::vkCmdSetStencilTestEnable(commandBuffer, stencilTestEnable);
+}
+
+/**
+ * cheatah-friendly overload of `CmdSetStencilTestEnable`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdSetStencilTestEnable(long long commandBuffer, long long stencilTestEnable) {
+    ::vkCmdSetStencilTestEnable((VkCommandBuffer)(commandBuffer), (VkBool32)(stencilTestEnable));
 }
 
 /**
@@ -2488,6 +4745,21 @@ inline void CmdSetStencilOp(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdSetStencilOp`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdSetStencilOp(long long commandBuffer,
+                            long long faceMask,
+                            long long failOp,
+                            long long passOp,
+                            long long depthFailOp,
+                            long long compareOp) {
+    ::vkCmdSetStencilOp((VkCommandBuffer)(commandBuffer), (VkStencilFaceFlags)(faceMask),
+                        (VkStencilOp)(failOp), (VkStencilOp)(passOp), (VkStencilOp)(depthFailOp),
+                        (VkCompareOp)(compareOp));
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdSetRasterizerDiscardEnable`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdSetRasterizerDiscardEnable.html)
  * — the real Vulkan call via volk.
@@ -2495,6 +4767,16 @@ inline void CmdSetStencilOp(VkCommandBuffer commandBuffer,
 inline void CmdSetRasterizerDiscardEnable(VkCommandBuffer commandBuffer,
                                           VkBool32 rasterizerDiscardEnable) {
     ::vkCmdSetRasterizerDiscardEnable(commandBuffer, rasterizerDiscardEnable);
+}
+
+/**
+ * cheatah-friendly overload of `CmdSetRasterizerDiscardEnable`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdSetRasterizerDiscardEnable(long long commandBuffer,
+                                          long long rasterizerDiscardEnable) {
+    ::vkCmdSetRasterizerDiscardEnable((VkCommandBuffer)(commandBuffer),
+                                      (VkBool32)(rasterizerDiscardEnable));
 }
 
 /**
@@ -2507,6 +4789,14 @@ inline void CmdSetDepthBiasEnable(VkCommandBuffer commandBuffer, VkBool32 depthB
 }
 
 /**
+ * cheatah-friendly overload of `CmdSetDepthBiasEnable`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdSetDepthBiasEnable(long long commandBuffer, long long depthBiasEnable) {
+    ::vkCmdSetDepthBiasEnable((VkCommandBuffer)(commandBuffer), (VkBool32)(depthBiasEnable));
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdSetPrimitiveRestartEnable`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdSetPrimitiveRestartEnable.html)
  * — the real Vulkan call via volk.
@@ -2514,6 +4804,16 @@ inline void CmdSetDepthBiasEnable(VkCommandBuffer commandBuffer, VkBool32 depthB
 inline void CmdSetPrimitiveRestartEnable(VkCommandBuffer commandBuffer,
                                          VkBool32 primitiveRestartEnable) {
     ::vkCmdSetPrimitiveRestartEnable(commandBuffer, primitiveRestartEnable);
+}
+
+/**
+ * cheatah-friendly overload of `CmdSetPrimitiveRestartEnable`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdSetPrimitiveRestartEnable(long long commandBuffer,
+                                         long long primitiveRestartEnable) {
+    ::vkCmdSetPrimitiveRestartEnable((VkCommandBuffer)(commandBuffer),
+                                     (VkBool32)(primitiveRestartEnable));
 }
 
 #endif // VK_VERSION_1_3
@@ -2530,12 +4830,28 @@ inline VkResult MapMemory2(VkDevice device, const VkMemoryMapInfo* pMemoryMapInf
 }
 
 /**
+ * cheatah-friendly overload of `MapMemory2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult MapMemory2(long long device, const VkMemoryMapInfo* pMemoryMapInfo, void** ppData) {
+    return ::vkMapMemory2((VkDevice)(device), pMemoryMapInfo, ppData);
+}
+
+/**
  * Inline forwarder for
  * [`vkUnmapMemory2`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkUnmapMemory2.html)
  * — the real Vulkan call via volk.
  */
 inline VkResult UnmapMemory2(VkDevice device, const VkMemoryUnmapInfo* pMemoryUnmapInfo) {
     return ::vkUnmapMemory2(device, pMemoryUnmapInfo);
+}
+
+/**
+ * cheatah-friendly overload of `UnmapMemory2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult UnmapMemory2(long long device, const VkMemoryUnmapInfo* pMemoryUnmapInfo) {
+    return ::vkUnmapMemory2((VkDevice)(device), pMemoryUnmapInfo);
 }
 
 /**
@@ -2547,6 +4863,16 @@ inline void GetDeviceImageSubresourceLayout(VkDevice device,
                                             const VkDeviceImageSubresourceInfo* pInfo,
                                             VkSubresourceLayout2* pLayout) {
     ::vkGetDeviceImageSubresourceLayout(device, pInfo, pLayout);
+}
+
+/**
+ * cheatah-friendly overload of `GetDeviceImageSubresourceLayout`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetDeviceImageSubresourceLayout(long long device,
+                                            const VkDeviceImageSubresourceInfo* pInfo,
+                                            VkSubresourceLayout2* pLayout) {
+    ::vkGetDeviceImageSubresourceLayout((VkDevice)(device), pInfo, pLayout);
 }
 
 /**
@@ -2562,6 +4888,17 @@ inline void GetImageSubresourceLayout2(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `GetImageSubresourceLayout2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetImageSubresourceLayout2(long long device,
+                                       long long image,
+                                       const VkImageSubresource2* pSubresource,
+                                       VkSubresourceLayout2* pLayout) {
+    ::vkGetImageSubresourceLayout2((VkDevice)(device), (VkImage)(image), pSubresource, pLayout);
+}
+
+/**
  * Inline forwarder for
  * [`vkCopyMemoryToImage`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCopyMemoryToImage.html)
  * — the real Vulkan call via volk.
@@ -2569,6 +4906,15 @@ inline void GetImageSubresourceLayout2(VkDevice device,
 inline VkResult CopyMemoryToImage(VkDevice device,
                                   const VkCopyMemoryToImageInfo* pCopyMemoryToImageInfo) {
     return ::vkCopyMemoryToImage(device, pCopyMemoryToImageInfo);
+}
+
+/**
+ * cheatah-friendly overload of `CopyMemoryToImage`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CopyMemoryToImage(long long device,
+                                  const VkCopyMemoryToImageInfo* pCopyMemoryToImageInfo) {
+    return ::vkCopyMemoryToImage((VkDevice)(device), pCopyMemoryToImageInfo);
 }
 
 /**
@@ -2582,6 +4928,15 @@ inline VkResult CopyImageToMemory(VkDevice device,
 }
 
 /**
+ * cheatah-friendly overload of `CopyImageToMemory`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CopyImageToMemory(long long device,
+                                  const VkCopyImageToMemoryInfo* pCopyImageToMemoryInfo) {
+    return ::vkCopyImageToMemory((VkDevice)(device), pCopyImageToMemoryInfo);
+}
+
+/**
  * Inline forwarder for
  * [`vkCopyImageToImage`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCopyImageToImage.html)
  * — the real Vulkan call via volk.
@@ -2589,6 +4944,15 @@ inline VkResult CopyImageToMemory(VkDevice device,
 inline VkResult CopyImageToImage(VkDevice device,
                                  const VkCopyImageToImageInfo* pCopyImageToImageInfo) {
     return ::vkCopyImageToImage(device, pCopyImageToImageInfo);
+}
+
+/**
+ * cheatah-friendly overload of `CopyImageToImage`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CopyImageToImage(long long device,
+                                 const VkCopyImageToImageInfo* pCopyImageToImageInfo) {
+    return ::vkCopyImageToImage((VkDevice)(device), pCopyImageToImageInfo);
 }
 
 /**
@@ -2600,6 +4964,16 @@ inline VkResult TransitionImageLayout(VkDevice device,
                                       uint32_t transitionCount,
                                       const VkHostImageLayoutTransitionInfo* pTransitions) {
     return ::vkTransitionImageLayout(device, transitionCount, pTransitions);
+}
+
+/**
+ * cheatah-friendly overload of `TransitionImageLayout`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult TransitionImageLayout(long long device,
+                                      long long transitionCount,
+                                      const VkHostImageLayoutTransitionInfo* pTransitions) {
+    return ::vkTransitionImageLayout((VkDevice)(device), (uint32_t)(transitionCount), pTransitions);
 }
 
 /**
@@ -2618,6 +4992,21 @@ inline void CmdPushDescriptorSet(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdPushDescriptorSet`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdPushDescriptorSet(long long commandBuffer,
+                                 long long pipelineBindPoint,
+                                 long long layout,
+                                 long long set,
+                                 long long descriptorWriteCount,
+                                 const VkWriteDescriptorSet* pDescriptorWrites) {
+    ::vkCmdPushDescriptorSet((VkCommandBuffer)(commandBuffer),
+                             (VkPipelineBindPoint)(pipelineBindPoint), (VkPipelineLayout)(layout),
+                             (uint32_t)(set), (uint32_t)(descriptorWriteCount), pDescriptorWrites);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdPushDescriptorSetWithTemplate`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdPushDescriptorSetWithTemplate.html)
  * — the real Vulkan call via volk.
@@ -2632,6 +5021,20 @@ inline void CmdPushDescriptorSetWithTemplate(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdPushDescriptorSetWithTemplate`: pass plain ints/floats; the
+ * exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdPushDescriptorSetWithTemplate(long long commandBuffer,
+                                             long long descriptorUpdateTemplate,
+                                             long long layout,
+                                             long long set,
+                                             const void* pData) {
+    ::vkCmdPushDescriptorSetWithTemplate((VkCommandBuffer)(commandBuffer),
+                                         (VkDescriptorUpdateTemplate)(descriptorUpdateTemplate),
+                                         (VkPipelineLayout)(layout), (uint32_t)(set), pData);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdBindDescriptorSets2`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdBindDescriptorSets2.html)
  * — the real Vulkan call via volk.
@@ -2639,6 +5042,15 @@ inline void CmdPushDescriptorSetWithTemplate(VkCommandBuffer commandBuffer,
 inline void CmdBindDescriptorSets2(VkCommandBuffer commandBuffer,
                                    const VkBindDescriptorSetsInfo* pBindDescriptorSetsInfo) {
     ::vkCmdBindDescriptorSets2(commandBuffer, pBindDescriptorSetsInfo);
+}
+
+/**
+ * cheatah-friendly overload of `CmdBindDescriptorSets2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdBindDescriptorSets2(long long commandBuffer,
+                                   const VkBindDescriptorSetsInfo* pBindDescriptorSetsInfo) {
+    ::vkCmdBindDescriptorSets2((VkCommandBuffer)(commandBuffer), pBindDescriptorSetsInfo);
 }
 
 /**
@@ -2652,6 +5064,15 @@ inline void CmdPushConstants2(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdPushConstants2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdPushConstants2(long long commandBuffer,
+                              const VkPushConstantsInfo* pPushConstantsInfo) {
+    ::vkCmdPushConstants2((VkCommandBuffer)(commandBuffer), pPushConstantsInfo);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdPushDescriptorSet2`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdPushDescriptorSet2.html)
  * — the real Vulkan call via volk.
@@ -2659,6 +5080,15 @@ inline void CmdPushConstants2(VkCommandBuffer commandBuffer,
 inline void CmdPushDescriptorSet2(VkCommandBuffer commandBuffer,
                                   const VkPushDescriptorSetInfo* pPushDescriptorSetInfo) {
     ::vkCmdPushDescriptorSet2(commandBuffer, pPushDescriptorSetInfo);
+}
+
+/**
+ * cheatah-friendly overload of `CmdPushDescriptorSet2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdPushDescriptorSet2(long long commandBuffer,
+                                  const VkPushDescriptorSetInfo* pPushDescriptorSetInfo) {
+    ::vkCmdPushDescriptorSet2((VkCommandBuffer)(commandBuffer), pPushDescriptorSetInfo);
 }
 
 /**
@@ -2673,6 +5103,17 @@ inline void CmdPushDescriptorSetWithTemplate2(
 }
 
 /**
+ * cheatah-friendly overload of `CmdPushDescriptorSetWithTemplate2`: pass plain ints/floats; the
+ * exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdPushDescriptorSetWithTemplate2(
+    long long commandBuffer,
+    const VkPushDescriptorSetWithTemplateInfo* pPushDescriptorSetWithTemplateInfo) {
+    ::vkCmdPushDescriptorSetWithTemplate2((VkCommandBuffer)(commandBuffer),
+                                          pPushDescriptorSetWithTemplateInfo);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdSetLineStipple`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdSetLineStipple.html)
  * — the real Vulkan call via volk.
@@ -2681,6 +5122,17 @@ inline void CmdSetLineStipple(VkCommandBuffer commandBuffer,
                               uint32_t lineStippleFactor,
                               uint16_t lineStipplePattern) {
     ::vkCmdSetLineStipple(commandBuffer, lineStippleFactor, lineStipplePattern);
+}
+
+/**
+ * cheatah-friendly overload of `CmdSetLineStipple`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdSetLineStipple(long long commandBuffer,
+                              long long lineStippleFactor,
+                              long long lineStipplePattern) {
+    ::vkCmdSetLineStipple((VkCommandBuffer)(commandBuffer), (uint32_t)(lineStippleFactor),
+                          (uint16_t)(lineStipplePattern));
 }
 
 /**
@@ -2697,6 +5149,19 @@ inline void CmdBindIndexBuffer2(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdBindIndexBuffer2`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdBindIndexBuffer2(long long commandBuffer,
+                                long long buffer,
+                                long long offset,
+                                long long size,
+                                long long indexType) {
+    ::vkCmdBindIndexBuffer2((VkCommandBuffer)(commandBuffer), (VkBuffer)(buffer),
+                            (VkDeviceSize)(offset), (VkDeviceSize)(size), (VkIndexType)(indexType));
+}
+
+/**
  * Inline forwarder for
  * [`vkGetRenderingAreaGranularity`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetRenderingAreaGranularity.html)
  * — the real Vulkan call via volk.
@@ -2705,6 +5170,16 @@ inline void GetRenderingAreaGranularity(VkDevice device,
                                         const VkRenderingAreaInfo* pRenderingAreaInfo,
                                         VkExtent2D* pGranularity) {
     ::vkGetRenderingAreaGranularity(device, pRenderingAreaInfo, pGranularity);
+}
+
+/**
+ * cheatah-friendly overload of `GetRenderingAreaGranularity`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void GetRenderingAreaGranularity(long long device,
+                                        const VkRenderingAreaInfo* pRenderingAreaInfo,
+                                        VkExtent2D* pGranularity) {
+    ::vkGetRenderingAreaGranularity((VkDevice)(device), pRenderingAreaInfo, pGranularity);
 }
 
 /**
@@ -2719,6 +5194,16 @@ CmdSetRenderingAttachmentLocations(VkCommandBuffer commandBuffer,
 }
 
 /**
+ * cheatah-friendly overload of `CmdSetRenderingAttachmentLocations`: pass plain ints/floats; the
+ * exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+CmdSetRenderingAttachmentLocations(long long commandBuffer,
+                                   const VkRenderingAttachmentLocationInfo* pLocationInfo) {
+    ::vkCmdSetRenderingAttachmentLocations((VkCommandBuffer)(commandBuffer), pLocationInfo);
+}
+
+/**
  * Inline forwarder for
  * [`vkCmdSetRenderingInputAttachmentIndices`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCmdSetRenderingInputAttachmentIndices.html)
  * — the real Vulkan call via volk.
@@ -2727,6 +5212,16 @@ inline void CmdSetRenderingInputAttachmentIndices(
     VkCommandBuffer commandBuffer,
     const VkRenderingInputAttachmentIndexInfo* pInputAttachmentIndexInfo) {
     ::vkCmdSetRenderingInputAttachmentIndices(commandBuffer, pInputAttachmentIndexInfo);
+}
+
+/**
+ * cheatah-friendly overload of `CmdSetRenderingInputAttachmentIndices`: pass plain ints/floats; the
+ * exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void CmdSetRenderingInputAttachmentIndices(
+    long long commandBuffer, const VkRenderingInputAttachmentIndexInfo* pInputAttachmentIndexInfo) {
+    ::vkCmdSetRenderingInputAttachmentIndices((VkCommandBuffer)(commandBuffer),
+                                              pInputAttachmentIndexInfo);
 }
 
 #endif // VK_VERSION_1_4

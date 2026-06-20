@@ -149,7 +149,43 @@ fn forwarder(name, block, cmd_block) {
     let lead = "return "
     if p.ret == "void" { lead = "" }
     let body = lead + "::" + name + "(" + call + ");"
-    return doc_block(name, cmd_block) + "inline " + p.ret + " " + fname + "(" + sig + ") { " + body + " }\n\n"
+    let exact = doc_block(name, cmd_block) + "inline " + p.ret + " " + fname + "(" + sig + ") { " + body + " }\n\n"
+
+    # A cheatah-friendly OVERLOAD: widen each by-value scalar to long long (float -> double) and cast
+    # back to the exact Vulkan width, so a cheatah caller passes plain ints/floats and never juggles
+    # uint32_t / VkDeviceSize / handles / enums. Pointers + arrays stay exact (use a cpp{} hatch for
+    # those, or the easy `import gpu` layer). A caller wanting explicit widths still gets the exact one.
+    let odecls: list[str] = []
+    let oargs: list[str] = []
+    let widened = false
+    let i = 0
+    while i < len(decls) {
+        let dcl = decls[i]
+        let nm = names[i]
+        if string.contains(dcl, "*") or string.contains(dcl, "[") {
+            odecls.append(dcl)
+            oargs.append(nm)
+        } else {
+            let ty = string.strip(dcl[:len(dcl) - len(nm)])
+            if ty == "float" {
+                odecls.append("double " + nm)
+                oargs.append("(float)(" + nm + ")")
+            } else {
+                odecls.append("long long " + nm)
+                oargs.append("(" + ty + ")(" + nm + ")")
+            }
+            widened = true
+        }
+        i = i + 1
+    }
+    if not widened {
+        return exact
+    }
+    let obody = lead + "::" + name + "(" + string.join(", ", oargs) + ");"
+    let odoc = "/**\n * cheatah-friendly overload of `" + fname + "`: pass plain ints/floats; the exact\n"
+    odoc = odoc + " * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.\n */\n"
+    let overload = odoc + "inline " + p.ret + " " + fname + "(" + string.join(", ", odecls) + ") { " + obody + " }\n\n"
+    return exact + overload
 }
 
 # --- driver ---------------------------------------------------------------------------------------
