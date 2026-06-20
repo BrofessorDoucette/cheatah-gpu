@@ -49,17 +49,27 @@ else
     warn "vulkaninfo not installed — can't confirm a device. Run: scripts/install-deps.sh"; status=1
 fi
 
-# 3. Slang toolchain: compile the smoke shader to validated SPIR-V -----------------------------
+# 3. Slang toolchain: one source must compile to BOTH targets (Vulkan SPIR-V + Apple Metal) -----
 if have slangc; then
     tmp="$(mktemp -d)"
     if slangc shaders/hello.slang -target spirv -entry main -o "$tmp/hello.spv" >"$tmp/slang.log" 2>&1; then
         if have spirv-val && spirv-val "$tmp/hello.spv" >/dev/null 2>&1; then
-            ok "slangc compiles shaders/hello.slang -> valid SPIR-V"
+            ok "slangc: shaders/hello.slang -> valid SPIR-V (Vulkan)"
         else
-            ok "slangc compiles shaders/hello.slang -> SPIR-V (spirv-val not run)"
+            ok "slangc: shaders/hello.slang -> SPIR-V (Vulkan; spirv-val not run)"
         fi
     else
         bad "slangc failed on shaders/hello.slang:"; sed 's/^/      /' "$tmp/slang.log"; status=1
+    fi
+    # The window-test shader must cross-compile to Vulkan AND Apple from the same Slang source.
+    if [ -f shaders/cool.slang ]; then
+        slangc shaders/cool.slang -target spirv -o "$tmp/cool.spv"   >>"$tmp/slang.log" 2>&1 \
+            && ok "slangc: shaders/cool.slang -> SPIR-V (Vulkan)"  || { bad "shaders/cool.slang -> SPIR-V failed"; status=1; }
+        if slangc shaders/cool.slang -target metal -o "$tmp/cool.metal" >>"$tmp/slang.log" 2>&1; then
+            ok "slangc: shaders/cool.slang -> Metal (Apple) — same source, both backends"
+        else
+            warn "slangc could not target Metal here (fine on non-Apple toolchains; Apple builds will)"
+        fi
     fi
     rm -rf "$tmp"
 else

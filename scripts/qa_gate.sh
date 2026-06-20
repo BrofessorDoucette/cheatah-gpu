@@ -59,6 +59,14 @@ else
     bash scripts/doc_coverage.sh || fail "documentation coverage below 100% — document the entities listed above"
 fi
 
+# 2c. Module sidecars: the .sha512 that marks gpu.hpp a VERIFIED cheatah module, so `biome add
+#     cheatah-gpu` resolves it on the extension path. Regenerate + fail if it drifted from gpu.hpp.
+bold "Checking module sidecars (biome-installability) are in sync…"
+bash scripts/sign-modules.sh >/dev/null || fail "sign-modules.sh"
+if [ -n "$(git status --porcelain -- 'gpu/gpu.hpp.sha512')" ]; then
+    fail "gpu/gpu.hpp.sha512 drifted from gpu/gpu.hpp — run scripts/sign-modules.sh, commit it, push again"
+fi
+
 # 3. Configure + build (debug) -------------------------------------------------------------------
 bold "Configuring + building (debug)…"
 cmake --preset debug         >/tmp/cheatah_gpu_cfg_debug.log   2>&1 || { tail -20 /tmp/cheatah_gpu_cfg_debug.log;   fail "configure (debug)"; }
@@ -98,6 +106,11 @@ for t in "${tests[@]}"; do
 done
 [ "$sfails" -eq 0 ] || fail "$sfails of $sran system test file(s) failed"
 green "[qa-gate] system tests: $sran/$sran green."
+
+# 4b. Biome-install sandbox: prove a standard cheatah install can `biome add cheatah-gpu` and use it
+#     (extension path + sidecar; no git, no --import-root) — the first-real-extension contract.
+bold "Sandboxing the 'biome add cheatah-gpu' user experience…"
+CHEATAH_DIR="$CHEATAH_DIR" bash scripts/test-biome-install.sh || fail "biome-install sandbox"
 
 # 5. Unit tests (hard gate) ----------------------------------------------------------------------
 # Exclude the `qa_gate` ctest entry itself — it shells back into THIS script (infinite recursion).
