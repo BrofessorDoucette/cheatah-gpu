@@ -19,7 +19,10 @@ import os
 
 let XML_PATH = "tools/vulkan-gen/vk.xml"
 let OUT_PATH = "gpu/vulkan/commands.hpp"
+let TYPES_OUT = "gpu/vulkan/types.hpp"
+let SYMS_OUT = "gpu/vulkan/symbols.json"
 let TEST_OUT = "tests/vulkan/generated_presence_checks.cpp"
+let MAN = "https://registry.khronos.org/vulkan/specs/latest/man/html/"
 
 struct Proto {
     ret: str
@@ -63,6 +66,41 @@ fn strip_tags(s) {
 # Collapse all whitespace runs to single spaces and trim.
 fn collapse_ws(s) {
     return string.join(" ", string.split(s))
+}
+
+# The cheatah-interface name for a Vulkan type: `VkApplicationInfo` -> `ApplicationInfo` (so a user
+# writes `vk.ApplicationInfo`). The raw `Vk*` name stays available for cpp{} hatches.
+fn strip_vk_type(nm) {
+    if string.startswith(nm, "Vk") {
+        return nm[2:]
+    }
+    return nm
+}
+
+# The cheatah-interface name for an enum/macro constant: `VK_STRUCTURE_TYPE_*` -> `STRUCTURE_TYPE_*`.
+fn strip_vk_const(cn) {
+    if string.startswith(cn, "VK_") {
+        return cn[3:]
+    }
+    return cn
+}
+
+# The Vulkan core version a constant belongs to: an explicitly version-added value (listed in a core
+# <feature>) uses that version; otherwise a base enum value inherits its enum type's version. The
+# "API Constants" pseudo-block mixes core and extension constants, so its members are NOT keyed by
+# type — the core ones are all feature-listed and resolve via const_add above; extension ones fall
+# through to "" and are skipped. "" => not part of the core surface, skip.
+fn const_ver(cn, const_add_version, const_type, type_version) {
+    if cn in const_add_version {
+        return const_add_version[cn]
+    }
+    if cn in const_type {
+        let ty = const_type[cn]
+        if ty in type_version {
+            return type_version[ty]
+        }
+    }
+    return ""
 }
 
 # True iff the feature's `api` attribute lists the `vulkan` token (so "vulkansc" alone is excluded).
@@ -239,10 +277,75 @@ for hp in string.split(types_xml, "category=\"handle\"") {
     }
 }
 
-# 2) Collect the core command names, in order, from the vulkan-api VK_VERSION_* features.
+# 1c) Index aliasable type kinds (struct/union/enum/bitmask) by name, for the `vk.<Name>` cheatah
+#     interface. Splitting on "<type " (WITH the trailing space) hits only top-level type DEFINITIONS;
+#     member references like <type>uint32_t</type> have no space, so they're skipped. (Handles are
+#     already in `handles`.)
+let type_kind: dict[str, str] = {}
+let tdfirst = true
+for te in string.split(types_xml, "<type ") {
+    if tdfirst {
+        tdfirst = false
+        continue
+    }
+    let gt = string.find(te, ">")
+    if gt < 0 { continue }
+    let thead = te[:gt]
+    let cat = attr(thead, "category")
+    if cat == "struct" or cat == "union" or cat == "enum" {
+        let nm = attr(thead, "name")           # name is an attribute on struct/union/enum defs
+        if nm != "" and string.startswith(nm, "Vk") { type_kind[nm] = cat }
+    } elif cat == "bitmask" {
+        let nm = between(te, "<name>", "</name>")   # bitmask typedef carries a nested <name>
+        if nm != "" and string.startswith(nm, "Vk") { type_kind[nm] = cat }
+    }
+}
+
+# 1d) Index every enum CONSTANT -> its enum type, from the <enums> blocks (the base values, plus the
+#     "API Constants" block: VK_WHOLE_SIZE, VK_UUID_SIZE, …). Version-added values (1.1+) come from
+#     the <feature> <enum> requires instead, collected in the feature scan below.
+let const_type: dict[str, str] = {}
+let const_order: list[str] = []
+let edfirst = true
+for eb in string.split(xml, "<enums ") {
+    if edfirst {
+        edfirst = false
+        continue
+    }
+    let gt = string.find(eb, ">")
+    if gt < 0 { continue }
+    let etype = attr(eb[:gt], "name")
+    let ebody = eb
+    let ce = string.find(eb, "</enums>")
+    if ce >= 0 { ebody = eb[:ce] }
+    let ecfirst = true
+    for ec in string.split(ebody, "<enum ") {
+        if ecfirst {
+            ecfirst = false
+            continue
+        }
+        let ch = ec[:string.find(ec, ">")]
+        if string.contains(ch, "alias=") { continue }   # the canonical name is listed too
+        let cn = attr(ch, "name")
+        if cn == "" { continue }
+        if not string.startswith(cn, "VK_") { continue }
+        if not (cn in const_type) {
+            const_type[cn] = etype
+            const_order.append(cn)
+        }
+    }
+}
+
+# 2) Collect the core command names, in order, from the vulkan-api VK_VERSION_* features. The same
+#    scan records each required TYPE and version-added ENUM value with its version, for the aliases.
 let core: list[str] = []
 let seen: dict[str, str] = {}
 let cmd_version: dict[str, str] = {}
+let type_version: dict[str, str] = {}
+let type_order: list[str] = []
+let const_add_version: dict[str, str] = {}
+let const_add_order: list[str] = []
+let const_ext: dict[str, str] = {}
 let fsegs = string.split(xml, "<feature ")
 for seg in fsegs {
     let fe = string.find(seg, "</feature>")
@@ -271,6 +374,38 @@ for seg in fsegs {
             seen[cn] = "1"
             core.append(cn)
             cmd_version[cn] = ver
+        }
+    }
+    # Required types for this version (the first time each is seen = its introducing version).
+    let tparts = string.split(fbody, "<type name=\"")
+    let tfirst = true
+    for ts in tparts {
+        if tfirst {
+            tfirst = false
+            continue
+        }
+        let tn = ts[:string.find(ts, "\"")]
+        if not (("T:" + tn) in seen) {
+            seen["T:" + tn] = "1"
+            type_version[tn] = ver
+            type_order.append(tn)
+        }
+    }
+    # Version-added enum values (1.1+ values extending an existing enum live here, not in <enums>).
+    let eparts = string.split(fbody, "<enum name=\"")
+    let efirst = true
+    for es in eparts {
+        if efirst {
+            efirst = false
+            continue
+        }
+        let en = es[:string.find(es, "\"")]
+        let ex = attr(es[:string.find(es, ">")], "extends")
+        if ex != "" and not (en in const_ext) { const_ext[en] = ex }
+        if not (("E:" + en) in seen) {
+            seen["E:" + en] = "1"
+            const_add_version[en] = ver
+            const_add_order.append(en)
         }
     }
 }
@@ -323,7 +458,8 @@ head = head + " * the genuine `vk*` entry point through volk (loader.hpp). Param
 head = head + " * integer widths so cheatah's int binds to the proper size. This is the faithful native\n"
 head = head + " * surface (`import gpu.vulkan`); the ergonomic cross-platform layer is `import gpu`.\n"
 head = head + " */\n\n"
-head = head + "#include \"loader.hpp\"\n\n"
+head = head + "#include \"loader.hpp\"\n"
+head = head + "#include \"types.hpp\"  // the `vk.<Name>` cheatah-interface aliases\n\n"
 head = head + "namespace cheatah::gpu::vulkan {\n\n"
 
 let footer = "}  // namespace cheatah::gpu::vulkan\n"
@@ -331,6 +467,117 @@ let footer = "}  // namespace cheatah::gpu::vulkan\n"
 let f = io.open(OUT_PATH, "w")
 f.write(head + body + footer)
 f.close()
+
+# 3b) Emit the cheatah TYPE interface (gpu/vulkan/types.hpp): for every core struct/union/handle/enum
+#     /bitmask a `using <Name> = ::Vk<Name>;`, and for every core enum value an
+#     `inline constexpr auto <CONST> = VK_<CONST>;`. So a cheatah user writes `vk.ApplicationInfo`,
+#     `vk.Instance`, `vk.STRUCTURE_TYPE_APPLICATION_INFO`, `vk.API_VERSION_1_3` (the namespaced
+#     interface), while the raw `Vk*` / `VK_*` spellings stay available inside cpp{} hatches. Grouped
+#     under the same `#ifdef VK_VERSION_1_X` guards as the forwarders, so it compiles cleanly against
+#     whatever Vulkan headers a consumer happens to have.
+let versions = ["1_0", "1_1", "1_2", "1_3", "1_4"]
+let tybody = ""
+let alias_count = 0
+for v in versions {
+    let chunk = ""
+    # The version number macro itself: `vk.API_VERSION_1_3`.
+    chunk = chunk + "inline constexpr auto API_VERSION_" + v + " = VK_API_VERSION_" + v + ";\n"
+    # Type aliases introduced at this version (structs, unions, handles, enums, bitmask flag types).
+    for tn in type_order {
+        if type_version[tn] != v { continue }
+        if not ((tn in type_kind) or (tn in handles)) { continue }
+        chunk = chunk + "using " + strip_vk_type(tn) + " = ::" + tn + ";\n"
+        alias_count = alias_count + 1
+    }
+    # Enum values whose introducing version is this one — base values (from <enums>) first, then any
+    # version-added values not already covered. VK_TRUE/VK_FALSE and the VK_*_VERSION macros are
+    # skipped (keyword/macro collisions; API_VERSION is emitted explicitly above).
+    for cn in const_order {
+        if const_ver(cn, const_add_version, const_type, type_version) != v { continue }
+        if cn == "VK_TRUE" or cn == "VK_FALSE" { continue }
+        if string.startswith(cn, "VK_API_VERSION") or string.startswith(cn, "VK_HEADER_VERSION") { continue }
+        chunk = chunk + "inline constexpr auto " + strip_vk_const(cn) + " = " + cn + ";\n"
+        alias_count = alias_count + 1
+    }
+    for cn in const_add_order {
+        if const_add_version[cn] != v { continue }
+        if cn in const_type { continue }   # a base value, already emitted via const_order
+        if cn == "VK_TRUE" or cn == "VK_FALSE" { continue }
+        if string.startswith(cn, "VK_API_VERSION") or string.startswith(cn, "VK_HEADER_VERSION") { continue }
+        chunk = chunk + "inline constexpr auto " + strip_vk_const(cn) + " = " + cn + ";\n"
+        alias_count = alias_count + 1
+    }
+    tybody = tybody + "#ifdef VK_VERSION_" + v + "\n\n" + chunk + "\n#endif  // VK_VERSION_" + v + "\n\n"
+}
+
+let tyhead = "#pragma once\n\n"
+tyhead = tyhead + "// GENERATED by tools/vulkan-gen/generate.purr from tools/vulkan-gen/vk.xml — DO NOT EDIT.\n"
+tyhead = tyhead + "// Regenerated at release time against the latest Khronos registry (see regenerate.sh).\n\n"
+tyhead = tyhead + "/**\n"
+tyhead = tyhead + " * @file types.hpp\n"
+tyhead = tyhead + " * @brief gpu.vulkan — the `vk.<Name>` cheatah interface for Vulkan's structs, handles, enums\n"
+tyhead = tyhead + " *        and constants.\n *\n"
+tyhead = tyhead + " * `using ApplicationInfo = ::VkApplicationInfo;` and `constexpr auto STRUCTURE_TYPE_* = …;`\n"
+tyhead = tyhead + " * aliases in `cheatah::gpu::vulkan`, so `import gpu.vulkan as vk` lets a cheatah program write\n"
+tyhead = tyhead + " * `vk.ApplicationInfo({ .sType = vk.STRUCTURE_TYPE_APPLICATION_INFO, … })` — no `Vk`/`VK_`\n"
+tyhead = tyhead + " * prefixes. The raw `Vk*` / `VK_*` names remain usable in cpp{} escape hatches.\n"
+tyhead = tyhead + " */\n\n"
+tyhead = tyhead + "#include \"loader.hpp\"\n\n"
+tyhead = tyhead + "namespace cheatah::gpu::vulkan {\n\n"
+let tyfoot = "}  // namespace cheatah::gpu::vulkan\n"
+let tyf = io.open(TYPES_OUT, "w")
+tyf.write(tyhead + tybody + tyfoot)
+tyf.close()
+
+# 3c) Emit the IDE symbol DB (gpu/vulkan/symbols.json): the cheatah-facing `vk.<Name>` -> its kind
+#     (function / struct / handle / enum / constant) and a link to the official Vulkan man page. The
+#     cheatah VS Code extension loads this for the resolved `gpu.vulkan` module to (a) color functions,
+#     types and enum values distinctly (so `vk.Instance` reads as a type even though `vk.Instance()`
+#     looks like a call) and (b) show a hover popup with the documentation link.
+let entries: list[str] = []
+for n in core {
+    let real = n
+    if (not (n in cmd_block)) and (n in alias_map) { real = alias_map[n] }
+    if real in cmd_block {
+        entries.append("    \"" + n[2:] + "\": {\"kind\": \"function\", \"vk\": \"" + n + "\", \"doc\": \"" + MAN + n + ".html\"}")
+    }
+}
+for tn in type_order {
+    if not ((tn in type_kind) or (tn in handles)) { continue }
+    let k = "handle"
+    if tn in type_kind { k = type_kind[tn] }
+    entries.append("    \"" + strip_vk_type(tn) + "\": {\"kind\": \"" + k + "\", \"vk\": \"" + tn + "\", \"doc\": \"" + MAN + tn + ".html\"}")
+}
+let cseen: dict[str, str] = {}
+for cn in const_order {
+    if const_ver(cn, const_add_version, const_type, type_version) == "" { continue }
+    if cn == "VK_TRUE" or cn == "VK_FALSE" { continue }
+    if string.startswith(cn, "VK_API_VERSION") or string.startswith(cn, "VK_HEADER_VERSION") { continue }
+    if cn in cseen { continue }
+    cseen[cn] = "1"
+    let ety = ""
+    if cn in const_type { ety = const_type[cn] }
+    if cn in const_ext { ety = const_ext[cn] }
+    let cdoc = ""
+    if ety != "" and ety != "API Constants" { cdoc = MAN + ety + ".html" }
+    entries.append("    \"" + strip_vk_const(cn) + "\": {\"kind\": \"constant\", \"vk\": \"" + cn + "\", \"doc\": \"" + cdoc + "\"}")
+}
+for cn in const_add_order {
+    if cn in const_type { continue }
+    if cn == "VK_TRUE" or cn == "VK_FALSE" { continue }
+    if string.startswith(cn, "VK_API_VERSION") or string.startswith(cn, "VK_HEADER_VERSION") { continue }
+    if cn in cseen { continue }
+    cseen[cn] = "1"
+    let ety = ""
+    if cn in const_ext { ety = const_ext[cn] }
+    let cdoc = ""
+    if ety != "" and ety != "API Constants" { cdoc = MAN + ety + ".html" }
+    entries.append("    \"" + strip_vk_const(cn) + "\": {\"kind\": \"constant\", \"vk\": \"" + cn + "\", \"doc\": \"" + cdoc + "\"}")
+}
+let sj = "{\n  \"module\": \"gpu.vulkan\",\n  \"symbols\": {\n" + string.join(",\n", entries) + "\n  }\n}\n"
+let sjf = io.open(SYMS_OUT, "w")
+sjf.write(sj)
+sjf.close()
 
 # The generated presence-check test, 1:1 with the forwarders (100% coverage), run per device by the
 # handwritten harness (tests/vulkan/harness.hpp).
@@ -347,13 +594,15 @@ tf.write(thead + tbody + tfoot)
 tf.close()
 
 io.print("generate.purr: emitted", emitted, "core forwarders ->", OUT_PATH)
+io.print("generate.purr: emitted", alias_count, "type/constant aliases ->", TYPES_OUT)
+io.print("generate.purr: emitted", len(entries), "IDE symbols ->", SYMS_OUT)
 io.print("generate.purr: emitted", emitted, "presence checks ->", TEST_OUT)
 if skipped > 0 {
     io.print("generate.purr: skipped", skipped, "unresolved commands")
 }
 
 # Make the committed output beautiful + consistent: clang-format is the source of truth for layout.
-let rc = os.system("clang-format -i " + OUT_PATH + " " + TEST_OUT)
+let rc = os.system("clang-format -i " + OUT_PATH + " " + TYPES_OUT + " " + TEST_OUT)
 if rc == 0 {
     io.print("generate.purr: clang-format applied.")
 } else {

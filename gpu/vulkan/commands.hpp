@@ -14,6 +14,7 @@
  */
 
 #include "loader.hpp"
+#include "types.hpp" // the `vk.<Name>` cheatah-interface aliases
 
 namespace cheatah::gpu::vulkan {
 

@@ -92,11 +92,16 @@ WORK="$(mktemp -d)"; trap 'rm -rf "$WORK"' EXIT
 shopt -s nullglob
 tests=("$REPO_ROOT"/systests/test_*.purr)
 [ ${#tests[@]} -gt 0 ] || fail "no systests/test_*.purr — refusing to pass a gate with nothing to check"
+# `import gpu` pulls the Vulkan surface (gpu.hpp -> commands.hpp -> types.hpp), generated from the
+# vendored registry. Compile against the NEWEST installed SDK headers (what cheatah-gpu provisions and
+# what a biome user gets), not the box's possibly-stale /usr/include — same as the Vulkan gate.
+SDK_INC="$(ls -d "$HOME"/Tools/vulkan-sdk/*/x86_64/include "$HOME"/VulkanSDK/*/x86_64/include 2>/dev/null | sort -V | tail -1)"
+[ -n "$SDK_INC" ] && bold "Using Vulkan SDK headers: $SDK_INC"
 sfails=0; sran=0
 for t in "${tests[@]}"; do
     name="$(basename "$t" .purr)"; sran=$((sran + 1)); mod="$WORK/$name.so"
     bold "── $name ──"
-    if ! "$PURRC" --import-root "$REPO_ROOT" --import-root "$WORK" "$t" -o "$mod" 2>"$WORK/$name.err"; then
+    if ! CPATH="${SDK_INC:+$SDK_INC:}${CPATH:-}" "$PURRC" --import-root "$REPO_ROOT" --import-root "$WORK" "$t" -o "$mod" 2>"$WORK/$name.err"; then
         red "  COMPILE FAILED"; sed 's/^/    /' "$WORK/$name.err"; sfails=$((sfails + 1)); continue
     fi
     out="$("$CHEATAH" "$mod" 2>&1)"; echo "$out" | sed 's/^/  /'
