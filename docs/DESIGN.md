@@ -65,3 +65,32 @@ Motivated by a refusal to repeat Unity's painful asynchronous-GPU API. The agree
   manual guidance there for now (Vulkan SDK + driver + optional GLFW); a winget/vcpkg one-shot lands
   later. The Vulkan C-API + volk + Slang stack is already Windows-portable, so it's provisioning, not
   porting.
+
+## `gpu.vulkan` — the full native surface (binding plan)
+
+`gpu.vulkan` exposes the whole Vulkan API to cheatah developers, faithfully.
+
+- **Generated, not hand-written.** A generator (`tools/vulkan-gen/`) reads the **vendored** registry
+  `tools/vulkan-gen/vk.xml` (committed → hermetic + version-pinned; **no user ever hits a "vk.xml
+  missing" error**, and the generated header is committed too) and emits an **`inline` forwarder per
+  command** that calls the real `vk*` entry point through **volk**'s loaded pointers — so it is the
+  bare Vulkan call at runtime, no overhead, no Vulkan-Hpp templates. Platform-guarded commands
+  (`VK_USE_PLATFORM_*`) are `#ifdef`-gated. Memory goes through **VMA**; shaders through **Slang**.
+- **Memory is the user's to manage** — we never hide it. But the **ownership contract is explicit**:
+  every call that hands back a resource carries an **`@destroy`** tag naming exactly what must be
+  released and how (e.g. `@destroy release with destroy_instance(instance)`), surfaced in the comment
+  AND the VS Code hover DB so the delete-contract is impossible to miss.
+- **Two allocation tags** (GPU code allocates in two places): **`@alloc`** = host/CPU memory,
+  **`@gpualloc`** = device/GPU memory; a call that does both (e.g. a staging upload) carries both.
+- **Coverage & tests.** Each exposed function gets **≥1 cheatah `.purr` system test** and **≥2–3 C++
+  unit tests with different inputs**, plus a **capability-enumeration** test asserting our surface
+  covers what each device reports (`vkGetPhysicalDevice*`: features, formats, limits, extensions).
+  The 100% coverage denominator is **exposed ∧ device-supported**, grown to the full supported
+  surface; functions a device can't support are excluded **and logged** (never a silent cap).
+- **Device matrix.** Coverage runs against three physical devices a single instance enumerates here:
+  **llvmpipe** (Mesa lavapipe, software), **Intel Iris Xe** (Mesa), and **NVIDIA RTX 3070 Ti**
+  (proprietary) — software + integrated + discrete, both major Linux drivers. Per-device supported
+  surfaces differ (e.g. ray tracing on NVIDIA), so the denominator is per-device.
+- **Layering.** This 1:1 surface is the comfort layer for native Vulkan engineers; the ergonomic
+  `import gpu` sits on top with the async + no-copy-borrow model. Raw Vulkan structs make a direct
+  `.purr` 1:1 path awkward, so the cheatah-facing convenience lives in `import gpu`.

@@ -110,6 +110,20 @@ cmake/      CPM.cmake, Vulkan.cmake (provisions volk/VMA + the GPU stack)
 | Branches | 100.00% |
 <!-- coverage:end -->
 
+## Tested on
+
+The `gpu.vulkan` coverage matrix runs against three physical devices, spanning software, integrated,
+and discrete GPUs across the two major Linux Vulkan drivers:
+
+| device | type | driver |
+|--------|------|--------|
+| Mesa **llvmpipe** (lavapipe) | software (CPU) | Mesa |
+| **Intel Iris Xe** Graphics (ADL GT2) | integrated | Intel open-source Mesa |
+| **NVIDIA GeForce RTX 3070 Ti** Laptop | discrete | NVIDIA proprietary |
+
+Each Vulkan function is exercised on every device that supports it (the coverage denominator is
+per-device — a function the hardware doesn't support is excluded and logged, never silently skipped).
+
 ## Developing
 
 Needs the sibling cheatah toolchain at `../cheatah` (override with `-DCHEATAH_DIR=…`). One-time:

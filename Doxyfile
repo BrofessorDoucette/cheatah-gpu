@@ -19,10 +19,15 @@ TOC_INCLUDE_HEADINGS   = 5
 AUTOLINK_SUPPORT       = YES
 TAB_SIZE               = 4
 
-# Custom doc tags — structured, separately styled sections (kept byte-for-byte in sync with the
-# cheatah toolchain so the same Javadoc renders everywhere).
+# Custom doc tags — structured, separately styled sections.
 ALIASES                = "complexity=\xrefitem complexity \"Complexity\" \"Complexity\""
-ALIASES               += "alloc=\xrefitem alloc \"Allocation\" \"Allocation\""
+# Two allocation tags, because GPU code allocates in two distinct places. Use BOTH when a call
+# touches both (e.g. a staging upload): @alloc the host scratch, @gpualloc the device buffer.
+ALIASES               += "alloc=\xrefitem alloc \"Host allocation\" \"Host (CPU) allocation\""
+ALIASES               += "gpualloc=\xrefitem gpualloc \"GPU allocation\" \"Device (GPU) allocation\""
+# Resource-ownership contract: the caller now owns a resource and MUST release it later (and how).
+# Surfaced in comments AND the VS Code hover DB so the delete-contract is impossible to miss.
+ALIASES               += "destroy=\xrefitem destroy \"Lifetime\" \"Lifetime — caller must release\""
 # Test kinds shown per function and linked to their source by the generator.
 ALIASES               += "crtest=\xrefitem crtest \"Compile-run test\" \"Compile-run test\""
 ALIASES               += "systest=\xrefitem systest \"System test\" \"System test\""
