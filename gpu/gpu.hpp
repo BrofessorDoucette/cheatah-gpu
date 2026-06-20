@@ -31,11 +31,17 @@
 #include "backend.hpp"
 #include "dispatch/dispatch.hpp"
 
+// Pull in the native backend's full surface — its `vk*` forwarders AND every Vulkan struct + handle
+// the user creates (VkBufferCreateInfo, VkBuffer, …) — when its headers are available, so
+// `import gpu.vulkan` just works (construct structs, take their address, call; no cpp{} needed). A
+// build without those headers still gets gpu.dispatch / gpu.backend (headless, zero dependencies).
 #ifdef CHEATAH_GPU_BACKEND_VULKAN
-// #include "vulkan/vulkan.hpp"  // compiled ONLY in Vulkan builds (no Metal bloat) — when it lands
+#  if __has_include(<volk.h>) || __has_include(<vulkan/vulkan.h>)
+#    include "vulkan/commands.hpp"
+#  endif
 #endif
 #ifdef CHEATAH_GPU_BACKEND_METAL
-// #include "metal/metal.hpp"    // compiled ONLY in Metal builds (no Vulkan bloat) — when it lands
+// #include "metal/commands.hpp"  // the native Metal surface, when generated
 #endif
 
 namespace cheatah::gpu {}

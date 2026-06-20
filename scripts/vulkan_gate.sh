@@ -35,5 +35,32 @@ cmake --build build/vk --target cheatah_gpu_vulkan_tests \
 bold "Running the Vulkan tests across every device…"
 ./build/vk/bin/cheatah_gpu_vulkan_tests || fail "vulkan tests"
 
+# 4. Pure-cheatah Vulkan system tests: build the GPU surface FROM CHEATAH (structs/handles/enums via
+#    `import gpu.vulkan`, no cpp{}) and run it for real. Proves the API is usable from cheatah.
+shopt -s nullglob
+vtests=(systests/vulkan/test_*.purr)
+if [ ${#vtests[@]} -gt 0 ]; then
+    CHEATAH_DIR="${CHEATAH_DIR:-$PWD/../cheatah}"
+    PURRC=""; CHEATAH=""
+    for c in release debug asan; do
+        [ -z "$PURRC" ]   && [ -x "$CHEATAH_DIR/build/$c/bin/purrc" ]   && PURRC="$CHEATAH_DIR/build/$c/bin/purrc"
+        [ -z "$CHEATAH" ] && [ -x "$CHEATAH_DIR/build/$c/bin/cheatah" ] && CHEATAH="$CHEATAH_DIR/build/$c/bin/cheatah"
+    done
+    SDK_INC="$(ls -d "$HOME"/Tools/vulkan-sdk/*/x86_64/include "$HOME"/VulkanSDK/*/x86_64/include 2>/dev/null | sort -V | tail -1)"
+    if [ -x "$PURRC" ] && [ -x "$CHEATAH" ] && [ -n "$SDK_INC" ]; then
+        bold "Running pure-cheatah Vulkan system tests…"
+        W="$(mktemp -d)"; trap 'rm -rf "$W"' EXIT
+        for t in "${vtests[@]}"; do
+            nm="$(basename "$t" .purr)"
+            CPATH="$SDK_INC" "$PURRC" --import-root "$PWD" "$t" -o "$W/$nm.so" --link -lvulkan \
+                >"$W/$nm.log" 2>&1 || { sed 's/^/    /' "$W/$nm.log"; fail "compile $t"; }
+            out="$("$CHEATAH" "$W/$nm.so" 2>&1)"; echo "$out" | sed 's/^/    /'
+            echo "$out" | grep -q "RESULT: PASS" || fail "$t did not pass"
+        done
+    else
+        bold "Skipping pure-cheatah Vulkan system tests (no toolchain / SDK include)."
+    fi
+fi
+
 bold "Vulkan gate PASSED."
 exit 0

@@ -1,0 +1,32 @@
+# test_instance.purr — a PURE-CHEATAH Vulkan system test: build the structs, take their address, call
+# the bindings, get the handle back, release it. No cpp{} escape hatch, no casts — `import gpu.vulkan`
+# exposes every Vulkan struct, enum constant and handle (from the headers), and cheatah's C++ interop
+# does the rest. Run by scripts/vulkan_gate.sh (needs the Vulkan headers + loader, present at release).
+
+import io
+import gpu.vulkan as vulkan
+
+io.print("== gpu.vulkan: instance lifecycle, pure cheatah ==")
+
+# C++20 designated initializers across multiple lines — the modern Vulkan style, the way a human
+# wants to read it — straight from cheatah.
+let app = VkApplicationInfo({
+    .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+    .apiVersion = VK_API_VERSION_1_3,
+})
+let ci = VkInstanceCreateInfo({
+    .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+    .pApplicationInfo = &app,
+})
+
+let inst = VkInstance()
+let r = vulkan.CreateInstance(&ci, 0, &inst)
+io.print("  CreateInstance ->", r)
+
+if r != 0 {
+    io.print("RESULT: FAIL (CreateInstance returned", r, ")")
+} else {
+    vulkan.DestroyInstance(inst, 0)
+    io.print("  DestroyInstance -> ok")
+    io.print("RESULT: PASS")
+}
