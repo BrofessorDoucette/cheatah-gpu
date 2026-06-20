@@ -30,7 +30,7 @@
 // (cheatah-gpu prefers native Metal on Apple; the MoltenVK Vulkan fallback is wired by the build,
 // see cmake/Vulkan.cmake.) A build pins the choice by defining exactly one macro.
 #if !defined(CHEATAH_GPU_BACKEND_VULKAN) && !defined(CHEATAH_GPU_BACKEND_METAL)
-#  if defined(__APPLE__)
+#  ifdef __APPLE__
 #    define CHEATAH_GPU_BACKEND_METAL 1
 #  else
 #    define CHEATAH_GPU_BACKEND_VULKAN 1
@@ -47,7 +47,7 @@ enum class Backend : std::uint8_t {
 
 /// The backend selected for THIS binary at compile time (see the `CHEATAH_GPU_BACKEND_*` macros).
 inline constexpr Backend active_backend =
-#if defined(CHEATAH_GPU_BACKEND_METAL)
+#ifdef CHEATAH_GPU_BACKEND_METAL
     Backend::metal;
 #else
     Backend::vulkan;

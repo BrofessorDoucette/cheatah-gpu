@@ -31,9 +31,10 @@
 #include "backend.hpp"
 #include "dispatch/dispatch.hpp"
 
-#if defined(CHEATAH_GPU_BACKEND_VULKAN)
+#ifdef CHEATAH_GPU_BACKEND_VULKAN
 // #include "vulkan/vulkan.hpp"  // compiled ONLY in Vulkan builds (no Metal bloat) — when it lands
-#elif defined(CHEATAH_GPU_BACKEND_METAL)
+#endif
+#ifdef CHEATAH_GPU_BACKEND_METAL
 // #include "metal/metal.hpp"    // compiled ONLY in Metal builds (no Vulkan bloat) — when it lands
 #endif
 

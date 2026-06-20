@@ -17,7 +17,7 @@
 
 namespace cheatah::gpu::vulkan {
 
-#if defined(VK_VERSION_1_0)
+#ifdef VK_VERSION_1_0
 
 /**
  * Inline forwarder for
@@ -1637,7 +1637,7 @@ inline void CmdEndRenderPass(VkCommandBuffer commandBuffer) { ::vkCmdEndRenderPa
 
 #endif // VK_VERSION_1_0
 
-#if defined(VK_VERSION_1_1)
+#ifdef VK_VERSION_1_1
 
 /**
  * Inline forwarder for
@@ -1973,7 +1973,7 @@ inline void DestroySamplerYcbcrConversion(VkDevice device,
 
 #endif // VK_VERSION_1_1
 
-#if defined(VK_VERSION_1_2)
+#ifdef VK_VERSION_1_2
 
 /**
  * Inline forwarder for
@@ -2122,7 +2122,7 @@ inline void CmdEndRenderPass2(VkCommandBuffer commandBuffer,
 
 #endif // VK_VERSION_1_2
 
-#if defined(VK_VERSION_1_3)
+#ifdef VK_VERSION_1_3
 
 /**
  * Inline forwarder for
@@ -2518,7 +2518,7 @@ inline void CmdSetPrimitiveRestartEnable(VkCommandBuffer commandBuffer,
 
 #endif // VK_VERSION_1_3
 
-#if defined(VK_VERSION_1_4)
+#ifdef VK_VERSION_1_4
 
 /**
  * Inline forwarder for

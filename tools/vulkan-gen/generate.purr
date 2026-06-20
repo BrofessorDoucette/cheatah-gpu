@@ -216,14 +216,14 @@ for n in core {
     let real = n
     if (not (n in cmd_block)) and (n in alias_map) { real = alias_map[n] }
     if real in cmd_block {
-        # Group forwarders by Vulkan version under `#if defined(VK_VERSION_1_X)`, so a command newer
-        # than the consumer's headers compiles out cleanly (portability; no undeclared-symbol errors).
+        # Group forwarders by Vulkan version under `#ifdef VK_VERSION_1_X`, so a command newer than
+        # the consumer's headers compiles out cleanly (portability; no undeclared-symbol errors).
         let v = cmd_version[n]
         if v != cur_ver {
             if cur_ver != "" {
                 body = body + "#endif  // VK_VERSION_" + cur_ver + "\n\n"
             }
-            body = body + "#if defined(VK_VERSION_" + v + ")\n\n"
+            body = body + "#ifdef VK_VERSION_" + v + "\n\n"
             cur_ver = v
         }
         body = body + forwarder(n, cmd_block[real], cmd_block)
