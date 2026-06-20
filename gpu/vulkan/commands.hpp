@@ -45,7 +45,7 @@ inline void DestroyInstance(VkInstance instance, const VkAllocationCallbacks* pA
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void DestroyInstance(long long instance, const VkAllocationCallbacks* pAllocator) {
-    ::vkDestroyInstance((VkInstance)(instance), pAllocator);
+    ::vkDestroyInstance(reinterpret_cast<VkInstance>(instance), pAllocator);
 }
 
 /**
@@ -66,8 +66,8 @@ inline VkResult EnumeratePhysicalDevices(VkInstance instance,
 inline VkResult EnumeratePhysicalDevices(long long instance,
                                          uint32_t* pPhysicalDeviceCount,
                                          VkPhysicalDevice* pPhysicalDevices) {
-    return ::vkEnumeratePhysicalDevices((VkInstance)(instance), pPhysicalDeviceCount,
-                                        pPhysicalDevices);
+    return ::vkEnumeratePhysicalDevices(reinterpret_cast<VkInstance>(instance),
+                                        pPhysicalDeviceCount, pPhysicalDevices);
 }
 
 /**
@@ -86,7 +86,7 @@ inline void GetPhysicalDeviceFeatures(VkPhysicalDevice physicalDevice,
  */
 inline void GetPhysicalDeviceFeatures(long long physicalDevice,
                                       VkPhysicalDeviceFeatures* pFeatures) {
-    ::vkGetPhysicalDeviceFeatures((VkPhysicalDevice)(physicalDevice), pFeatures);
+    ::vkGetPhysicalDeviceFeatures(reinterpret_cast<VkPhysicalDevice>(physicalDevice), pFeatures);
 }
 
 /**
@@ -107,8 +107,8 @@ inline void GetPhysicalDeviceFormatProperties(VkPhysicalDevice physicalDevice,
 inline void GetPhysicalDeviceFormatProperties(long long physicalDevice,
                                               long long format,
                                               VkFormatProperties* pFormatProperties) {
-    ::vkGetPhysicalDeviceFormatProperties((VkPhysicalDevice)(physicalDevice), (VkFormat)(format),
-                                          pFormatProperties);
+    ::vkGetPhysicalDeviceFormatProperties(reinterpret_cast<VkPhysicalDevice>(physicalDevice),
+                                          static_cast<VkFormat>(format), pFormatProperties);
 }
 
 /**
@@ -141,8 +141,9 @@ GetPhysicalDeviceImageFormatProperties(long long physicalDevice,
                                        long long flags,
                                        VkImageFormatProperties* pImageFormatProperties) {
     return ::vkGetPhysicalDeviceImageFormatProperties(
-        (VkPhysicalDevice)(physicalDevice), (VkFormat)(format), (VkImageType)(type),
-        (VkImageTiling)(tiling), (VkImageUsageFlags)(usage), (VkImageCreateFlags)(flags),
+        reinterpret_cast<VkPhysicalDevice>(physicalDevice), static_cast<VkFormat>(format),
+        static_cast<VkImageType>(type), static_cast<VkImageTiling>(tiling),
+        static_cast<VkImageUsageFlags>(usage), static_cast<VkImageCreateFlags>(flags),
         pImageFormatProperties);
 }
 
@@ -162,7 +163,8 @@ inline void GetPhysicalDeviceProperties(VkPhysicalDevice physicalDevice,
  */
 inline void GetPhysicalDeviceProperties(long long physicalDevice,
                                         VkPhysicalDeviceProperties* pProperties) {
-    ::vkGetPhysicalDeviceProperties((VkPhysicalDevice)(physicalDevice), pProperties);
+    ::vkGetPhysicalDeviceProperties(reinterpret_cast<VkPhysicalDevice>(physicalDevice),
+                                    pProperties);
 }
 
 /**
@@ -186,7 +188,7 @@ inline void
 GetPhysicalDeviceQueueFamilyProperties(long long physicalDevice,
                                        uint32_t* pQueueFamilyPropertyCount,
                                        VkQueueFamilyProperties* pQueueFamilyProperties) {
-    ::vkGetPhysicalDeviceQueueFamilyProperties((VkPhysicalDevice)(physicalDevice),
+    ::vkGetPhysicalDeviceQueueFamilyProperties(reinterpret_cast<VkPhysicalDevice>(physicalDevice),
                                                pQueueFamilyPropertyCount, pQueueFamilyProperties);
 }
 
@@ -206,7 +208,8 @@ inline void GetPhysicalDeviceMemoryProperties(VkPhysicalDevice physicalDevice,
  */
 inline void GetPhysicalDeviceMemoryProperties(long long physicalDevice,
                                               VkPhysicalDeviceMemoryProperties* pMemoryProperties) {
-    ::vkGetPhysicalDeviceMemoryProperties((VkPhysicalDevice)(physicalDevice), pMemoryProperties);
+    ::vkGetPhysicalDeviceMemoryProperties(reinterpret_cast<VkPhysicalDevice>(physicalDevice),
+                                          pMemoryProperties);
 }
 
 /**
@@ -223,7 +226,7 @@ inline PFN_vkVoidFunction GetInstanceProcAddr(VkInstance instance, const char* p
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline PFN_vkVoidFunction GetInstanceProcAddr(long long instance, const char* pName) {
-    return ::vkGetInstanceProcAddr((VkInstance)(instance), pName);
+    return ::vkGetInstanceProcAddr(reinterpret_cast<VkInstance>(instance), pName);
 }
 
 /**
@@ -240,7 +243,7 @@ inline PFN_vkVoidFunction GetDeviceProcAddr(VkDevice device, const char* pName) 
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline PFN_vkVoidFunction GetDeviceProcAddr(long long device, const char* pName) {
-    return ::vkGetDeviceProcAddr((VkDevice)(device), pName);
+    return ::vkGetDeviceProcAddr(reinterpret_cast<VkDevice>(device), pName);
 }
 
 /**
@@ -264,7 +267,8 @@ inline VkResult CreateDevice(long long physicalDevice,
                              const VkDeviceCreateInfo* pCreateInfo,
                              const VkAllocationCallbacks* pAllocator,
                              VkDevice* pDevice) {
-    return ::vkCreateDevice((VkPhysicalDevice)(physicalDevice), pCreateInfo, pAllocator, pDevice);
+    return ::vkCreateDevice(reinterpret_cast<VkPhysicalDevice>(physicalDevice), pCreateInfo,
+                            pAllocator, pDevice);
 }
 
 /**
@@ -281,7 +285,7 @@ inline void DestroyDevice(VkDevice device, const VkAllocationCallbacks* pAllocat
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void DestroyDevice(long long device, const VkAllocationCallbacks* pAllocator) {
-    ::vkDestroyDevice((VkDevice)(device), pAllocator);
+    ::vkDestroyDevice(reinterpret_cast<VkDevice>(device), pAllocator);
 }
 
 /**
@@ -316,8 +320,9 @@ inline VkResult EnumerateDeviceExtensionProperties(long long physicalDevice,
                                                    const char* pLayerName,
                                                    uint32_t* pPropertyCount,
                                                    VkExtensionProperties* pProperties) {
-    return ::vkEnumerateDeviceExtensionProperties((VkPhysicalDevice)(physicalDevice), pLayerName,
-                                                  pPropertyCount, pProperties);
+    return ::vkEnumerateDeviceExtensionProperties(
+        reinterpret_cast<VkPhysicalDevice>(physicalDevice), pLayerName, pPropertyCount,
+        pProperties);
 }
 
 /**
@@ -348,8 +353,8 @@ inline VkResult EnumerateDeviceLayerProperties(VkPhysicalDevice physicalDevice,
 inline VkResult EnumerateDeviceLayerProperties(long long physicalDevice,
                                                uint32_t* pPropertyCount,
                                                VkLayerProperties* pProperties) {
-    return ::vkEnumerateDeviceLayerProperties((VkPhysicalDevice)(physicalDevice), pPropertyCount,
-                                              pProperties);
+    return ::vkEnumerateDeviceLayerProperties(reinterpret_cast<VkPhysicalDevice>(physicalDevice),
+                                              pPropertyCount, pProperties);
 }
 
 /**
@@ -370,8 +375,8 @@ inline void GetDeviceQueue(long long device,
                            long long queueFamilyIndex,
                            long long queueIndex,
                            VkQueue* pQueue) {
-    ::vkGetDeviceQueue((VkDevice)(device), (uint32_t)(queueFamilyIndex), (uint32_t)(queueIndex),
-                       pQueue);
+    ::vkGetDeviceQueue(reinterpret_cast<VkDevice>(device), static_cast<uint32_t>(queueFamilyIndex),
+                       static_cast<uint32_t>(queueIndex), pQueue);
 }
 
 /**
@@ -390,7 +395,8 @@ QueueSubmit(VkQueue queue, uint32_t submitCount, const VkSubmitInfo* pSubmits, V
  */
 inline VkResult
 QueueSubmit(long long queue, long long submitCount, const VkSubmitInfo* pSubmits, long long fence) {
-    return ::vkQueueSubmit((VkQueue)(queue), (uint32_t)(submitCount), pSubmits, (VkFence)(fence));
+    return ::vkQueueSubmit(reinterpret_cast<VkQueue>(queue), static_cast<uint32_t>(submitCount),
+                           pSubmits, reinterpret_cast<VkFence>(fence));
 }
 
 /**
@@ -404,7 +410,9 @@ inline VkResult QueueWaitIdle(VkQueue queue) { return ::vkQueueWaitIdle(queue); 
  * cheatah-friendly overload of `QueueWaitIdle`: pass plain ints/floats; the exact
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
-inline VkResult QueueWaitIdle(long long queue) { return ::vkQueueWaitIdle((VkQueue)(queue)); }
+inline VkResult QueueWaitIdle(long long queue) {
+    return ::vkQueueWaitIdle(reinterpret_cast<VkQueue>(queue));
+}
 
 /**
  * Inline forwarder for
@@ -417,7 +425,9 @@ inline VkResult DeviceWaitIdle(VkDevice device) { return ::vkDeviceWaitIdle(devi
  * cheatah-friendly overload of `DeviceWaitIdle`: pass plain ints/floats; the exact
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
-inline VkResult DeviceWaitIdle(long long device) { return ::vkDeviceWaitIdle((VkDevice)(device)); }
+inline VkResult DeviceWaitIdle(long long device) {
+    return ::vkDeviceWaitIdle(reinterpret_cast<VkDevice>(device));
+}
 
 /**
  * Inline forwarder for
@@ -441,7 +451,8 @@ inline VkResult AllocateMemory(long long device,
                                const VkMemoryAllocateInfo* pAllocateInfo,
                                const VkAllocationCallbacks* pAllocator,
                                VkDeviceMemory* pMemory) {
-    return ::vkAllocateMemory((VkDevice)(device), pAllocateInfo, pAllocator, pMemory);
+    return ::vkAllocateMemory(reinterpret_cast<VkDevice>(device), pAllocateInfo, pAllocator,
+                              pMemory);
 }
 
 /**
@@ -460,7 +471,8 @@ FreeMemory(VkDevice device, VkDeviceMemory memory, const VkAllocationCallbacks* 
  */
 inline void
 FreeMemory(long long device, long long memory, const VkAllocationCallbacks* pAllocator) {
-    ::vkFreeMemory((VkDevice)(device), (VkDeviceMemory)(memory), pAllocator);
+    ::vkFreeMemory(reinterpret_cast<VkDevice>(device), reinterpret_cast<VkDeviceMemory>(memory),
+                   pAllocator);
 }
 
 /**
@@ -487,8 +499,10 @@ inline VkResult MapMemory(long long device,
                           long long size,
                           long long flags,
                           void** ppData) {
-    return ::vkMapMemory((VkDevice)(device), (VkDeviceMemory)(memory), (VkDeviceSize)(offset),
-                         (VkDeviceSize)(size), (VkMemoryMapFlags)(flags), ppData);
+    return ::vkMapMemory(reinterpret_cast<VkDevice>(device),
+                         reinterpret_cast<VkDeviceMemory>(memory),
+                         static_cast<VkDeviceSize>(offset), static_cast<VkDeviceSize>(size),
+                         static_cast<VkMemoryMapFlags>(flags), ppData);
 }
 
 /**
@@ -503,7 +517,7 @@ inline void UnmapMemory(VkDevice device, VkDeviceMemory memory) { ::vkUnmapMemor
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void UnmapMemory(long long device, long long memory) {
-    ::vkUnmapMemory((VkDevice)(device), (VkDeviceMemory)(memory));
+    ::vkUnmapMemory(reinterpret_cast<VkDevice>(device), reinterpret_cast<VkDeviceMemory>(memory));
 }
 
 /**
@@ -524,8 +538,8 @@ inline VkResult FlushMappedMemoryRanges(VkDevice device,
 inline VkResult FlushMappedMemoryRanges(long long device,
                                         long long memoryRangeCount,
                                         const VkMappedMemoryRange* pMemoryRanges) {
-    return ::vkFlushMappedMemoryRanges((VkDevice)(device), (uint32_t)(memoryRangeCount),
-                                       pMemoryRanges);
+    return ::vkFlushMappedMemoryRanges(reinterpret_cast<VkDevice>(device),
+                                       static_cast<uint32_t>(memoryRangeCount), pMemoryRanges);
 }
 
 /**
@@ -546,8 +560,8 @@ inline VkResult InvalidateMappedMemoryRanges(VkDevice device,
 inline VkResult InvalidateMappedMemoryRanges(long long device,
                                              long long memoryRangeCount,
                                              const VkMappedMemoryRange* pMemoryRanges) {
-    return ::vkInvalidateMappedMemoryRanges((VkDevice)(device), (uint32_t)(memoryRangeCount),
-                                            pMemoryRanges);
+    return ::vkInvalidateMappedMemoryRanges(reinterpret_cast<VkDevice>(device),
+                                            static_cast<uint32_t>(memoryRangeCount), pMemoryRanges);
 }
 
 /**
@@ -568,7 +582,8 @@ inline void GetDeviceMemoryCommitment(VkDevice device,
 inline void GetDeviceMemoryCommitment(long long device,
                                       long long memory,
                                       VkDeviceSize* pCommittedMemoryInBytes) {
-    ::vkGetDeviceMemoryCommitment((VkDevice)(device), (VkDeviceMemory)(memory),
+    ::vkGetDeviceMemoryCommitment(reinterpret_cast<VkDevice>(device),
+                                  reinterpret_cast<VkDeviceMemory>(memory),
                                   pCommittedMemoryInBytes);
 }
 
@@ -590,8 +605,9 @@ inline VkResult BindBufferMemory(VkDevice device,
  */
 inline VkResult
 BindBufferMemory(long long device, long long buffer, long long memory, long long memoryOffset) {
-    return ::vkBindBufferMemory((VkDevice)(device), (VkBuffer)(buffer), (VkDeviceMemory)(memory),
-                                (VkDeviceSize)(memoryOffset));
+    return ::vkBindBufferMemory(
+        reinterpret_cast<VkDevice>(device), reinterpret_cast<VkBuffer>(buffer),
+        reinterpret_cast<VkDeviceMemory>(memory), static_cast<VkDeviceSize>(memoryOffset));
 }
 
 /**
@@ -610,8 +626,9 @@ BindImageMemory(VkDevice device, VkImage image, VkDeviceMemory memory, VkDeviceS
  */
 inline VkResult
 BindImageMemory(long long device, long long image, long long memory, long long memoryOffset) {
-    return ::vkBindImageMemory((VkDevice)(device), (VkImage)(image), (VkDeviceMemory)(memory),
-                               (VkDeviceSize)(memoryOffset));
+    return ::vkBindImageMemory(reinterpret_cast<VkDevice>(device), reinterpret_cast<VkImage>(image),
+                               reinterpret_cast<VkDeviceMemory>(memory),
+                               static_cast<VkDeviceSize>(memoryOffset));
 }
 
 /**
@@ -632,7 +649,8 @@ inline void GetBufferMemoryRequirements(VkDevice device,
 inline void GetBufferMemoryRequirements(long long device,
                                         long long buffer,
                                         VkMemoryRequirements* pMemoryRequirements) {
-    ::vkGetBufferMemoryRequirements((VkDevice)(device), (VkBuffer)(buffer), pMemoryRequirements);
+    ::vkGetBufferMemoryRequirements(reinterpret_cast<VkDevice>(device),
+                                    reinterpret_cast<VkBuffer>(buffer), pMemoryRequirements);
 }
 
 /**
@@ -653,7 +671,8 @@ inline void GetImageMemoryRequirements(VkDevice device,
 inline void GetImageMemoryRequirements(long long device,
                                        long long image,
                                        VkMemoryRequirements* pMemoryRequirements) {
-    ::vkGetImageMemoryRequirements((VkDevice)(device), (VkImage)(image), pMemoryRequirements);
+    ::vkGetImageMemoryRequirements(reinterpret_cast<VkDevice>(device),
+                                   reinterpret_cast<VkImage>(image), pMemoryRequirements);
 }
 
 /**
@@ -679,7 +698,8 @@ GetImageSparseMemoryRequirements(long long device,
                                  long long image,
                                  uint32_t* pSparseMemoryRequirementCount,
                                  VkSparseImageMemoryRequirements* pSparseMemoryRequirements) {
-    ::vkGetImageSparseMemoryRequirements((VkDevice)(device), (VkImage)(image),
+    ::vkGetImageSparseMemoryRequirements(reinterpret_cast<VkDevice>(device),
+                                         reinterpret_cast<VkImage>(image),
                                          pSparseMemoryRequirementCount, pSparseMemoryRequirements);
 }
 
@@ -716,9 +736,10 @@ GetPhysicalDeviceSparseImageFormatProperties(long long physicalDevice,
                                              uint32_t* pPropertyCount,
                                              VkSparseImageFormatProperties* pProperties) {
     ::vkGetPhysicalDeviceSparseImageFormatProperties(
-        (VkPhysicalDevice)(physicalDevice), (VkFormat)(format), (VkImageType)(type),
-        (VkSampleCountFlagBits)(samples), (VkImageUsageFlags)(usage), (VkImageTiling)(tiling),
-        pPropertyCount, pProperties);
+        reinterpret_cast<VkPhysicalDevice>(physicalDevice), static_cast<VkFormat>(format),
+        static_cast<VkImageType>(type), static_cast<VkSampleCountFlagBits>(samples),
+        static_cast<VkImageUsageFlags>(usage), static_cast<VkImageTiling>(tiling), pPropertyCount,
+        pProperties);
 }
 
 /**
@@ -741,8 +762,9 @@ inline VkResult QueueBindSparse(long long queue,
                                 long long bindInfoCount,
                                 const VkBindSparseInfo* pBindInfo,
                                 long long fence) {
-    return ::vkQueueBindSparse((VkQueue)(queue), (uint32_t)(bindInfoCount), pBindInfo,
-                               (VkFence)(fence));
+    return ::vkQueueBindSparse(reinterpret_cast<VkQueue>(queue),
+                               static_cast<uint32_t>(bindInfoCount), pBindInfo,
+                               reinterpret_cast<VkFence>(fence));
 }
 
 /**
@@ -766,7 +788,7 @@ inline VkResult CreateFence(long long device,
                             const VkFenceCreateInfo* pCreateInfo,
                             const VkAllocationCallbacks* pAllocator,
                             VkFence* pFence) {
-    return ::vkCreateFence((VkDevice)(device), pCreateInfo, pAllocator, pFence);
+    return ::vkCreateFence(reinterpret_cast<VkDevice>(device), pCreateInfo, pAllocator, pFence);
 }
 
 /**
@@ -784,7 +806,8 @@ inline void DestroyFence(VkDevice device, VkFence fence, const VkAllocationCallb
  */
 inline void
 DestroyFence(long long device, long long fence, const VkAllocationCallbacks* pAllocator) {
-    ::vkDestroyFence((VkDevice)(device), (VkFence)(fence), pAllocator);
+    ::vkDestroyFence(reinterpret_cast<VkDevice>(device), reinterpret_cast<VkFence>(fence),
+                     pAllocator);
 }
 
 /**
@@ -801,7 +824,8 @@ inline VkResult ResetFences(VkDevice device, uint32_t fenceCount, const VkFence*
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline VkResult ResetFences(long long device, long long fenceCount, const VkFence* pFences) {
-    return ::vkResetFences((VkDevice)(device), (uint32_t)(fenceCount), pFences);
+    return ::vkResetFences(reinterpret_cast<VkDevice>(device), static_cast<uint32_t>(fenceCount),
+                           pFences);
 }
 
 /**
@@ -818,7 +842,7 @@ inline VkResult GetFenceStatus(VkDevice device, VkFence fence) {
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline VkResult GetFenceStatus(long long device, long long fence) {
-    return ::vkGetFenceStatus((VkDevice)(device), (VkFence)(fence));
+    return ::vkGetFenceStatus(reinterpret_cast<VkDevice>(device), reinterpret_cast<VkFence>(fence));
 }
 
 /**
@@ -843,8 +867,9 @@ inline VkResult WaitForFences(long long device,
                               const VkFence* pFences,
                               long long waitAll,
                               long long timeout) {
-    return ::vkWaitForFences((VkDevice)(device), (uint32_t)(fenceCount), pFences,
-                             (VkBool32)(waitAll), (uint64_t)(timeout));
+    return ::vkWaitForFences(reinterpret_cast<VkDevice>(device), static_cast<uint32_t>(fenceCount),
+                             pFences, static_cast<VkBool32>(waitAll),
+                             static_cast<uint64_t>(timeout));
 }
 
 /**
@@ -868,7 +893,8 @@ inline VkResult CreateSemaphore(long long device,
                                 const VkSemaphoreCreateInfo* pCreateInfo,
                                 const VkAllocationCallbacks* pAllocator,
                                 VkSemaphore* pSemaphore) {
-    return ::vkCreateSemaphore((VkDevice)(device), pCreateInfo, pAllocator, pSemaphore);
+    return ::vkCreateSemaphore(reinterpret_cast<VkDevice>(device), pCreateInfo, pAllocator,
+                               pSemaphore);
 }
 
 /**
@@ -887,7 +913,8 @@ DestroySemaphore(VkDevice device, VkSemaphore semaphore, const VkAllocationCallb
  */
 inline void
 DestroySemaphore(long long device, long long semaphore, const VkAllocationCallbacks* pAllocator) {
-    ::vkDestroySemaphore((VkDevice)(device), (VkSemaphore)(semaphore), pAllocator);
+    ::vkDestroySemaphore(reinterpret_cast<VkDevice>(device),
+                         reinterpret_cast<VkSemaphore>(semaphore), pAllocator);
 }
 
 /**
@@ -911,7 +938,8 @@ inline VkResult CreateQueryPool(long long device,
                                 const VkQueryPoolCreateInfo* pCreateInfo,
                                 const VkAllocationCallbacks* pAllocator,
                                 VkQueryPool* pQueryPool) {
-    return ::vkCreateQueryPool((VkDevice)(device), pCreateInfo, pAllocator, pQueryPool);
+    return ::vkCreateQueryPool(reinterpret_cast<VkDevice>(device), pCreateInfo, pAllocator,
+                               pQueryPool);
 }
 
 /**
@@ -930,7 +958,8 @@ DestroyQueryPool(VkDevice device, VkQueryPool queryPool, const VkAllocationCallb
  */
 inline void
 DestroyQueryPool(long long device, long long queryPool, const VkAllocationCallbacks* pAllocator) {
-    ::vkDestroyQueryPool((VkDevice)(device), (VkQueryPool)(queryPool), pAllocator);
+    ::vkDestroyQueryPool(reinterpret_cast<VkDevice>(device),
+                         reinterpret_cast<VkQueryPool>(queryPool), pAllocator);
 }
 
 /**
@@ -962,10 +991,11 @@ inline VkResult GetQueryPoolResults(long long device,
                                     void* pData,
                                     long long stride,
                                     long long flags) {
-    return ::vkGetQueryPoolResults((VkDevice)(device), (VkQueryPool)(queryPool),
-                                   (uint32_t)(firstQuery), (uint32_t)(queryCount),
-                                   (size_t)(dataSize), pData, (VkDeviceSize)(stride),
-                                   (VkQueryResultFlags)(flags));
+    return ::vkGetQueryPoolResults(
+        reinterpret_cast<VkDevice>(device), reinterpret_cast<VkQueryPool>(queryPool),
+        static_cast<uint32_t>(firstQuery), static_cast<uint32_t>(queryCount),
+        static_cast<size_t>(dataSize), pData, static_cast<VkDeviceSize>(stride),
+        static_cast<VkQueryResultFlags>(flags));
 }
 
 /**
@@ -989,7 +1019,7 @@ inline VkResult CreateBuffer(long long device,
                              const VkBufferCreateInfo* pCreateInfo,
                              const VkAllocationCallbacks* pAllocator,
                              VkBuffer* pBuffer) {
-    return ::vkCreateBuffer((VkDevice)(device), pCreateInfo, pAllocator, pBuffer);
+    return ::vkCreateBuffer(reinterpret_cast<VkDevice>(device), pCreateInfo, pAllocator, pBuffer);
 }
 
 /**
@@ -1008,7 +1038,8 @@ DestroyBuffer(VkDevice device, VkBuffer buffer, const VkAllocationCallbacks* pAl
  */
 inline void
 DestroyBuffer(long long device, long long buffer, const VkAllocationCallbacks* pAllocator) {
-    ::vkDestroyBuffer((VkDevice)(device), (VkBuffer)(buffer), pAllocator);
+    ::vkDestroyBuffer(reinterpret_cast<VkDevice>(device), reinterpret_cast<VkBuffer>(buffer),
+                      pAllocator);
 }
 
 /**
@@ -1032,7 +1063,7 @@ inline VkResult CreateImage(long long device,
                             const VkImageCreateInfo* pCreateInfo,
                             const VkAllocationCallbacks* pAllocator,
                             VkImage* pImage) {
-    return ::vkCreateImage((VkDevice)(device), pCreateInfo, pAllocator, pImage);
+    return ::vkCreateImage(reinterpret_cast<VkDevice>(device), pCreateInfo, pAllocator, pImage);
 }
 
 /**
@@ -1050,7 +1081,8 @@ inline void DestroyImage(VkDevice device, VkImage image, const VkAllocationCallb
  */
 inline void
 DestroyImage(long long device, long long image, const VkAllocationCallbacks* pAllocator) {
-    ::vkDestroyImage((VkDevice)(device), (VkImage)(image), pAllocator);
+    ::vkDestroyImage(reinterpret_cast<VkDevice>(device), reinterpret_cast<VkImage>(image),
+                     pAllocator);
 }
 
 /**
@@ -1073,7 +1105,8 @@ inline void GetImageSubresourceLayout(long long device,
                                       long long image,
                                       const VkImageSubresource* pSubresource,
                                       VkSubresourceLayout* pLayout) {
-    ::vkGetImageSubresourceLayout((VkDevice)(device), (VkImage)(image), pSubresource, pLayout);
+    ::vkGetImageSubresourceLayout(reinterpret_cast<VkDevice>(device),
+                                  reinterpret_cast<VkImage>(image), pSubresource, pLayout);
 }
 
 /**
@@ -1097,7 +1130,7 @@ inline VkResult CreateImageView(long long device,
                                 const VkImageViewCreateInfo* pCreateInfo,
                                 const VkAllocationCallbacks* pAllocator,
                                 VkImageView* pView) {
-    return ::vkCreateImageView((VkDevice)(device), pCreateInfo, pAllocator, pView);
+    return ::vkCreateImageView(reinterpret_cast<VkDevice>(device), pCreateInfo, pAllocator, pView);
 }
 
 /**
@@ -1116,7 +1149,8 @@ DestroyImageView(VkDevice device, VkImageView imageView, const VkAllocationCallb
  */
 inline void
 DestroyImageView(long long device, long long imageView, const VkAllocationCallbacks* pAllocator) {
-    ::vkDestroyImageView((VkDevice)(device), (VkImageView)(imageView), pAllocator);
+    ::vkDestroyImageView(reinterpret_cast<VkDevice>(device),
+                         reinterpret_cast<VkImageView>(imageView), pAllocator);
 }
 
 /**
@@ -1140,7 +1174,8 @@ inline VkResult CreateCommandPool(long long device,
                                   const VkCommandPoolCreateInfo* pCreateInfo,
                                   const VkAllocationCallbacks* pAllocator,
                                   VkCommandPool* pCommandPool) {
-    return ::vkCreateCommandPool((VkDevice)(device), pCreateInfo, pAllocator, pCommandPool);
+    return ::vkCreateCommandPool(reinterpret_cast<VkDevice>(device), pCreateInfo, pAllocator,
+                                 pCommandPool);
 }
 
 /**
@@ -1161,7 +1196,8 @@ inline void DestroyCommandPool(VkDevice device,
 inline void DestroyCommandPool(long long device,
                                long long commandPool,
                                const VkAllocationCallbacks* pAllocator) {
-    ::vkDestroyCommandPool((VkDevice)(device), (VkCommandPool)(commandPool), pAllocator);
+    ::vkDestroyCommandPool(reinterpret_cast<VkDevice>(device),
+                           reinterpret_cast<VkCommandPool>(commandPool), pAllocator);
 }
 
 /**
@@ -1179,8 +1215,9 @@ ResetCommandPool(VkDevice device, VkCommandPool commandPool, VkCommandPoolResetF
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline VkResult ResetCommandPool(long long device, long long commandPool, long long flags) {
-    return ::vkResetCommandPool((VkDevice)(device), (VkCommandPool)(commandPool),
-                                (VkCommandPoolResetFlags)(flags));
+    return ::vkResetCommandPool(reinterpret_cast<VkDevice>(device),
+                                reinterpret_cast<VkCommandPool>(commandPool),
+                                static_cast<VkCommandPoolResetFlags>(flags));
 }
 
 /**
@@ -1202,7 +1239,8 @@ inline VkResult AllocateCommandBuffers(VkDevice device,
 inline VkResult AllocateCommandBuffers(long long device,
                                        const VkCommandBufferAllocateInfo* pAllocateInfo,
                                        VkCommandBuffer* pCommandBuffers) {
-    return ::vkAllocateCommandBuffers((VkDevice)(device), pAllocateInfo, pCommandBuffers);
+    return ::vkAllocateCommandBuffers(reinterpret_cast<VkDevice>(device), pAllocateInfo,
+                                      pCommandBuffers);
 }
 
 /**
@@ -1225,8 +1263,9 @@ inline void FreeCommandBuffers(long long device,
                                long long commandPool,
                                long long commandBufferCount,
                                const VkCommandBuffer* pCommandBuffers) {
-    ::vkFreeCommandBuffers((VkDevice)(device), (VkCommandPool)(commandPool),
-                           (uint32_t)(commandBufferCount), pCommandBuffers);
+    ::vkFreeCommandBuffers(reinterpret_cast<VkDevice>(device),
+                           reinterpret_cast<VkCommandPool>(commandPool),
+                           static_cast<uint32_t>(commandBufferCount), pCommandBuffers);
 }
 
 /**
@@ -1245,7 +1284,7 @@ inline VkResult BeginCommandBuffer(VkCommandBuffer commandBuffer,
  */
 inline VkResult BeginCommandBuffer(long long commandBuffer,
                                    const VkCommandBufferBeginInfo* pBeginInfo) {
-    return ::vkBeginCommandBuffer((VkCommandBuffer)(commandBuffer), pBeginInfo);
+    return ::vkBeginCommandBuffer(reinterpret_cast<VkCommandBuffer>(commandBuffer), pBeginInfo);
 }
 
 /**
@@ -1262,7 +1301,7 @@ inline VkResult EndCommandBuffer(VkCommandBuffer commandBuffer) {
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline VkResult EndCommandBuffer(long long commandBuffer) {
-    return ::vkEndCommandBuffer((VkCommandBuffer)(commandBuffer));
+    return ::vkEndCommandBuffer(reinterpret_cast<VkCommandBuffer>(commandBuffer));
 }
 
 /**
@@ -1279,8 +1318,8 @@ inline VkResult ResetCommandBuffer(VkCommandBuffer commandBuffer, VkCommandBuffe
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline VkResult ResetCommandBuffer(long long commandBuffer, long long flags) {
-    return ::vkResetCommandBuffer((VkCommandBuffer)(commandBuffer),
-                                  (VkCommandBufferResetFlags)(flags));
+    return ::vkResetCommandBuffer(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                                  static_cast<VkCommandBufferResetFlags>(flags));
 }
 
 /**
@@ -1305,8 +1344,9 @@ inline void CmdCopyBuffer(long long commandBuffer,
                           long long dstBuffer,
                           long long regionCount,
                           const VkBufferCopy* pRegions) {
-    ::vkCmdCopyBuffer((VkCommandBuffer)(commandBuffer), (VkBuffer)(srcBuffer),
-                      (VkBuffer)(dstBuffer), (uint32_t)(regionCount), pRegions);
+    ::vkCmdCopyBuffer(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                      reinterpret_cast<VkBuffer>(srcBuffer), reinterpret_cast<VkBuffer>(dstBuffer),
+                      static_cast<uint32_t>(regionCount), pRegions);
 }
 
 /**
@@ -1336,9 +1376,10 @@ inline void CmdCopyImage(long long commandBuffer,
                          long long dstImageLayout,
                          long long regionCount,
                          const VkImageCopy* pRegions) {
-    ::vkCmdCopyImage((VkCommandBuffer)(commandBuffer), (VkImage)(srcImage),
-                     (VkImageLayout)(srcImageLayout), (VkImage)(dstImage),
-                     (VkImageLayout)(dstImageLayout), (uint32_t)(regionCount), pRegions);
+    ::vkCmdCopyImage(
+        reinterpret_cast<VkCommandBuffer>(commandBuffer), reinterpret_cast<VkImage>(srcImage),
+        static_cast<VkImageLayout>(srcImageLayout), reinterpret_cast<VkImage>(dstImage),
+        static_cast<VkImageLayout>(dstImageLayout), static_cast<uint32_t>(regionCount), pRegions);
 }
 
 /**
@@ -1366,9 +1407,10 @@ inline void CmdCopyBufferToImage(long long commandBuffer,
                                  long long dstImageLayout,
                                  long long regionCount,
                                  const VkBufferImageCopy* pRegions) {
-    ::vkCmdCopyBufferToImage((VkCommandBuffer)(commandBuffer), (VkBuffer)(srcBuffer),
-                             (VkImage)(dstImage), (VkImageLayout)(dstImageLayout),
-                             (uint32_t)(regionCount), pRegions);
+    ::vkCmdCopyBufferToImage(
+        reinterpret_cast<VkCommandBuffer>(commandBuffer), reinterpret_cast<VkBuffer>(srcBuffer),
+        reinterpret_cast<VkImage>(dstImage), static_cast<VkImageLayout>(dstImageLayout),
+        static_cast<uint32_t>(regionCount), pRegions);
 }
 
 /**
@@ -1396,9 +1438,10 @@ inline void CmdCopyImageToBuffer(long long commandBuffer,
                                  long long dstBuffer,
                                  long long regionCount,
                                  const VkBufferImageCopy* pRegions) {
-    ::vkCmdCopyImageToBuffer((VkCommandBuffer)(commandBuffer), (VkImage)(srcImage),
-                             (VkImageLayout)(srcImageLayout), (VkBuffer)(dstBuffer),
-                             (uint32_t)(regionCount), pRegions);
+    ::vkCmdCopyImageToBuffer(
+        reinterpret_cast<VkCommandBuffer>(commandBuffer), reinterpret_cast<VkImage>(srcImage),
+        static_cast<VkImageLayout>(srcImageLayout), reinterpret_cast<VkBuffer>(dstBuffer),
+        static_cast<uint32_t>(regionCount), pRegions);
 }
 
 /**
@@ -1423,8 +1466,9 @@ inline void CmdUpdateBuffer(long long commandBuffer,
                             long long dstOffset,
                             long long dataSize,
                             const void* pData) {
-    ::vkCmdUpdateBuffer((VkCommandBuffer)(commandBuffer), (VkBuffer)(dstBuffer),
-                        (VkDeviceSize)(dstOffset), (VkDeviceSize)(dataSize), pData);
+    ::vkCmdUpdateBuffer(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                        reinterpret_cast<VkBuffer>(dstBuffer), static_cast<VkDeviceSize>(dstOffset),
+                        static_cast<VkDeviceSize>(dataSize), pData);
 }
 
 /**
@@ -1449,8 +1493,9 @@ inline void CmdFillBuffer(long long commandBuffer,
                           long long dstOffset,
                           long long size,
                           long long data) {
-    ::vkCmdFillBuffer((VkCommandBuffer)(commandBuffer), (VkBuffer)(dstBuffer),
-                      (VkDeviceSize)(dstOffset), (VkDeviceSize)(size), (uint32_t)(data));
+    ::vkCmdFillBuffer(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                      reinterpret_cast<VkBuffer>(dstBuffer), static_cast<VkDeviceSize>(dstOffset),
+                      static_cast<VkDeviceSize>(size), static_cast<uint32_t>(data));
 }
 
 /**
@@ -1487,11 +1532,13 @@ inline void CmdPipelineBarrier(long long commandBuffer,
                                const VkBufferMemoryBarrier* pBufferMemoryBarriers,
                                long long imageMemoryBarrierCount,
                                const VkImageMemoryBarrier* pImageMemoryBarriers) {
-    ::vkCmdPipelineBarrier(
-        (VkCommandBuffer)(commandBuffer), (VkPipelineStageFlags)(srcStageMask),
-        (VkPipelineStageFlags)(dstStageMask), (VkDependencyFlags)(dependencyFlags),
-        (uint32_t)(memoryBarrierCount), pMemoryBarriers, (uint32_t)(bufferMemoryBarrierCount),
-        pBufferMemoryBarriers, (uint32_t)(imageMemoryBarrierCount), pImageMemoryBarriers);
+    ::vkCmdPipelineBarrier(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                           static_cast<VkPipelineStageFlags>(srcStageMask),
+                           static_cast<VkPipelineStageFlags>(dstStageMask),
+                           static_cast<VkDependencyFlags>(dependencyFlags),
+                           static_cast<uint32_t>(memoryBarrierCount), pMemoryBarriers,
+                           static_cast<uint32_t>(bufferMemoryBarrierCount), pBufferMemoryBarriers,
+                           static_cast<uint32_t>(imageMemoryBarrierCount), pImageMemoryBarriers);
 }
 
 /**
@@ -1512,8 +1559,9 @@ inline void CmdBeginQuery(VkCommandBuffer commandBuffer,
  */
 inline void
 CmdBeginQuery(long long commandBuffer, long long queryPool, long long query, long long flags) {
-    ::vkCmdBeginQuery((VkCommandBuffer)(commandBuffer), (VkQueryPool)(queryPool), (uint32_t)(query),
-                      (VkQueryControlFlags)(flags));
+    ::vkCmdBeginQuery(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                      reinterpret_cast<VkQueryPool>(queryPool), static_cast<uint32_t>(query),
+                      static_cast<VkQueryControlFlags>(flags));
 }
 
 /**
@@ -1530,7 +1578,8 @@ inline void CmdEndQuery(VkCommandBuffer commandBuffer, VkQueryPool queryPool, ui
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdEndQuery(long long commandBuffer, long long queryPool, long long query) {
-    ::vkCmdEndQuery((VkCommandBuffer)(commandBuffer), (VkQueryPool)(queryPool), (uint32_t)(query));
+    ::vkCmdEndQuery(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                    reinterpret_cast<VkQueryPool>(queryPool), static_cast<uint32_t>(query));
 }
 
 /**
@@ -1553,8 +1602,9 @@ inline void CmdResetQueryPool(long long commandBuffer,
                               long long queryPool,
                               long long firstQuery,
                               long long queryCount) {
-    ::vkCmdResetQueryPool((VkCommandBuffer)(commandBuffer), (VkQueryPool)(queryPool),
-                          (uint32_t)(firstQuery), (uint32_t)(queryCount));
+    ::vkCmdResetQueryPool(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                          reinterpret_cast<VkQueryPool>(queryPool),
+                          static_cast<uint32_t>(firstQuery), static_cast<uint32_t>(queryCount));
 }
 
 /**
@@ -1577,9 +1627,9 @@ inline void CmdWriteTimestamp(long long commandBuffer,
                               long long pipelineStage,
                               long long queryPool,
                               long long query) {
-    ::vkCmdWriteTimestamp((VkCommandBuffer)(commandBuffer),
-                          (VkPipelineStageFlagBits)(pipelineStage), (VkQueryPool)(queryPool),
-                          (uint32_t)(query));
+    ::vkCmdWriteTimestamp(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                          static_cast<VkPipelineStageFlagBits>(pipelineStage),
+                          reinterpret_cast<VkQueryPool>(queryPool), static_cast<uint32_t>(query));
 }
 
 /**
@@ -1611,10 +1661,11 @@ inline void CmdCopyQueryPoolResults(long long commandBuffer,
                                     long long dstOffset,
                                     long long stride,
                                     long long flags) {
-    ::vkCmdCopyQueryPoolResults((VkCommandBuffer)(commandBuffer), (VkQueryPool)(queryPool),
-                                (uint32_t)(firstQuery), (uint32_t)(queryCount),
-                                (VkBuffer)(dstBuffer), (VkDeviceSize)(dstOffset),
-                                (VkDeviceSize)(stride), (VkQueryResultFlags)(flags));
+    ::vkCmdCopyQueryPoolResults(
+        reinterpret_cast<VkCommandBuffer>(commandBuffer), reinterpret_cast<VkQueryPool>(queryPool),
+        static_cast<uint32_t>(firstQuery), static_cast<uint32_t>(queryCount),
+        reinterpret_cast<VkBuffer>(dstBuffer), static_cast<VkDeviceSize>(dstOffset),
+        static_cast<VkDeviceSize>(stride), static_cast<VkQueryResultFlags>(flags));
 }
 
 /**
@@ -1635,8 +1686,8 @@ inline void CmdExecuteCommands(VkCommandBuffer commandBuffer,
 inline void CmdExecuteCommands(long long commandBuffer,
                                long long commandBufferCount,
                                const VkCommandBuffer* pCommandBuffers) {
-    ::vkCmdExecuteCommands((VkCommandBuffer)(commandBuffer), (uint32_t)(commandBufferCount),
-                           pCommandBuffers);
+    ::vkCmdExecuteCommands(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                           static_cast<uint32_t>(commandBufferCount), pCommandBuffers);
 }
 
 /**
@@ -1660,7 +1711,7 @@ inline VkResult CreateEvent(long long device,
                             const VkEventCreateInfo* pCreateInfo,
                             const VkAllocationCallbacks* pAllocator,
                             VkEvent* pEvent) {
-    return ::vkCreateEvent((VkDevice)(device), pCreateInfo, pAllocator, pEvent);
+    return ::vkCreateEvent(reinterpret_cast<VkDevice>(device), pCreateInfo, pAllocator, pEvent);
 }
 
 /**
@@ -1678,7 +1729,8 @@ inline void DestroyEvent(VkDevice device, VkEvent event, const VkAllocationCallb
  */
 inline void
 DestroyEvent(long long device, long long event, const VkAllocationCallbacks* pAllocator) {
-    ::vkDestroyEvent((VkDevice)(device), (VkEvent)(event), pAllocator);
+    ::vkDestroyEvent(reinterpret_cast<VkDevice>(device), reinterpret_cast<VkEvent>(event),
+                     pAllocator);
 }
 
 /**
@@ -1695,7 +1747,7 @@ inline VkResult GetEventStatus(VkDevice device, VkEvent event) {
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline VkResult GetEventStatus(long long device, long long event) {
-    return ::vkGetEventStatus((VkDevice)(device), (VkEvent)(event));
+    return ::vkGetEventStatus(reinterpret_cast<VkDevice>(device), reinterpret_cast<VkEvent>(event));
 }
 
 /**
@@ -1710,7 +1762,7 @@ inline VkResult SetEvent(VkDevice device, VkEvent event) { return ::vkSetEvent(d
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline VkResult SetEvent(long long device, long long event) {
-    return ::vkSetEvent((VkDevice)(device), (VkEvent)(event));
+    return ::vkSetEvent(reinterpret_cast<VkDevice>(device), reinterpret_cast<VkEvent>(event));
 }
 
 /**
@@ -1725,7 +1777,7 @@ inline VkResult ResetEvent(VkDevice device, VkEvent event) { return ::vkResetEve
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline VkResult ResetEvent(long long device, long long event) {
-    return ::vkResetEvent((VkDevice)(device), (VkEvent)(event));
+    return ::vkResetEvent(reinterpret_cast<VkDevice>(device), reinterpret_cast<VkEvent>(event));
 }
 
 /**
@@ -1749,7 +1801,7 @@ inline VkResult CreateBufferView(long long device,
                                  const VkBufferViewCreateInfo* pCreateInfo,
                                  const VkAllocationCallbacks* pAllocator,
                                  VkBufferView* pView) {
-    return ::vkCreateBufferView((VkDevice)(device), pCreateInfo, pAllocator, pView);
+    return ::vkCreateBufferView(reinterpret_cast<VkDevice>(device), pCreateInfo, pAllocator, pView);
 }
 
 /**
@@ -1769,7 +1821,8 @@ inline void DestroyBufferView(VkDevice device,
  */
 inline void
 DestroyBufferView(long long device, long long bufferView, const VkAllocationCallbacks* pAllocator) {
-    ::vkDestroyBufferView((VkDevice)(device), (VkBufferView)(bufferView), pAllocator);
+    ::vkDestroyBufferView(reinterpret_cast<VkDevice>(device),
+                          reinterpret_cast<VkBufferView>(bufferView), pAllocator);
 }
 
 /**
@@ -1793,7 +1846,8 @@ inline VkResult CreateShaderModule(long long device,
                                    const VkShaderModuleCreateInfo* pCreateInfo,
                                    const VkAllocationCallbacks* pAllocator,
                                    VkShaderModule* pShaderModule) {
-    return ::vkCreateShaderModule((VkDevice)(device), pCreateInfo, pAllocator, pShaderModule);
+    return ::vkCreateShaderModule(reinterpret_cast<VkDevice>(device), pCreateInfo, pAllocator,
+                                  pShaderModule);
 }
 
 /**
@@ -1814,7 +1868,8 @@ inline void DestroyShaderModule(VkDevice device,
 inline void DestroyShaderModule(long long device,
                                 long long shaderModule,
                                 const VkAllocationCallbacks* pAllocator) {
-    ::vkDestroyShaderModule((VkDevice)(device), (VkShaderModule)(shaderModule), pAllocator);
+    ::vkDestroyShaderModule(reinterpret_cast<VkDevice>(device),
+                            reinterpret_cast<VkShaderModule>(shaderModule), pAllocator);
 }
 
 /**
@@ -1838,7 +1893,8 @@ inline VkResult CreatePipelineCache(long long device,
                                     const VkPipelineCacheCreateInfo* pCreateInfo,
                                     const VkAllocationCallbacks* pAllocator,
                                     VkPipelineCache* pPipelineCache) {
-    return ::vkCreatePipelineCache((VkDevice)(device), pCreateInfo, pAllocator, pPipelineCache);
+    return ::vkCreatePipelineCache(reinterpret_cast<VkDevice>(device), pCreateInfo, pAllocator,
+                                   pPipelineCache);
 }
 
 /**
@@ -1859,7 +1915,8 @@ inline void DestroyPipelineCache(VkDevice device,
 inline void DestroyPipelineCache(long long device,
                                  long long pipelineCache,
                                  const VkAllocationCallbacks* pAllocator) {
-    ::vkDestroyPipelineCache((VkDevice)(device), (VkPipelineCache)(pipelineCache), pAllocator);
+    ::vkDestroyPipelineCache(reinterpret_cast<VkDevice>(device),
+                             reinterpret_cast<VkPipelineCache>(pipelineCache), pAllocator);
 }
 
 /**
@@ -1880,7 +1937,8 @@ inline VkResult GetPipelineCacheData(VkDevice device,
  */
 inline VkResult
 GetPipelineCacheData(long long device, long long pipelineCache, size_t* pDataSize, void* pData) {
-    return ::vkGetPipelineCacheData((VkDevice)(device), (VkPipelineCache)(pipelineCache), pDataSize,
+    return ::vkGetPipelineCacheData(reinterpret_cast<VkDevice>(device),
+                                    reinterpret_cast<VkPipelineCache>(pipelineCache), pDataSize,
                                     pData);
 }
 
@@ -1904,8 +1962,9 @@ inline VkResult MergePipelineCaches(long long device,
                                     long long dstCache,
                                     long long srcCacheCount,
                                     const VkPipelineCache* pSrcCaches) {
-    return ::vkMergePipelineCaches((VkDevice)(device), (VkPipelineCache)(dstCache),
-                                   (uint32_t)(srcCacheCount), pSrcCaches);
+    return ::vkMergePipelineCaches(reinterpret_cast<VkDevice>(device),
+                                   reinterpret_cast<VkPipelineCache>(dstCache),
+                                   static_cast<uint32_t>(srcCacheCount), pSrcCaches);
 }
 
 /**
@@ -1933,9 +1992,9 @@ inline VkResult CreateComputePipelines(long long device,
                                        const VkComputePipelineCreateInfo* pCreateInfos,
                                        const VkAllocationCallbacks* pAllocator,
                                        VkPipeline* pPipelines) {
-    return ::vkCreateComputePipelines((VkDevice)(device), (VkPipelineCache)(pipelineCache),
-                                      (uint32_t)(createInfoCount), pCreateInfos, pAllocator,
-                                      pPipelines);
+    return ::vkCreateComputePipelines(
+        reinterpret_cast<VkDevice>(device), reinterpret_cast<VkPipelineCache>(pipelineCache),
+        static_cast<uint32_t>(createInfoCount), pCreateInfos, pAllocator, pPipelines);
 }
 
 /**
@@ -1954,7 +2013,8 @@ DestroyPipeline(VkDevice device, VkPipeline pipeline, const VkAllocationCallback
  */
 inline void
 DestroyPipeline(long long device, long long pipeline, const VkAllocationCallbacks* pAllocator) {
-    ::vkDestroyPipeline((VkDevice)(device), (VkPipeline)(pipeline), pAllocator);
+    ::vkDestroyPipeline(reinterpret_cast<VkDevice>(device), reinterpret_cast<VkPipeline>(pipeline),
+                        pAllocator);
 }
 
 /**
@@ -1978,7 +2038,8 @@ inline VkResult CreatePipelineLayout(long long device,
                                      const VkPipelineLayoutCreateInfo* pCreateInfo,
                                      const VkAllocationCallbacks* pAllocator,
                                      VkPipelineLayout* pPipelineLayout) {
-    return ::vkCreatePipelineLayout((VkDevice)(device), pCreateInfo, pAllocator, pPipelineLayout);
+    return ::vkCreatePipelineLayout(reinterpret_cast<VkDevice>(device), pCreateInfo, pAllocator,
+                                    pPipelineLayout);
 }
 
 /**
@@ -1999,7 +2060,8 @@ inline void DestroyPipelineLayout(VkDevice device,
 inline void DestroyPipelineLayout(long long device,
                                   long long pipelineLayout,
                                   const VkAllocationCallbacks* pAllocator) {
-    ::vkDestroyPipelineLayout((VkDevice)(device), (VkPipelineLayout)(pipelineLayout), pAllocator);
+    ::vkDestroyPipelineLayout(reinterpret_cast<VkDevice>(device),
+                              reinterpret_cast<VkPipelineLayout>(pipelineLayout), pAllocator);
 }
 
 /**
@@ -2023,7 +2085,7 @@ inline VkResult CreateSampler(long long device,
                               const VkSamplerCreateInfo* pCreateInfo,
                               const VkAllocationCallbacks* pAllocator,
                               VkSampler* pSampler) {
-    return ::vkCreateSampler((VkDevice)(device), pCreateInfo, pAllocator, pSampler);
+    return ::vkCreateSampler(reinterpret_cast<VkDevice>(device), pCreateInfo, pAllocator, pSampler);
 }
 
 /**
@@ -2042,7 +2104,8 @@ DestroySampler(VkDevice device, VkSampler sampler, const VkAllocationCallbacks* 
  */
 inline void
 DestroySampler(long long device, long long sampler, const VkAllocationCallbacks* pAllocator) {
-    ::vkDestroySampler((VkDevice)(device), (VkSampler)(sampler), pAllocator);
+    ::vkDestroySampler(reinterpret_cast<VkDevice>(device), reinterpret_cast<VkSampler>(sampler),
+                       pAllocator);
 }
 
 /**
@@ -2066,7 +2129,8 @@ inline VkResult CreateDescriptorSetLayout(long long device,
                                           const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
                                           const VkAllocationCallbacks* pAllocator,
                                           VkDescriptorSetLayout* pSetLayout) {
-    return ::vkCreateDescriptorSetLayout((VkDevice)(device), pCreateInfo, pAllocator, pSetLayout);
+    return ::vkCreateDescriptorSetLayout(reinterpret_cast<VkDevice>(device), pCreateInfo,
+                                         pAllocator, pSetLayout);
 }
 
 /**
@@ -2087,7 +2151,8 @@ inline void DestroyDescriptorSetLayout(VkDevice device,
 inline void DestroyDescriptorSetLayout(long long device,
                                        long long descriptorSetLayout,
                                        const VkAllocationCallbacks* pAllocator) {
-    ::vkDestroyDescriptorSetLayout((VkDevice)(device), (VkDescriptorSetLayout)(descriptorSetLayout),
+    ::vkDestroyDescriptorSetLayout(reinterpret_cast<VkDevice>(device),
+                                   reinterpret_cast<VkDescriptorSetLayout>(descriptorSetLayout),
                                    pAllocator);
 }
 
@@ -2112,7 +2177,8 @@ inline VkResult CreateDescriptorPool(long long device,
                                      const VkDescriptorPoolCreateInfo* pCreateInfo,
                                      const VkAllocationCallbacks* pAllocator,
                                      VkDescriptorPool* pDescriptorPool) {
-    return ::vkCreateDescriptorPool((VkDevice)(device), pCreateInfo, pAllocator, pDescriptorPool);
+    return ::vkCreateDescriptorPool(reinterpret_cast<VkDevice>(device), pCreateInfo, pAllocator,
+                                    pDescriptorPool);
 }
 
 /**
@@ -2133,7 +2199,8 @@ inline void DestroyDescriptorPool(VkDevice device,
 inline void DestroyDescriptorPool(long long device,
                                   long long descriptorPool,
                                   const VkAllocationCallbacks* pAllocator) {
-    ::vkDestroyDescriptorPool((VkDevice)(device), (VkDescriptorPool)(descriptorPool), pAllocator);
+    ::vkDestroyDescriptorPool(reinterpret_cast<VkDevice>(device),
+                              reinterpret_cast<VkDescriptorPool>(descriptorPool), pAllocator);
 }
 
 /**
@@ -2152,8 +2219,9 @@ inline VkResult ResetDescriptorPool(VkDevice device,
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline VkResult ResetDescriptorPool(long long device, long long descriptorPool, long long flags) {
-    return ::vkResetDescriptorPool((VkDevice)(device), (VkDescriptorPool)(descriptorPool),
-                                   (VkDescriptorPoolResetFlags)(flags));
+    return ::vkResetDescriptorPool(reinterpret_cast<VkDevice>(device),
+                                   reinterpret_cast<VkDescriptorPool>(descriptorPool),
+                                   static_cast<VkDescriptorPoolResetFlags>(flags));
 }
 
 /**
@@ -2175,7 +2243,8 @@ inline VkResult AllocateDescriptorSets(VkDevice device,
 inline VkResult AllocateDescriptorSets(long long device,
                                        const VkDescriptorSetAllocateInfo* pAllocateInfo,
                                        VkDescriptorSet* pDescriptorSets) {
-    return ::vkAllocateDescriptorSets((VkDevice)(device), pAllocateInfo, pDescriptorSets);
+    return ::vkAllocateDescriptorSets(reinterpret_cast<VkDevice>(device), pAllocateInfo,
+                                      pDescriptorSets);
 }
 
 /**
@@ -2198,8 +2267,9 @@ inline VkResult FreeDescriptorSets(long long device,
                                    long long descriptorPool,
                                    long long descriptorSetCount,
                                    const VkDescriptorSet* pDescriptorSets) {
-    return ::vkFreeDescriptorSets((VkDevice)(device), (VkDescriptorPool)(descriptorPool),
-                                  (uint32_t)(descriptorSetCount), pDescriptorSets);
+    return ::vkFreeDescriptorSets(reinterpret_cast<VkDevice>(device),
+                                  reinterpret_cast<VkDescriptorPool>(descriptorPool),
+                                  static_cast<uint32_t>(descriptorSetCount), pDescriptorSets);
 }
 
 /**
@@ -2225,8 +2295,9 @@ inline void UpdateDescriptorSets(long long device,
                                  const VkWriteDescriptorSet* pDescriptorWrites,
                                  long long descriptorCopyCount,
                                  const VkCopyDescriptorSet* pDescriptorCopies) {
-    ::vkUpdateDescriptorSets((VkDevice)(device), (uint32_t)(descriptorWriteCount),
-                             pDescriptorWrites, (uint32_t)(descriptorCopyCount), pDescriptorCopies);
+    ::vkUpdateDescriptorSets(reinterpret_cast<VkDevice>(device),
+                             static_cast<uint32_t>(descriptorWriteCount), pDescriptorWrites,
+                             static_cast<uint32_t>(descriptorCopyCount), pDescriptorCopies);
 }
 
 /**
@@ -2246,8 +2317,9 @@ inline void CmdBindPipeline(VkCommandBuffer commandBuffer,
  */
 inline void
 CmdBindPipeline(long long commandBuffer, long long pipelineBindPoint, long long pipeline) {
-    ::vkCmdBindPipeline((VkCommandBuffer)(commandBuffer), (VkPipelineBindPoint)(pipelineBindPoint),
-                        (VkPipeline)(pipeline));
+    ::vkCmdBindPipeline(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                        static_cast<VkPipelineBindPoint>(pipelineBindPoint),
+                        reinterpret_cast<VkPipeline>(pipeline));
 }
 
 /**
@@ -2280,10 +2352,12 @@ inline void CmdBindDescriptorSets(long long commandBuffer,
                                   const VkDescriptorSet* pDescriptorSets,
                                   long long dynamicOffsetCount,
                                   const uint32_t* pDynamicOffsets) {
-    ::vkCmdBindDescriptorSets((VkCommandBuffer)(commandBuffer),
-                              (VkPipelineBindPoint)(pipelineBindPoint), (VkPipelineLayout)(layout),
-                              (uint32_t)(firstSet), (uint32_t)(descriptorSetCount), pDescriptorSets,
-                              (uint32_t)(dynamicOffsetCount), pDynamicOffsets);
+    ::vkCmdBindDescriptorSets(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                              static_cast<VkPipelineBindPoint>(pipelineBindPoint),
+                              reinterpret_cast<VkPipelineLayout>(layout),
+                              static_cast<uint32_t>(firstSet),
+                              static_cast<uint32_t>(descriptorSetCount), pDescriptorSets,
+                              static_cast<uint32_t>(dynamicOffsetCount), pDynamicOffsets);
 }
 
 /**
@@ -2310,8 +2384,10 @@ inline void CmdClearColorImage(long long commandBuffer,
                                const VkClearColorValue* pColor,
                                long long rangeCount,
                                const VkImageSubresourceRange* pRanges) {
-    ::vkCmdClearColorImage((VkCommandBuffer)(commandBuffer), (VkImage)(image),
-                           (VkImageLayout)(imageLayout), pColor, (uint32_t)(rangeCount), pRanges);
+    ::vkCmdClearColorImage(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                           reinterpret_cast<VkImage>(image),
+                           static_cast<VkImageLayout>(imageLayout), pColor,
+                           static_cast<uint32_t>(rangeCount), pRanges);
 }
 
 /**
@@ -2334,8 +2410,9 @@ inline void CmdDispatch(long long commandBuffer,
                         long long groupCountX,
                         long long groupCountY,
                         long long groupCountZ) {
-    ::vkCmdDispatch((VkCommandBuffer)(commandBuffer), (uint32_t)(groupCountX),
-                    (uint32_t)(groupCountY), (uint32_t)(groupCountZ));
+    ::vkCmdDispatch(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                    static_cast<uint32_t>(groupCountX), static_cast<uint32_t>(groupCountY),
+                    static_cast<uint32_t>(groupCountZ));
 }
 
 /**
@@ -2353,8 +2430,8 @@ CmdDispatchIndirect(VkCommandBuffer commandBuffer, VkBuffer buffer, VkDeviceSize
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdDispatchIndirect(long long commandBuffer, long long buffer, long long offset) {
-    ::vkCmdDispatchIndirect((VkCommandBuffer)(commandBuffer), (VkBuffer)(buffer),
-                            (VkDeviceSize)(offset));
+    ::vkCmdDispatchIndirect(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                            reinterpret_cast<VkBuffer>(buffer), static_cast<VkDeviceSize>(offset));
 }
 
 /**
@@ -2372,8 +2449,8 @@ CmdSetEvent(VkCommandBuffer commandBuffer, VkEvent event, VkPipelineStageFlags s
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdSetEvent(long long commandBuffer, long long event, long long stageMask) {
-    ::vkCmdSetEvent((VkCommandBuffer)(commandBuffer), (VkEvent)(event),
-                    (VkPipelineStageFlags)(stageMask));
+    ::vkCmdSetEvent(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                    reinterpret_cast<VkEvent>(event), static_cast<VkPipelineStageFlags>(stageMask));
 }
 
 /**
@@ -2391,8 +2468,9 @@ CmdResetEvent(VkCommandBuffer commandBuffer, VkEvent event, VkPipelineStageFlags
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdResetEvent(long long commandBuffer, long long event, long long stageMask) {
-    ::vkCmdResetEvent((VkCommandBuffer)(commandBuffer), (VkEvent)(event),
-                      (VkPipelineStageFlags)(stageMask));
+    ::vkCmdResetEvent(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                      reinterpret_cast<VkEvent>(event),
+                      static_cast<VkPipelineStageFlags>(stageMask));
 }
 
 /**
@@ -2431,11 +2509,12 @@ inline void CmdWaitEvents(long long commandBuffer,
                           const VkBufferMemoryBarrier* pBufferMemoryBarriers,
                           long long imageMemoryBarrierCount,
                           const VkImageMemoryBarrier* pImageMemoryBarriers) {
-    ::vkCmdWaitEvents((VkCommandBuffer)(commandBuffer), (uint32_t)(eventCount), pEvents,
-                      (VkPipelineStageFlags)(srcStageMask), (VkPipelineStageFlags)(dstStageMask),
-                      (uint32_t)(memoryBarrierCount), pMemoryBarriers,
-                      (uint32_t)(bufferMemoryBarrierCount), pBufferMemoryBarriers,
-                      (uint32_t)(imageMemoryBarrierCount), pImageMemoryBarriers);
+    ::vkCmdWaitEvents(
+        reinterpret_cast<VkCommandBuffer>(commandBuffer), static_cast<uint32_t>(eventCount),
+        pEvents, static_cast<VkPipelineStageFlags>(srcStageMask),
+        static_cast<VkPipelineStageFlags>(dstStageMask), static_cast<uint32_t>(memoryBarrierCount),
+        pMemoryBarriers, static_cast<uint32_t>(bufferMemoryBarrierCount), pBufferMemoryBarriers,
+        static_cast<uint32_t>(imageMemoryBarrierCount), pImageMemoryBarriers);
 }
 
 /**
@@ -2462,9 +2541,10 @@ inline void CmdPushConstants(long long commandBuffer,
                              long long offset,
                              long long size,
                              const void* pValues) {
-    ::vkCmdPushConstants((VkCommandBuffer)(commandBuffer), (VkPipelineLayout)(layout),
-                         (VkShaderStageFlags)(stageFlags), (uint32_t)(offset), (uint32_t)(size),
-                         pValues);
+    ::vkCmdPushConstants(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                         reinterpret_cast<VkPipelineLayout>(layout),
+                         static_cast<VkShaderStageFlags>(stageFlags), static_cast<uint32_t>(offset),
+                         static_cast<uint32_t>(size), pValues);
 }
 
 /**
@@ -2492,9 +2572,9 @@ inline VkResult CreateGraphicsPipelines(long long device,
                                         const VkGraphicsPipelineCreateInfo* pCreateInfos,
                                         const VkAllocationCallbacks* pAllocator,
                                         VkPipeline* pPipelines) {
-    return ::vkCreateGraphicsPipelines((VkDevice)(device), (VkPipelineCache)(pipelineCache),
-                                       (uint32_t)(createInfoCount), pCreateInfos, pAllocator,
-                                       pPipelines);
+    return ::vkCreateGraphicsPipelines(
+        reinterpret_cast<VkDevice>(device), reinterpret_cast<VkPipelineCache>(pipelineCache),
+        static_cast<uint32_t>(createInfoCount), pCreateInfos, pAllocator, pPipelines);
 }
 
 /**
@@ -2518,7 +2598,8 @@ inline VkResult CreateFramebuffer(long long device,
                                   const VkFramebufferCreateInfo* pCreateInfo,
                                   const VkAllocationCallbacks* pAllocator,
                                   VkFramebuffer* pFramebuffer) {
-    return ::vkCreateFramebuffer((VkDevice)(device), pCreateInfo, pAllocator, pFramebuffer);
+    return ::vkCreateFramebuffer(reinterpret_cast<VkDevice>(device), pCreateInfo, pAllocator,
+                                 pFramebuffer);
 }
 
 /**
@@ -2539,7 +2620,8 @@ inline void DestroyFramebuffer(VkDevice device,
 inline void DestroyFramebuffer(long long device,
                                long long framebuffer,
                                const VkAllocationCallbacks* pAllocator) {
-    ::vkDestroyFramebuffer((VkDevice)(device), (VkFramebuffer)(framebuffer), pAllocator);
+    ::vkDestroyFramebuffer(reinterpret_cast<VkDevice>(device),
+                           reinterpret_cast<VkFramebuffer>(framebuffer), pAllocator);
 }
 
 /**
@@ -2563,7 +2645,8 @@ inline VkResult CreateRenderPass(long long device,
                                  const VkRenderPassCreateInfo* pCreateInfo,
                                  const VkAllocationCallbacks* pAllocator,
                                  VkRenderPass* pRenderPass) {
-    return ::vkCreateRenderPass((VkDevice)(device), pCreateInfo, pAllocator, pRenderPass);
+    return ::vkCreateRenderPass(reinterpret_cast<VkDevice>(device), pCreateInfo, pAllocator,
+                                pRenderPass);
 }
 
 /**
@@ -2583,7 +2666,8 @@ inline void DestroyRenderPass(VkDevice device,
  */
 inline void
 DestroyRenderPass(long long device, long long renderPass, const VkAllocationCallbacks* pAllocator) {
-    ::vkDestroyRenderPass((VkDevice)(device), (VkRenderPass)(renderPass), pAllocator);
+    ::vkDestroyRenderPass(reinterpret_cast<VkDevice>(device),
+                          reinterpret_cast<VkRenderPass>(renderPass), pAllocator);
 }
 
 /**
@@ -2602,7 +2686,8 @@ GetRenderAreaGranularity(VkDevice device, VkRenderPass renderPass, VkExtent2D* p
  */
 inline void
 GetRenderAreaGranularity(long long device, long long renderPass, VkExtent2D* pGranularity) {
-    ::vkGetRenderAreaGranularity((VkDevice)(device), (VkRenderPass)(renderPass), pGranularity);
+    ::vkGetRenderAreaGranularity(reinterpret_cast<VkDevice>(device),
+                                 reinterpret_cast<VkRenderPass>(renderPass), pGranularity);
 }
 
 /**
@@ -2625,8 +2710,9 @@ inline void CmdSetViewport(long long commandBuffer,
                            long long firstViewport,
                            long long viewportCount,
                            const VkViewport* pViewports) {
-    ::vkCmdSetViewport((VkCommandBuffer)(commandBuffer), (uint32_t)(firstViewport),
-                       (uint32_t)(viewportCount), pViewports);
+    ::vkCmdSetViewport(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                       static_cast<uint32_t>(firstViewport), static_cast<uint32_t>(viewportCount),
+                       pViewports);
 }
 
 /**
@@ -2649,8 +2735,9 @@ inline void CmdSetScissor(long long commandBuffer,
                           long long firstScissor,
                           long long scissorCount,
                           const VkRect2D* pScissors) {
-    ::vkCmdSetScissor((VkCommandBuffer)(commandBuffer), (uint32_t)(firstScissor),
-                      (uint32_t)(scissorCount), pScissors);
+    ::vkCmdSetScissor(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                      static_cast<uint32_t>(firstScissor), static_cast<uint32_t>(scissorCount),
+                      pScissors);
 }
 
 /**
@@ -2667,7 +2754,8 @@ inline void CmdSetLineWidth(VkCommandBuffer commandBuffer, float lineWidth) {
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdSetLineWidth(long long commandBuffer, double lineWidth) {
-    ::vkCmdSetLineWidth((VkCommandBuffer)(commandBuffer), (float)(lineWidth));
+    ::vkCmdSetLineWidth(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                        static_cast<float>(lineWidth));
 }
 
 /**
@@ -2691,8 +2779,10 @@ inline void CmdSetDepthBias(long long commandBuffer,
                             double depthBiasConstantFactor,
                             double depthBiasClamp,
                             double depthBiasSlopeFactor) {
-    ::vkCmdSetDepthBias((VkCommandBuffer)(commandBuffer), (float)(depthBiasConstantFactor),
-                        (float)(depthBiasClamp), (float)(depthBiasSlopeFactor));
+    ::vkCmdSetDepthBias(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                        static_cast<float>(depthBiasConstantFactor),
+                        static_cast<float>(depthBiasClamp),
+                        static_cast<float>(depthBiasSlopeFactor));
 }
 
 /**
@@ -2709,7 +2799,7 @@ inline void CmdSetBlendConstants(VkCommandBuffer commandBuffer, const float blen
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdSetBlendConstants(long long commandBuffer, const float blendConstants[4]) {
-    ::vkCmdSetBlendConstants((VkCommandBuffer)(commandBuffer), blendConstants);
+    ::vkCmdSetBlendConstants(reinterpret_cast<VkCommandBuffer>(commandBuffer), blendConstants);
 }
 
 /**
@@ -2728,8 +2818,8 @@ CmdSetDepthBounds(VkCommandBuffer commandBuffer, float minDepthBounds, float max
  */
 inline void
 CmdSetDepthBounds(long long commandBuffer, double minDepthBounds, double maxDepthBounds) {
-    ::vkCmdSetDepthBounds((VkCommandBuffer)(commandBuffer), (float)(minDepthBounds),
-                          (float)(maxDepthBounds));
+    ::vkCmdSetDepthBounds(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                          static_cast<float>(minDepthBounds), static_cast<float>(maxDepthBounds));
 }
 
 /**
@@ -2749,8 +2839,9 @@ inline void CmdSetStencilCompareMask(VkCommandBuffer commandBuffer,
  */
 inline void
 CmdSetStencilCompareMask(long long commandBuffer, long long faceMask, long long compareMask) {
-    ::vkCmdSetStencilCompareMask((VkCommandBuffer)(commandBuffer), (VkStencilFaceFlags)(faceMask),
-                                 (uint32_t)(compareMask));
+    ::vkCmdSetStencilCompareMask(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                                 static_cast<VkStencilFaceFlags>(faceMask),
+                                 static_cast<uint32_t>(compareMask));
 }
 
 /**
@@ -2770,8 +2861,9 @@ inline void CmdSetStencilWriteMask(VkCommandBuffer commandBuffer,
  */
 inline void
 CmdSetStencilWriteMask(long long commandBuffer, long long faceMask, long long writeMask) {
-    ::vkCmdSetStencilWriteMask((VkCommandBuffer)(commandBuffer), (VkStencilFaceFlags)(faceMask),
-                               (uint32_t)(writeMask));
+    ::vkCmdSetStencilWriteMask(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                               static_cast<VkStencilFaceFlags>(faceMask),
+                               static_cast<uint32_t>(writeMask));
 }
 
 /**
@@ -2791,8 +2883,9 @@ inline void CmdSetStencilReference(VkCommandBuffer commandBuffer,
  */
 inline void
 CmdSetStencilReference(long long commandBuffer, long long faceMask, long long reference) {
-    ::vkCmdSetStencilReference((VkCommandBuffer)(commandBuffer), (VkStencilFaceFlags)(faceMask),
-                               (uint32_t)(reference));
+    ::vkCmdSetStencilReference(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                               static_cast<VkStencilFaceFlags>(faceMask),
+                               static_cast<uint32_t>(reference));
 }
 
 /**
@@ -2815,8 +2908,9 @@ inline void CmdBindIndexBuffer(long long commandBuffer,
                                long long buffer,
                                long long offset,
                                long long indexType) {
-    ::vkCmdBindIndexBuffer((VkCommandBuffer)(commandBuffer), (VkBuffer)(buffer),
-                           (VkDeviceSize)(offset), (VkIndexType)(indexType));
+    ::vkCmdBindIndexBuffer(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                           reinterpret_cast<VkBuffer>(buffer), static_cast<VkDeviceSize>(offset),
+                           static_cast<VkIndexType>(indexType));
 }
 
 /**
@@ -2841,8 +2935,9 @@ inline void CmdBindVertexBuffers(long long commandBuffer,
                                  long long bindingCount,
                                  const VkBuffer* pBuffers,
                                  const VkDeviceSize* pOffsets) {
-    ::vkCmdBindVertexBuffers((VkCommandBuffer)(commandBuffer), (uint32_t)(firstBinding),
-                             (uint32_t)(bindingCount), pBuffers, pOffsets);
+    ::vkCmdBindVertexBuffers(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                             static_cast<uint32_t>(firstBinding),
+                             static_cast<uint32_t>(bindingCount), pBuffers, pOffsets);
 }
 
 /**
@@ -2867,8 +2962,9 @@ inline void CmdDraw(long long commandBuffer,
                     long long instanceCount,
                     long long firstVertex,
                     long long firstInstance) {
-    ::vkCmdDraw((VkCommandBuffer)(commandBuffer), (uint32_t)(vertexCount),
-                (uint32_t)(instanceCount), (uint32_t)(firstVertex), (uint32_t)(firstInstance));
+    ::vkCmdDraw(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                static_cast<uint32_t>(vertexCount), static_cast<uint32_t>(instanceCount),
+                static_cast<uint32_t>(firstVertex), static_cast<uint32_t>(firstInstance));
 }
 
 /**
@@ -2896,9 +2992,10 @@ inline void CmdDrawIndexed(long long commandBuffer,
                            long long firstIndex,
                            long long vertexOffset,
                            long long firstInstance) {
-    ::vkCmdDrawIndexed((VkCommandBuffer)(commandBuffer), (uint32_t)(indexCount),
-                       (uint32_t)(instanceCount), (uint32_t)(firstIndex), (int32_t)(vertexOffset),
-                       (uint32_t)(firstInstance));
+    ::vkCmdDrawIndexed(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                       static_cast<uint32_t>(indexCount), static_cast<uint32_t>(instanceCount),
+                       static_cast<uint32_t>(firstIndex), static_cast<int32_t>(vertexOffset),
+                       static_cast<uint32_t>(firstInstance));
 }
 
 /**
@@ -2923,8 +3020,9 @@ inline void CmdDrawIndirect(long long commandBuffer,
                             long long offset,
                             long long drawCount,
                             long long stride) {
-    ::vkCmdDrawIndirect((VkCommandBuffer)(commandBuffer), (VkBuffer)(buffer),
-                        (VkDeviceSize)(offset), (uint32_t)(drawCount), (uint32_t)(stride));
+    ::vkCmdDrawIndirect(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                        reinterpret_cast<VkBuffer>(buffer), static_cast<VkDeviceSize>(offset),
+                        static_cast<uint32_t>(drawCount), static_cast<uint32_t>(stride));
 }
 
 /**
@@ -2949,8 +3047,10 @@ inline void CmdDrawIndexedIndirect(long long commandBuffer,
                                    long long offset,
                                    long long drawCount,
                                    long long stride) {
-    ::vkCmdDrawIndexedIndirect((VkCommandBuffer)(commandBuffer), (VkBuffer)(buffer),
-                               (VkDeviceSize)(offset), (uint32_t)(drawCount), (uint32_t)(stride));
+    ::vkCmdDrawIndexedIndirect(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                               reinterpret_cast<VkBuffer>(buffer),
+                               static_cast<VkDeviceSize>(offset), static_cast<uint32_t>(drawCount),
+                               static_cast<uint32_t>(stride));
 }
 
 /**
@@ -2982,10 +3082,11 @@ inline void CmdBlitImage(long long commandBuffer,
                          long long regionCount,
                          const VkImageBlit* pRegions,
                          long long filter) {
-    ::vkCmdBlitImage((VkCommandBuffer)(commandBuffer), (VkImage)(srcImage),
-                     (VkImageLayout)(srcImageLayout), (VkImage)(dstImage),
-                     (VkImageLayout)(dstImageLayout), (uint32_t)(regionCount), pRegions,
-                     (VkFilter)(filter));
+    ::vkCmdBlitImage(
+        reinterpret_cast<VkCommandBuffer>(commandBuffer), reinterpret_cast<VkImage>(srcImage),
+        static_cast<VkImageLayout>(srcImageLayout), reinterpret_cast<VkImage>(dstImage),
+        static_cast<VkImageLayout>(dstImageLayout), static_cast<uint32_t>(regionCount), pRegions,
+        static_cast<VkFilter>(filter));
 }
 
 /**
@@ -3013,9 +3114,10 @@ inline void CmdClearDepthStencilImage(long long commandBuffer,
                                       const VkClearDepthStencilValue* pDepthStencil,
                                       long long rangeCount,
                                       const VkImageSubresourceRange* pRanges) {
-    ::vkCmdClearDepthStencilImage((VkCommandBuffer)(commandBuffer), (VkImage)(image),
-                                  (VkImageLayout)(imageLayout), pDepthStencil,
-                                  (uint32_t)(rangeCount), pRanges);
+    ::vkCmdClearDepthStencilImage(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                                  reinterpret_cast<VkImage>(image),
+                                  static_cast<VkImageLayout>(imageLayout), pDepthStencil,
+                                  static_cast<uint32_t>(rangeCount), pRanges);
 }
 
 /**
@@ -3040,8 +3142,9 @@ inline void CmdClearAttachments(long long commandBuffer,
                                 const VkClearAttachment* pAttachments,
                                 long long rectCount,
                                 const VkClearRect* pRects) {
-    ::vkCmdClearAttachments((VkCommandBuffer)(commandBuffer), (uint32_t)(attachmentCount),
-                            pAttachments, (uint32_t)(rectCount), pRects);
+    ::vkCmdClearAttachments(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                            static_cast<uint32_t>(attachmentCount), pAttachments,
+                            static_cast<uint32_t>(rectCount), pRects);
 }
 
 /**
@@ -3071,9 +3174,10 @@ inline void CmdResolveImage(long long commandBuffer,
                             long long dstImageLayout,
                             long long regionCount,
                             const VkImageResolve* pRegions) {
-    ::vkCmdResolveImage((VkCommandBuffer)(commandBuffer), (VkImage)(srcImage),
-                        (VkImageLayout)(srcImageLayout), (VkImage)(dstImage),
-                        (VkImageLayout)(dstImageLayout), (uint32_t)(regionCount), pRegions);
+    ::vkCmdResolveImage(
+        reinterpret_cast<VkCommandBuffer>(commandBuffer), reinterpret_cast<VkImage>(srcImage),
+        static_cast<VkImageLayout>(srcImageLayout), reinterpret_cast<VkImage>(dstImage),
+        static_cast<VkImageLayout>(dstImageLayout), static_cast<uint32_t>(regionCount), pRegions);
 }
 
 /**
@@ -3094,8 +3198,8 @@ inline void CmdBeginRenderPass(VkCommandBuffer commandBuffer,
 inline void CmdBeginRenderPass(long long commandBuffer,
                                const VkRenderPassBeginInfo* pRenderPassBegin,
                                long long contents) {
-    ::vkCmdBeginRenderPass((VkCommandBuffer)(commandBuffer), pRenderPassBegin,
-                           (VkSubpassContents)(contents));
+    ::vkCmdBeginRenderPass(reinterpret_cast<VkCommandBuffer>(commandBuffer), pRenderPassBegin,
+                           static_cast<VkSubpassContents>(contents));
 }
 
 /**
@@ -3112,7 +3216,8 @@ inline void CmdNextSubpass(VkCommandBuffer commandBuffer, VkSubpassContents cont
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdNextSubpass(long long commandBuffer, long long contents) {
-    ::vkCmdNextSubpass((VkCommandBuffer)(commandBuffer), (VkSubpassContents)(contents));
+    ::vkCmdNextSubpass(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                       static_cast<VkSubpassContents>(contents));
 }
 
 /**
@@ -3127,7 +3232,7 @@ inline void CmdEndRenderPass(VkCommandBuffer commandBuffer) { ::vkCmdEndRenderPa
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdEndRenderPass(long long commandBuffer) {
-    ::vkCmdEndRenderPass((VkCommandBuffer)(commandBuffer));
+    ::vkCmdEndRenderPass(reinterpret_cast<VkCommandBuffer>(commandBuffer));
 }
 
 #endif // VK_VERSION_1_0
@@ -3161,7 +3266,8 @@ inline VkResult BindBufferMemory2(VkDevice device,
 inline VkResult BindBufferMemory2(long long device,
                                   long long bindInfoCount,
                                   const VkBindBufferMemoryInfo* pBindInfos) {
-    return ::vkBindBufferMemory2((VkDevice)(device), (uint32_t)(bindInfoCount), pBindInfos);
+    return ::vkBindBufferMemory2(reinterpret_cast<VkDevice>(device),
+                                 static_cast<uint32_t>(bindInfoCount), pBindInfos);
 }
 
 /**
@@ -3181,7 +3287,8 @@ BindImageMemory2(VkDevice device, uint32_t bindInfoCount, const VkBindImageMemor
 inline VkResult BindImageMemory2(long long device,
                                  long long bindInfoCount,
                                  const VkBindImageMemoryInfo* pBindInfos) {
-    return ::vkBindImageMemory2((VkDevice)(device), (uint32_t)(bindInfoCount), pBindInfos);
+    return ::vkBindImageMemory2(reinterpret_cast<VkDevice>(device),
+                                static_cast<uint32_t>(bindInfoCount), pBindInfos);
 }
 
 /**
@@ -3207,9 +3314,10 @@ inline void GetDeviceGroupPeerMemoryFeatures(long long device,
                                              long long localDeviceIndex,
                                              long long remoteDeviceIndex,
                                              VkPeerMemoryFeatureFlags* pPeerMemoryFeatures) {
-    ::vkGetDeviceGroupPeerMemoryFeatures((VkDevice)(device), (uint32_t)(heapIndex),
-                                         (uint32_t)(localDeviceIndex),
-                                         (uint32_t)(remoteDeviceIndex), pPeerMemoryFeatures);
+    ::vkGetDeviceGroupPeerMemoryFeatures(
+        reinterpret_cast<VkDevice>(device), static_cast<uint32_t>(heapIndex),
+        static_cast<uint32_t>(localDeviceIndex), static_cast<uint32_t>(remoteDeviceIndex),
+        pPeerMemoryFeatures);
 }
 
 /**
@@ -3226,7 +3334,8 @@ inline void CmdSetDeviceMask(VkCommandBuffer commandBuffer, uint32_t deviceMask)
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdSetDeviceMask(long long commandBuffer, long long deviceMask) {
-    ::vkCmdSetDeviceMask((VkCommandBuffer)(commandBuffer), (uint32_t)(deviceMask));
+    ::vkCmdSetDeviceMask(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                         static_cast<uint32_t>(deviceMask));
 }
 
 /**
@@ -3250,7 +3359,8 @@ inline VkResult
 EnumeratePhysicalDeviceGroups(long long instance,
                               uint32_t* pPhysicalDeviceGroupCount,
                               VkPhysicalDeviceGroupProperties* pPhysicalDeviceGroupProperties) {
-    return ::vkEnumeratePhysicalDeviceGroups((VkInstance)(instance), pPhysicalDeviceGroupCount,
+    return ::vkEnumeratePhysicalDeviceGroups(reinterpret_cast<VkInstance>(instance),
+                                             pPhysicalDeviceGroupCount,
                                              pPhysicalDeviceGroupProperties);
 }
 
@@ -3272,7 +3382,7 @@ inline void GetImageMemoryRequirements2(VkDevice device,
 inline void GetImageMemoryRequirements2(long long device,
                                         const VkImageMemoryRequirementsInfo2* pInfo,
                                         VkMemoryRequirements2* pMemoryRequirements) {
-    ::vkGetImageMemoryRequirements2((VkDevice)(device), pInfo, pMemoryRequirements);
+    ::vkGetImageMemoryRequirements2(reinterpret_cast<VkDevice>(device), pInfo, pMemoryRequirements);
 }
 
 /**
@@ -3293,7 +3403,8 @@ inline void GetBufferMemoryRequirements2(VkDevice device,
 inline void GetBufferMemoryRequirements2(long long device,
                                          const VkBufferMemoryRequirementsInfo2* pInfo,
                                          VkMemoryRequirements2* pMemoryRequirements) {
-    ::vkGetBufferMemoryRequirements2((VkDevice)(device), pInfo, pMemoryRequirements);
+    ::vkGetBufferMemoryRequirements2(reinterpret_cast<VkDevice>(device), pInfo,
+                                     pMemoryRequirements);
 }
 
 /**
@@ -3319,8 +3430,8 @@ GetImageSparseMemoryRequirements2(long long device,
                                   const VkImageSparseMemoryRequirementsInfo2* pInfo,
                                   uint32_t* pSparseMemoryRequirementCount,
                                   VkSparseImageMemoryRequirements2* pSparseMemoryRequirements) {
-    ::vkGetImageSparseMemoryRequirements2((VkDevice)(device), pInfo, pSparseMemoryRequirementCount,
-                                          pSparseMemoryRequirements);
+    ::vkGetImageSparseMemoryRequirements2(reinterpret_cast<VkDevice>(device), pInfo,
+                                          pSparseMemoryRequirementCount, pSparseMemoryRequirements);
 }
 
 /**
@@ -3339,7 +3450,7 @@ inline void GetPhysicalDeviceFeatures2(VkPhysicalDevice physicalDevice,
  */
 inline void GetPhysicalDeviceFeatures2(long long physicalDevice,
                                        VkPhysicalDeviceFeatures2* pFeatures) {
-    ::vkGetPhysicalDeviceFeatures2((VkPhysicalDevice)(physicalDevice), pFeatures);
+    ::vkGetPhysicalDeviceFeatures2(reinterpret_cast<VkPhysicalDevice>(physicalDevice), pFeatures);
 }
 
 /**
@@ -3358,7 +3469,8 @@ inline void GetPhysicalDeviceProperties2(VkPhysicalDevice physicalDevice,
  */
 inline void GetPhysicalDeviceProperties2(long long physicalDevice,
                                          VkPhysicalDeviceProperties2* pProperties) {
-    ::vkGetPhysicalDeviceProperties2((VkPhysicalDevice)(physicalDevice), pProperties);
+    ::vkGetPhysicalDeviceProperties2(reinterpret_cast<VkPhysicalDevice>(physicalDevice),
+                                     pProperties);
 }
 
 /**
@@ -3379,8 +3491,8 @@ inline void GetPhysicalDeviceFormatProperties2(VkPhysicalDevice physicalDevice,
 inline void GetPhysicalDeviceFormatProperties2(long long physicalDevice,
                                                long long format,
                                                VkFormatProperties2* pFormatProperties) {
-    ::vkGetPhysicalDeviceFormatProperties2((VkPhysicalDevice)(physicalDevice), (VkFormat)(format),
-                                           pFormatProperties);
+    ::vkGetPhysicalDeviceFormatProperties2(reinterpret_cast<VkPhysicalDevice>(physicalDevice),
+                                           static_cast<VkFormat>(format), pFormatProperties);
 }
 
 /**
@@ -3404,8 +3516,9 @@ inline VkResult
 GetPhysicalDeviceImageFormatProperties2(long long physicalDevice,
                                         const VkPhysicalDeviceImageFormatInfo2* pImageFormatInfo,
                                         VkImageFormatProperties2* pImageFormatProperties) {
-    return ::vkGetPhysicalDeviceImageFormatProperties2((VkPhysicalDevice)(physicalDevice),
-                                                       pImageFormatInfo, pImageFormatProperties);
+    return ::vkGetPhysicalDeviceImageFormatProperties2(
+        reinterpret_cast<VkPhysicalDevice>(physicalDevice), pImageFormatInfo,
+        pImageFormatProperties);
 }
 
 /**
@@ -3429,7 +3542,7 @@ inline void
 GetPhysicalDeviceQueueFamilyProperties2(long long physicalDevice,
                                         uint32_t* pQueueFamilyPropertyCount,
                                         VkQueueFamilyProperties2* pQueueFamilyProperties) {
-    ::vkGetPhysicalDeviceQueueFamilyProperties2((VkPhysicalDevice)(physicalDevice),
+    ::vkGetPhysicalDeviceQueueFamilyProperties2(reinterpret_cast<VkPhysicalDevice>(physicalDevice),
                                                 pQueueFamilyPropertyCount, pQueueFamilyProperties);
 }
 
@@ -3451,7 +3564,8 @@ GetPhysicalDeviceMemoryProperties2(VkPhysicalDevice physicalDevice,
 inline void
 GetPhysicalDeviceMemoryProperties2(long long physicalDevice,
                                    VkPhysicalDeviceMemoryProperties2* pMemoryProperties) {
-    ::vkGetPhysicalDeviceMemoryProperties2((VkPhysicalDevice)(physicalDevice), pMemoryProperties);
+    ::vkGetPhysicalDeviceMemoryProperties2(reinterpret_cast<VkPhysicalDevice>(physicalDevice),
+                                           pMemoryProperties);
 }
 
 /**
@@ -3478,8 +3592,9 @@ inline void GetPhysicalDeviceSparseImageFormatProperties2(
     const VkPhysicalDeviceSparseImageFormatInfo2* pFormatInfo,
     uint32_t* pPropertyCount,
     VkSparseImageFormatProperties2* pProperties) {
-    ::vkGetPhysicalDeviceSparseImageFormatProperties2((VkPhysicalDevice)(physicalDevice),
-                                                      pFormatInfo, pPropertyCount, pProperties);
+    ::vkGetPhysicalDeviceSparseImageFormatProperties2(
+        reinterpret_cast<VkPhysicalDevice>(physicalDevice), pFormatInfo, pPropertyCount,
+        pProperties);
 }
 
 /**
@@ -3497,8 +3612,9 @@ TrimCommandPool(VkDevice device, VkCommandPool commandPool, VkCommandPoolTrimFla
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void TrimCommandPool(long long device, long long commandPool, long long flags) {
-    ::vkTrimCommandPool((VkDevice)(device), (VkCommandPool)(commandPool),
-                        (VkCommandPoolTrimFlags)(flags));
+    ::vkTrimCommandPool(reinterpret_cast<VkDevice>(device),
+                        reinterpret_cast<VkCommandPool>(commandPool),
+                        static_cast<VkCommandPoolTrimFlags>(flags));
 }
 
 /**
@@ -3517,7 +3633,7 @@ GetDeviceQueue2(VkDevice device, const VkDeviceQueueInfo2* pQueueInfo, VkQueue* 
  */
 inline void
 GetDeviceQueue2(long long device, const VkDeviceQueueInfo2* pQueueInfo, VkQueue* pQueue) {
-    ::vkGetDeviceQueue2((VkDevice)(device), pQueueInfo, pQueue);
+    ::vkGetDeviceQueue2(reinterpret_cast<VkDevice>(device), pQueueInfo, pQueue);
 }
 
 /**
@@ -3541,8 +3657,9 @@ inline void GetPhysicalDeviceExternalBufferProperties(
     long long physicalDevice,
     const VkPhysicalDeviceExternalBufferInfo* pExternalBufferInfo,
     VkExternalBufferProperties* pExternalBufferProperties) {
-    ::vkGetPhysicalDeviceExternalBufferProperties((VkPhysicalDevice)(physicalDevice),
-                                                  pExternalBufferInfo, pExternalBufferProperties);
+    ::vkGetPhysicalDeviceExternalBufferProperties(
+        reinterpret_cast<VkPhysicalDevice>(physicalDevice), pExternalBufferInfo,
+        pExternalBufferProperties);
 }
 
 /**
@@ -3566,7 +3683,7 @@ inline void GetPhysicalDeviceExternalFenceProperties(
     long long physicalDevice,
     const VkPhysicalDeviceExternalFenceInfo* pExternalFenceInfo,
     VkExternalFenceProperties* pExternalFenceProperties) {
-    ::vkGetPhysicalDeviceExternalFenceProperties((VkPhysicalDevice)(physicalDevice),
+    ::vkGetPhysicalDeviceExternalFenceProperties(reinterpret_cast<VkPhysicalDevice>(physicalDevice),
                                                  pExternalFenceInfo, pExternalFenceProperties);
 }
 
@@ -3593,7 +3710,8 @@ inline void GetPhysicalDeviceExternalSemaphoreProperties(
     const VkPhysicalDeviceExternalSemaphoreInfo* pExternalSemaphoreInfo,
     VkExternalSemaphoreProperties* pExternalSemaphoreProperties) {
     ::vkGetPhysicalDeviceExternalSemaphoreProperties(
-        (VkPhysicalDevice)(physicalDevice), pExternalSemaphoreInfo, pExternalSemaphoreProperties);
+        reinterpret_cast<VkPhysicalDevice>(physicalDevice), pExternalSemaphoreInfo,
+        pExternalSemaphoreProperties);
 }
 
 /**
@@ -3623,9 +3741,10 @@ inline void CmdDispatchBase(long long commandBuffer,
                             long long groupCountX,
                             long long groupCountY,
                             long long groupCountZ) {
-    ::vkCmdDispatchBase((VkCommandBuffer)(commandBuffer), (uint32_t)(baseGroupX),
-                        (uint32_t)(baseGroupY), (uint32_t)(baseGroupZ), (uint32_t)(groupCountX),
-                        (uint32_t)(groupCountY), (uint32_t)(groupCountZ));
+    ::vkCmdDispatchBase(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                        static_cast<uint32_t>(baseGroupX), static_cast<uint32_t>(baseGroupY),
+                        static_cast<uint32_t>(baseGroupZ), static_cast<uint32_t>(groupCountX),
+                        static_cast<uint32_t>(groupCountY), static_cast<uint32_t>(groupCountZ));
 }
 
 /**
@@ -3652,8 +3771,8 @@ CreateDescriptorUpdateTemplate(long long device,
                                const VkDescriptorUpdateTemplateCreateInfo* pCreateInfo,
                                const VkAllocationCallbacks* pAllocator,
                                VkDescriptorUpdateTemplate* pDescriptorUpdateTemplate) {
-    return ::vkCreateDescriptorUpdateTemplate((VkDevice)(device), pCreateInfo, pAllocator,
-                                              pDescriptorUpdateTemplate);
+    return ::vkCreateDescriptorUpdateTemplate(reinterpret_cast<VkDevice>(device), pCreateInfo,
+                                              pAllocator, pDescriptorUpdateTemplate);
 }
 
 /**
@@ -3675,7 +3794,8 @@ inline void DestroyDescriptorUpdateTemplate(long long device,
                                             long long descriptorUpdateTemplate,
                                             const VkAllocationCallbacks* pAllocator) {
     ::vkDestroyDescriptorUpdateTemplate(
-        (VkDevice)(device), (VkDescriptorUpdateTemplate)(descriptorUpdateTemplate), pAllocator);
+        reinterpret_cast<VkDevice>(device),
+        reinterpret_cast<VkDescriptorUpdateTemplate>(descriptorUpdateTemplate), pAllocator);
 }
 
 /**
@@ -3698,9 +3818,9 @@ inline void UpdateDescriptorSetWithTemplate(long long device,
                                             long long descriptorSet,
                                             long long descriptorUpdateTemplate,
                                             const void* pData) {
-    ::vkUpdateDescriptorSetWithTemplate((VkDevice)(device), (VkDescriptorSet)(descriptorSet),
-                                        (VkDescriptorUpdateTemplate)(descriptorUpdateTemplate),
-                                        pData);
+    ::vkUpdateDescriptorSetWithTemplate(
+        reinterpret_cast<VkDevice>(device), reinterpret_cast<VkDescriptorSet>(descriptorSet),
+        reinterpret_cast<VkDescriptorUpdateTemplate>(descriptorUpdateTemplate), pData);
 }
 
 /**
@@ -3721,7 +3841,7 @@ inline void GetDescriptorSetLayoutSupport(VkDevice device,
 inline void GetDescriptorSetLayoutSupport(long long device,
                                           const VkDescriptorSetLayoutCreateInfo* pCreateInfo,
                                           VkDescriptorSetLayoutSupport* pSupport) {
-    ::vkGetDescriptorSetLayoutSupport((VkDevice)(device), pCreateInfo, pSupport);
+    ::vkGetDescriptorSetLayoutSupport(reinterpret_cast<VkDevice>(device), pCreateInfo, pSupport);
 }
 
 /**
@@ -3745,8 +3865,8 @@ inline VkResult CreateSamplerYcbcrConversion(long long device,
                                              const VkSamplerYcbcrConversionCreateInfo* pCreateInfo,
                                              const VkAllocationCallbacks* pAllocator,
                                              VkSamplerYcbcrConversion* pYcbcrConversion) {
-    return ::vkCreateSamplerYcbcrConversion((VkDevice)(device), pCreateInfo, pAllocator,
-                                            pYcbcrConversion);
+    return ::vkCreateSamplerYcbcrConversion(reinterpret_cast<VkDevice>(device), pCreateInfo,
+                                            pAllocator, pYcbcrConversion);
 }
 
 /**
@@ -3767,8 +3887,9 @@ inline void DestroySamplerYcbcrConversion(VkDevice device,
 inline void DestroySamplerYcbcrConversion(long long device,
                                           long long ycbcrConversion,
                                           const VkAllocationCallbacks* pAllocator) {
-    ::vkDestroySamplerYcbcrConversion((VkDevice)(device),
-                                      (VkSamplerYcbcrConversion)(ycbcrConversion), pAllocator);
+    ::vkDestroySamplerYcbcrConversion(reinterpret_cast<VkDevice>(device),
+                                      reinterpret_cast<VkSamplerYcbcrConversion>(ycbcrConversion),
+                                      pAllocator);
 }
 
 #endif // VK_VERSION_1_1
@@ -3791,8 +3912,8 @@ ResetQueryPool(VkDevice device, VkQueryPool queryPool, uint32_t firstQuery, uint
  */
 inline void
 ResetQueryPool(long long device, long long queryPool, long long firstQuery, long long queryCount) {
-    ::vkResetQueryPool((VkDevice)(device), (VkQueryPool)(queryPool), (uint32_t)(firstQuery),
-                       (uint32_t)(queryCount));
+    ::vkResetQueryPool(reinterpret_cast<VkDevice>(device), reinterpret_cast<VkQueryPool>(queryPool),
+                       static_cast<uint32_t>(firstQuery), static_cast<uint32_t>(queryCount));
 }
 
 /**
@@ -3809,7 +3930,8 @@ inline VkResult GetSemaphoreCounterValue(VkDevice device, VkSemaphore semaphore,
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline VkResult GetSemaphoreCounterValue(long long device, long long semaphore, uint64_t* pValue) {
-    return ::vkGetSemaphoreCounterValue((VkDevice)(device), (VkSemaphore)(semaphore), pValue);
+    return ::vkGetSemaphoreCounterValue(reinterpret_cast<VkDevice>(device),
+                                        reinterpret_cast<VkSemaphore>(semaphore), pValue);
 }
 
 /**
@@ -3828,7 +3950,8 @@ WaitSemaphores(VkDevice device, const VkSemaphoreWaitInfo* pWaitInfo, uint64_t t
  */
 inline VkResult
 WaitSemaphores(long long device, const VkSemaphoreWaitInfo* pWaitInfo, long long timeout) {
-    return ::vkWaitSemaphores((VkDevice)(device), pWaitInfo, (uint64_t)(timeout));
+    return ::vkWaitSemaphores(reinterpret_cast<VkDevice>(device), pWaitInfo,
+                              static_cast<uint64_t>(timeout));
 }
 
 /**
@@ -3845,7 +3968,7 @@ inline VkResult SignalSemaphore(VkDevice device, const VkSemaphoreSignalInfo* pS
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline VkResult SignalSemaphore(long long device, const VkSemaphoreSignalInfo* pSignalInfo) {
-    return ::vkSignalSemaphore((VkDevice)(device), pSignalInfo);
+    return ::vkSignalSemaphore(reinterpret_cast<VkDevice>(device), pSignalInfo);
 }
 
 /**
@@ -3864,7 +3987,7 @@ inline VkDeviceAddress GetBufferDeviceAddress(VkDevice device,
  */
 inline VkDeviceAddress GetBufferDeviceAddress(long long device,
                                               const VkBufferDeviceAddressInfo* pInfo) {
-    return ::vkGetBufferDeviceAddress((VkDevice)(device), pInfo);
+    return ::vkGetBufferDeviceAddress(reinterpret_cast<VkDevice>(device), pInfo);
 }
 
 /**
@@ -3883,7 +4006,7 @@ inline uint64_t GetBufferOpaqueCaptureAddress(VkDevice device,
  */
 inline uint64_t GetBufferOpaqueCaptureAddress(long long device,
                                               const VkBufferDeviceAddressInfo* pInfo) {
-    return ::vkGetBufferOpaqueCaptureAddress((VkDevice)(device), pInfo);
+    return ::vkGetBufferOpaqueCaptureAddress(reinterpret_cast<VkDevice>(device), pInfo);
 }
 
 /**
@@ -3904,7 +4027,7 @@ GetDeviceMemoryOpaqueCaptureAddress(VkDevice device,
 inline uint64_t
 GetDeviceMemoryOpaqueCaptureAddress(long long device,
                                     const VkDeviceMemoryOpaqueCaptureAddressInfo* pInfo) {
-    return ::vkGetDeviceMemoryOpaqueCaptureAddress((VkDevice)(device), pInfo);
+    return ::vkGetDeviceMemoryOpaqueCaptureAddress(reinterpret_cast<VkDevice>(device), pInfo);
 }
 
 /**
@@ -3934,10 +4057,11 @@ inline void CmdDrawIndirectCount(long long commandBuffer,
                                  long long countBufferOffset,
                                  long long maxDrawCount,
                                  long long stride) {
-    ::vkCmdDrawIndirectCount((VkCommandBuffer)(commandBuffer), (VkBuffer)(buffer),
-                             (VkDeviceSize)(offset), (VkBuffer)(countBuffer),
-                             (VkDeviceSize)(countBufferOffset), (uint32_t)(maxDrawCount),
-                             (uint32_t)(stride));
+    ::vkCmdDrawIndirectCount(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                             reinterpret_cast<VkBuffer>(buffer), static_cast<VkDeviceSize>(offset),
+                             reinterpret_cast<VkBuffer>(countBuffer),
+                             static_cast<VkDeviceSize>(countBufferOffset),
+                             static_cast<uint32_t>(maxDrawCount), static_cast<uint32_t>(stride));
 }
 
 /**
@@ -3967,10 +4091,11 @@ inline void CmdDrawIndexedIndirectCount(long long commandBuffer,
                                         long long countBufferOffset,
                                         long long maxDrawCount,
                                         long long stride) {
-    ::vkCmdDrawIndexedIndirectCount((VkCommandBuffer)(commandBuffer), (VkBuffer)(buffer),
-                                    (VkDeviceSize)(offset), (VkBuffer)(countBuffer),
-                                    (VkDeviceSize)(countBufferOffset), (uint32_t)(maxDrawCount),
-                                    (uint32_t)(stride));
+    ::vkCmdDrawIndexedIndirectCount(
+        reinterpret_cast<VkCommandBuffer>(commandBuffer), reinterpret_cast<VkBuffer>(buffer),
+        static_cast<VkDeviceSize>(offset), reinterpret_cast<VkBuffer>(countBuffer),
+        static_cast<VkDeviceSize>(countBufferOffset), static_cast<uint32_t>(maxDrawCount),
+        static_cast<uint32_t>(stride));
 }
 
 /**
@@ -3993,7 +4118,8 @@ inline VkResult CreateRenderPass2(long long device,
                                   const VkRenderPassCreateInfo2* pCreateInfo,
                                   const VkAllocationCallbacks* pAllocator,
                                   VkRenderPass* pRenderPass) {
-    return ::vkCreateRenderPass2((VkDevice)(device), pCreateInfo, pAllocator, pRenderPass);
+    return ::vkCreateRenderPass2(reinterpret_cast<VkDevice>(device), pCreateInfo, pAllocator,
+                                 pRenderPass);
 }
 
 /**
@@ -4014,7 +4140,8 @@ inline void CmdBeginRenderPass2(VkCommandBuffer commandBuffer,
 inline void CmdBeginRenderPass2(long long commandBuffer,
                                 const VkRenderPassBeginInfo* pRenderPassBegin,
                                 const VkSubpassBeginInfo* pSubpassBeginInfo) {
-    ::vkCmdBeginRenderPass2((VkCommandBuffer)(commandBuffer), pRenderPassBegin, pSubpassBeginInfo);
+    ::vkCmdBeginRenderPass2(reinterpret_cast<VkCommandBuffer>(commandBuffer), pRenderPassBegin,
+                            pSubpassBeginInfo);
 }
 
 /**
@@ -4035,7 +4162,8 @@ inline void CmdNextSubpass2(VkCommandBuffer commandBuffer,
 inline void CmdNextSubpass2(long long commandBuffer,
                             const VkSubpassBeginInfo* pSubpassBeginInfo,
                             const VkSubpassEndInfo* pSubpassEndInfo) {
-    ::vkCmdNextSubpass2((VkCommandBuffer)(commandBuffer), pSubpassBeginInfo, pSubpassEndInfo);
+    ::vkCmdNextSubpass2(reinterpret_cast<VkCommandBuffer>(commandBuffer), pSubpassBeginInfo,
+                        pSubpassEndInfo);
 }
 
 /**
@@ -4053,7 +4181,7 @@ inline void CmdEndRenderPass2(VkCommandBuffer commandBuffer,
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdEndRenderPass2(long long commandBuffer, const VkSubpassEndInfo* pSubpassEndInfo) {
-    ::vkCmdEndRenderPass2((VkCommandBuffer)(commandBuffer), pSubpassEndInfo);
+    ::vkCmdEndRenderPass2(reinterpret_cast<VkCommandBuffer>(commandBuffer), pSubpassEndInfo);
 }
 
 #endif // VK_VERSION_1_2
@@ -4078,8 +4206,8 @@ inline VkResult GetPhysicalDeviceToolProperties(VkPhysicalDevice physicalDevice,
 inline VkResult GetPhysicalDeviceToolProperties(long long physicalDevice,
                                                 uint32_t* pToolCount,
                                                 VkPhysicalDeviceToolProperties* pToolProperties) {
-    return ::vkGetPhysicalDeviceToolProperties((VkPhysicalDevice)(physicalDevice), pToolCount,
-                                               pToolProperties);
+    return ::vkGetPhysicalDeviceToolProperties(reinterpret_cast<VkPhysicalDevice>(physicalDevice),
+                                               pToolCount, pToolProperties);
 }
 
 /**
@@ -4103,7 +4231,8 @@ inline VkResult CreatePrivateDataSlot(long long device,
                                       const VkPrivateDataSlotCreateInfo* pCreateInfo,
                                       const VkAllocationCallbacks* pAllocator,
                                       VkPrivateDataSlot* pPrivateDataSlot) {
-    return ::vkCreatePrivateDataSlot((VkDevice)(device), pCreateInfo, pAllocator, pPrivateDataSlot);
+    return ::vkCreatePrivateDataSlot(reinterpret_cast<VkDevice>(device), pCreateInfo, pAllocator,
+                                     pPrivateDataSlot);
 }
 
 /**
@@ -4124,8 +4253,8 @@ inline void DestroyPrivateDataSlot(VkDevice device,
 inline void DestroyPrivateDataSlot(long long device,
                                    long long privateDataSlot,
                                    const VkAllocationCallbacks* pAllocator) {
-    ::vkDestroyPrivateDataSlot((VkDevice)(device), (VkPrivateDataSlot)(privateDataSlot),
-                               pAllocator);
+    ::vkDestroyPrivateDataSlot(reinterpret_cast<VkDevice>(device),
+                               reinterpret_cast<VkPrivateDataSlot>(privateDataSlot), pAllocator);
 }
 
 /**
@@ -4150,9 +4279,10 @@ inline VkResult SetPrivateData(long long device,
                                long long objectHandle,
                                long long privateDataSlot,
                                long long data) {
-    return ::vkSetPrivateData((VkDevice)(device), (VkObjectType)(objectType),
-                              (uint64_t)(objectHandle), (VkPrivateDataSlot)(privateDataSlot),
-                              (uint64_t)(data));
+    return ::vkSetPrivateData(
+        reinterpret_cast<VkDevice>(device), static_cast<VkObjectType>(objectType),
+        static_cast<uint64_t>(objectHandle), reinterpret_cast<VkPrivateDataSlot>(privateDataSlot),
+        static_cast<uint64_t>(data));
 }
 
 /**
@@ -4177,8 +4307,9 @@ inline void GetPrivateData(long long device,
                            long long objectHandle,
                            long long privateDataSlot,
                            uint64_t* pData) {
-    ::vkGetPrivateData((VkDevice)(device), (VkObjectType)(objectType), (uint64_t)(objectHandle),
-                       (VkPrivateDataSlot)(privateDataSlot), pData);
+    ::vkGetPrivateData(reinterpret_cast<VkDevice>(device), static_cast<VkObjectType>(objectType),
+                       static_cast<uint64_t>(objectHandle),
+                       reinterpret_cast<VkPrivateDataSlot>(privateDataSlot), pData);
 }
 
 /**
@@ -4196,7 +4327,7 @@ inline void CmdPipelineBarrier2(VkCommandBuffer commandBuffer,
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdPipelineBarrier2(long long commandBuffer, const VkDependencyInfo* pDependencyInfo) {
-    ::vkCmdPipelineBarrier2((VkCommandBuffer)(commandBuffer), pDependencyInfo);
+    ::vkCmdPipelineBarrier2(reinterpret_cast<VkCommandBuffer>(commandBuffer), pDependencyInfo);
 }
 
 /**
@@ -4217,8 +4348,9 @@ inline void CmdWriteTimestamp2(VkCommandBuffer commandBuffer,
  */
 inline void
 CmdWriteTimestamp2(long long commandBuffer, long long stage, long long queryPool, long long query) {
-    ::vkCmdWriteTimestamp2((VkCommandBuffer)(commandBuffer), (VkPipelineStageFlags2)(stage),
-                           (VkQueryPool)(queryPool), (uint32_t)(query));
+    ::vkCmdWriteTimestamp2(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                           static_cast<VkPipelineStageFlags2>(stage),
+                           reinterpret_cast<VkQueryPool>(queryPool), static_cast<uint32_t>(query));
 }
 
 /**
@@ -4239,7 +4371,8 @@ inline VkResult QueueSubmit2(long long queue,
                              long long submitCount,
                              const VkSubmitInfo2* pSubmits,
                              long long fence) {
-    return ::vkQueueSubmit2((VkQueue)(queue), (uint32_t)(submitCount), pSubmits, (VkFence)(fence));
+    return ::vkQueueSubmit2(reinterpret_cast<VkQueue>(queue), static_cast<uint32_t>(submitCount),
+                            pSubmits, reinterpret_cast<VkFence>(fence));
 }
 
 /**
@@ -4257,7 +4390,7 @@ inline void CmdCopyBuffer2(VkCommandBuffer commandBuffer,
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdCopyBuffer2(long long commandBuffer, const VkCopyBufferInfo2* pCopyBufferInfo) {
-    ::vkCmdCopyBuffer2((VkCommandBuffer)(commandBuffer), pCopyBufferInfo);
+    ::vkCmdCopyBuffer2(reinterpret_cast<VkCommandBuffer>(commandBuffer), pCopyBufferInfo);
 }
 
 /**
@@ -4274,7 +4407,7 @@ inline void CmdCopyImage2(VkCommandBuffer commandBuffer, const VkCopyImageInfo2*
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdCopyImage2(long long commandBuffer, const VkCopyImageInfo2* pCopyImageInfo) {
-    ::vkCmdCopyImage2((VkCommandBuffer)(commandBuffer), pCopyImageInfo);
+    ::vkCmdCopyImage2(reinterpret_cast<VkCommandBuffer>(commandBuffer), pCopyImageInfo);
 }
 
 /**
@@ -4293,7 +4426,8 @@ inline void CmdCopyBufferToImage2(VkCommandBuffer commandBuffer,
  */
 inline void CmdCopyBufferToImage2(long long commandBuffer,
                                   const VkCopyBufferToImageInfo2* pCopyBufferToImageInfo) {
-    ::vkCmdCopyBufferToImage2((VkCommandBuffer)(commandBuffer), pCopyBufferToImageInfo);
+    ::vkCmdCopyBufferToImage2(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                              pCopyBufferToImageInfo);
 }
 
 /**
@@ -4312,7 +4446,8 @@ inline void CmdCopyImageToBuffer2(VkCommandBuffer commandBuffer,
  */
 inline void CmdCopyImageToBuffer2(long long commandBuffer,
                                   const VkCopyImageToBufferInfo2* pCopyImageToBufferInfo) {
-    ::vkCmdCopyImageToBuffer2((VkCommandBuffer)(commandBuffer), pCopyImageToBufferInfo);
+    ::vkCmdCopyImageToBuffer2(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                              pCopyImageToBufferInfo);
 }
 
 /**
@@ -4333,7 +4468,8 @@ inline void GetDeviceBufferMemoryRequirements(VkDevice device,
 inline void GetDeviceBufferMemoryRequirements(long long device,
                                               const VkDeviceBufferMemoryRequirements* pInfo,
                                               VkMemoryRequirements2* pMemoryRequirements) {
-    ::vkGetDeviceBufferMemoryRequirements((VkDevice)(device), pInfo, pMemoryRequirements);
+    ::vkGetDeviceBufferMemoryRequirements(reinterpret_cast<VkDevice>(device), pInfo,
+                                          pMemoryRequirements);
 }
 
 /**
@@ -4354,7 +4490,8 @@ inline void GetDeviceImageMemoryRequirements(VkDevice device,
 inline void GetDeviceImageMemoryRequirements(long long device,
                                              const VkDeviceImageMemoryRequirements* pInfo,
                                              VkMemoryRequirements2* pMemoryRequirements) {
-    ::vkGetDeviceImageMemoryRequirements((VkDevice)(device), pInfo, pMemoryRequirements);
+    ::vkGetDeviceImageMemoryRequirements(reinterpret_cast<VkDevice>(device), pInfo,
+                                         pMemoryRequirements);
 }
 
 /**
@@ -4380,8 +4517,9 @@ inline void GetDeviceImageSparseMemoryRequirements(
     const VkDeviceImageMemoryRequirements* pInfo,
     uint32_t* pSparseMemoryRequirementCount,
     VkSparseImageMemoryRequirements2* pSparseMemoryRequirements) {
-    ::vkGetDeviceImageSparseMemoryRequirements(
-        (VkDevice)(device), pInfo, pSparseMemoryRequirementCount, pSparseMemoryRequirements);
+    ::vkGetDeviceImageSparseMemoryRequirements(reinterpret_cast<VkDevice>(device), pInfo,
+                                               pSparseMemoryRequirementCount,
+                                               pSparseMemoryRequirements);
 }
 
 /**
@@ -4401,7 +4539,8 @@ inline void CmdSetEvent2(VkCommandBuffer commandBuffer,
  */
 inline void
 CmdSetEvent2(long long commandBuffer, long long event, const VkDependencyInfo* pDependencyInfo) {
-    ::vkCmdSetEvent2((VkCommandBuffer)(commandBuffer), (VkEvent)(event), pDependencyInfo);
+    ::vkCmdSetEvent2(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                     reinterpret_cast<VkEvent>(event), pDependencyInfo);
 }
 
 /**
@@ -4419,8 +4558,9 @@ CmdResetEvent2(VkCommandBuffer commandBuffer, VkEvent event, VkPipelineStageFlag
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdResetEvent2(long long commandBuffer, long long event, long long stageMask) {
-    ::vkCmdResetEvent2((VkCommandBuffer)(commandBuffer), (VkEvent)(event),
-                       (VkPipelineStageFlags2)(stageMask));
+    ::vkCmdResetEvent2(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                       reinterpret_cast<VkEvent>(event),
+                       static_cast<VkPipelineStageFlags2>(stageMask));
 }
 
 /**
@@ -4443,8 +4583,8 @@ inline void CmdWaitEvents2(long long commandBuffer,
                            long long eventCount,
                            const VkEvent* pEvents,
                            const VkDependencyInfo* pDependencyInfos) {
-    ::vkCmdWaitEvents2((VkCommandBuffer)(commandBuffer), (uint32_t)(eventCount), pEvents,
-                       pDependencyInfos);
+    ::vkCmdWaitEvents2(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                       static_cast<uint32_t>(eventCount), pEvents, pDependencyInfos);
 }
 
 /**
@@ -4461,7 +4601,7 @@ inline void CmdBlitImage2(VkCommandBuffer commandBuffer, const VkBlitImageInfo2*
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdBlitImage2(long long commandBuffer, const VkBlitImageInfo2* pBlitImageInfo) {
-    ::vkCmdBlitImage2((VkCommandBuffer)(commandBuffer), pBlitImageInfo);
+    ::vkCmdBlitImage2(reinterpret_cast<VkCommandBuffer>(commandBuffer), pBlitImageInfo);
 }
 
 /**
@@ -4480,7 +4620,7 @@ inline void CmdResolveImage2(VkCommandBuffer commandBuffer,
  */
 inline void CmdResolveImage2(long long commandBuffer,
                              const VkResolveImageInfo2* pResolveImageInfo) {
-    ::vkCmdResolveImage2((VkCommandBuffer)(commandBuffer), pResolveImageInfo);
+    ::vkCmdResolveImage2(reinterpret_cast<VkCommandBuffer>(commandBuffer), pResolveImageInfo);
 }
 
 /**
@@ -4498,7 +4638,7 @@ inline void CmdBeginRendering(VkCommandBuffer commandBuffer,
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdBeginRendering(long long commandBuffer, const VkRenderingInfo* pRenderingInfo) {
-    ::vkCmdBeginRendering((VkCommandBuffer)(commandBuffer), pRenderingInfo);
+    ::vkCmdBeginRendering(reinterpret_cast<VkCommandBuffer>(commandBuffer), pRenderingInfo);
 }
 
 /**
@@ -4513,7 +4653,7 @@ inline void CmdEndRendering(VkCommandBuffer commandBuffer) { ::vkCmdEndRendering
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdEndRendering(long long commandBuffer) {
-    ::vkCmdEndRendering((VkCommandBuffer)(commandBuffer));
+    ::vkCmdEndRendering(reinterpret_cast<VkCommandBuffer>(commandBuffer));
 }
 
 /**
@@ -4530,7 +4670,8 @@ inline void CmdSetCullMode(VkCommandBuffer commandBuffer, VkCullModeFlags cullMo
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdSetCullMode(long long commandBuffer, long long cullMode) {
-    ::vkCmdSetCullMode((VkCommandBuffer)(commandBuffer), (VkCullModeFlags)(cullMode));
+    ::vkCmdSetCullMode(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                       static_cast<VkCullModeFlags>(cullMode));
 }
 
 /**
@@ -4547,7 +4688,8 @@ inline void CmdSetFrontFace(VkCommandBuffer commandBuffer, VkFrontFace frontFace
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdSetFrontFace(long long commandBuffer, long long frontFace) {
-    ::vkCmdSetFrontFace((VkCommandBuffer)(commandBuffer), (VkFrontFace)(frontFace));
+    ::vkCmdSetFrontFace(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                        static_cast<VkFrontFace>(frontFace));
 }
 
 /**
@@ -4565,8 +4707,8 @@ inline void CmdSetPrimitiveTopology(VkCommandBuffer commandBuffer,
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdSetPrimitiveTopology(long long commandBuffer, long long primitiveTopology) {
-    ::vkCmdSetPrimitiveTopology((VkCommandBuffer)(commandBuffer),
-                                (VkPrimitiveTopology)(primitiveTopology));
+    ::vkCmdSetPrimitiveTopology(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                                static_cast<VkPrimitiveTopology>(primitiveTopology));
 }
 
 /**
@@ -4587,8 +4729,8 @@ inline void CmdSetViewportWithCount(VkCommandBuffer commandBuffer,
 inline void CmdSetViewportWithCount(long long commandBuffer,
                                     long long viewportCount,
                                     const VkViewport* pViewports) {
-    ::vkCmdSetViewportWithCount((VkCommandBuffer)(commandBuffer), (uint32_t)(viewportCount),
-                                pViewports);
+    ::vkCmdSetViewportWithCount(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                                static_cast<uint32_t>(viewportCount), pViewports);
 }
 
 /**
@@ -4608,8 +4750,8 @@ inline void CmdSetScissorWithCount(VkCommandBuffer commandBuffer,
  */
 inline void
 CmdSetScissorWithCount(long long commandBuffer, long long scissorCount, const VkRect2D* pScissors) {
-    ::vkCmdSetScissorWithCount((VkCommandBuffer)(commandBuffer), (uint32_t)(scissorCount),
-                               pScissors);
+    ::vkCmdSetScissorWithCount(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                               static_cast<uint32_t>(scissorCount), pScissors);
 }
 
 /**
@@ -4639,8 +4781,9 @@ inline void CmdBindVertexBuffers2(long long commandBuffer,
                                   const VkDeviceSize* pOffsets,
                                   const VkDeviceSize* pSizes,
                                   const VkDeviceSize* pStrides) {
-    ::vkCmdBindVertexBuffers2((VkCommandBuffer)(commandBuffer), (uint32_t)(firstBinding),
-                              (uint32_t)(bindingCount), pBuffers, pOffsets, pSizes, pStrides);
+    ::vkCmdBindVertexBuffers2(
+        reinterpret_cast<VkCommandBuffer>(commandBuffer), static_cast<uint32_t>(firstBinding),
+        static_cast<uint32_t>(bindingCount), pBuffers, pOffsets, pSizes, pStrides);
 }
 
 /**
@@ -4657,7 +4800,8 @@ inline void CmdSetDepthTestEnable(VkCommandBuffer commandBuffer, VkBool32 depthT
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdSetDepthTestEnable(long long commandBuffer, long long depthTestEnable) {
-    ::vkCmdSetDepthTestEnable((VkCommandBuffer)(commandBuffer), (VkBool32)(depthTestEnable));
+    ::vkCmdSetDepthTestEnable(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                              static_cast<VkBool32>(depthTestEnable));
 }
 
 /**
@@ -4674,7 +4818,8 @@ inline void CmdSetDepthWriteEnable(VkCommandBuffer commandBuffer, VkBool32 depth
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdSetDepthWriteEnable(long long commandBuffer, long long depthWriteEnable) {
-    ::vkCmdSetDepthWriteEnable((VkCommandBuffer)(commandBuffer), (VkBool32)(depthWriteEnable));
+    ::vkCmdSetDepthWriteEnable(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                               static_cast<VkBool32>(depthWriteEnable));
 }
 
 /**
@@ -4691,7 +4836,8 @@ inline void CmdSetDepthCompareOp(VkCommandBuffer commandBuffer, VkCompareOp dept
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdSetDepthCompareOp(long long commandBuffer, long long depthCompareOp) {
-    ::vkCmdSetDepthCompareOp((VkCommandBuffer)(commandBuffer), (VkCompareOp)(depthCompareOp));
+    ::vkCmdSetDepthCompareOp(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                             static_cast<VkCompareOp>(depthCompareOp));
 }
 
 /**
@@ -4709,8 +4855,8 @@ inline void CmdSetDepthBoundsTestEnable(VkCommandBuffer commandBuffer,
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdSetDepthBoundsTestEnable(long long commandBuffer, long long depthBoundsTestEnable) {
-    ::vkCmdSetDepthBoundsTestEnable((VkCommandBuffer)(commandBuffer),
-                                    (VkBool32)(depthBoundsTestEnable));
+    ::vkCmdSetDepthBoundsTestEnable(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                                    static_cast<VkBool32>(depthBoundsTestEnable));
 }
 
 /**
@@ -4727,7 +4873,8 @@ inline void CmdSetStencilTestEnable(VkCommandBuffer commandBuffer, VkBool32 sten
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdSetStencilTestEnable(long long commandBuffer, long long stencilTestEnable) {
-    ::vkCmdSetStencilTestEnable((VkCommandBuffer)(commandBuffer), (VkBool32)(stencilTestEnable));
+    ::vkCmdSetStencilTestEnable(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                                static_cast<VkBool32>(stencilTestEnable));
 }
 
 /**
@@ -4754,9 +4901,10 @@ inline void CmdSetStencilOp(long long commandBuffer,
                             long long passOp,
                             long long depthFailOp,
                             long long compareOp) {
-    ::vkCmdSetStencilOp((VkCommandBuffer)(commandBuffer), (VkStencilFaceFlags)(faceMask),
-                        (VkStencilOp)(failOp), (VkStencilOp)(passOp), (VkStencilOp)(depthFailOp),
-                        (VkCompareOp)(compareOp));
+    ::vkCmdSetStencilOp(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                        static_cast<VkStencilFaceFlags>(faceMask), static_cast<VkStencilOp>(failOp),
+                        static_cast<VkStencilOp>(passOp), static_cast<VkStencilOp>(depthFailOp),
+                        static_cast<VkCompareOp>(compareOp));
 }
 
 /**
@@ -4775,8 +4923,8 @@ inline void CmdSetRasterizerDiscardEnable(VkCommandBuffer commandBuffer,
  */
 inline void CmdSetRasterizerDiscardEnable(long long commandBuffer,
                                           long long rasterizerDiscardEnable) {
-    ::vkCmdSetRasterizerDiscardEnable((VkCommandBuffer)(commandBuffer),
-                                      (VkBool32)(rasterizerDiscardEnable));
+    ::vkCmdSetRasterizerDiscardEnable(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                                      static_cast<VkBool32>(rasterizerDiscardEnable));
 }
 
 /**
@@ -4793,7 +4941,8 @@ inline void CmdSetDepthBiasEnable(VkCommandBuffer commandBuffer, VkBool32 depthB
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline void CmdSetDepthBiasEnable(long long commandBuffer, long long depthBiasEnable) {
-    ::vkCmdSetDepthBiasEnable((VkCommandBuffer)(commandBuffer), (VkBool32)(depthBiasEnable));
+    ::vkCmdSetDepthBiasEnable(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                              static_cast<VkBool32>(depthBiasEnable));
 }
 
 /**
@@ -4812,8 +4961,8 @@ inline void CmdSetPrimitiveRestartEnable(VkCommandBuffer commandBuffer,
  */
 inline void CmdSetPrimitiveRestartEnable(long long commandBuffer,
                                          long long primitiveRestartEnable) {
-    ::vkCmdSetPrimitiveRestartEnable((VkCommandBuffer)(commandBuffer),
-                                     (VkBool32)(primitiveRestartEnable));
+    ::vkCmdSetPrimitiveRestartEnable(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                                     static_cast<VkBool32>(primitiveRestartEnable));
 }
 
 #endif // VK_VERSION_1_3
@@ -4834,7 +4983,7 @@ inline VkResult MapMemory2(VkDevice device, const VkMemoryMapInfo* pMemoryMapInf
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline VkResult MapMemory2(long long device, const VkMemoryMapInfo* pMemoryMapInfo, void** ppData) {
-    return ::vkMapMemory2((VkDevice)(device), pMemoryMapInfo, ppData);
+    return ::vkMapMemory2(reinterpret_cast<VkDevice>(device), pMemoryMapInfo, ppData);
 }
 
 /**
@@ -4851,7 +5000,7 @@ inline VkResult UnmapMemory2(VkDevice device, const VkMemoryUnmapInfo* pMemoryUn
  * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
  */
 inline VkResult UnmapMemory2(long long device, const VkMemoryUnmapInfo* pMemoryUnmapInfo) {
-    return ::vkUnmapMemory2((VkDevice)(device), pMemoryUnmapInfo);
+    return ::vkUnmapMemory2(reinterpret_cast<VkDevice>(device), pMemoryUnmapInfo);
 }
 
 /**
@@ -4872,7 +5021,7 @@ inline void GetDeviceImageSubresourceLayout(VkDevice device,
 inline void GetDeviceImageSubresourceLayout(long long device,
                                             const VkDeviceImageSubresourceInfo* pInfo,
                                             VkSubresourceLayout2* pLayout) {
-    ::vkGetDeviceImageSubresourceLayout((VkDevice)(device), pInfo, pLayout);
+    ::vkGetDeviceImageSubresourceLayout(reinterpret_cast<VkDevice>(device), pInfo, pLayout);
 }
 
 /**
@@ -4895,7 +5044,8 @@ inline void GetImageSubresourceLayout2(long long device,
                                        long long image,
                                        const VkImageSubresource2* pSubresource,
                                        VkSubresourceLayout2* pLayout) {
-    ::vkGetImageSubresourceLayout2((VkDevice)(device), (VkImage)(image), pSubresource, pLayout);
+    ::vkGetImageSubresourceLayout2(reinterpret_cast<VkDevice>(device),
+                                   reinterpret_cast<VkImage>(image), pSubresource, pLayout);
 }
 
 /**
@@ -4914,7 +5064,7 @@ inline VkResult CopyMemoryToImage(VkDevice device,
  */
 inline VkResult CopyMemoryToImage(long long device,
                                   const VkCopyMemoryToImageInfo* pCopyMemoryToImageInfo) {
-    return ::vkCopyMemoryToImage((VkDevice)(device), pCopyMemoryToImageInfo);
+    return ::vkCopyMemoryToImage(reinterpret_cast<VkDevice>(device), pCopyMemoryToImageInfo);
 }
 
 /**
@@ -4933,7 +5083,7 @@ inline VkResult CopyImageToMemory(VkDevice device,
  */
 inline VkResult CopyImageToMemory(long long device,
                                   const VkCopyImageToMemoryInfo* pCopyImageToMemoryInfo) {
-    return ::vkCopyImageToMemory((VkDevice)(device), pCopyImageToMemoryInfo);
+    return ::vkCopyImageToMemory(reinterpret_cast<VkDevice>(device), pCopyImageToMemoryInfo);
 }
 
 /**
@@ -4952,7 +5102,7 @@ inline VkResult CopyImageToImage(VkDevice device,
  */
 inline VkResult CopyImageToImage(long long device,
                                  const VkCopyImageToImageInfo* pCopyImageToImageInfo) {
-    return ::vkCopyImageToImage((VkDevice)(device), pCopyImageToImageInfo);
+    return ::vkCopyImageToImage(reinterpret_cast<VkDevice>(device), pCopyImageToImageInfo);
 }
 
 /**
@@ -4973,7 +5123,8 @@ inline VkResult TransitionImageLayout(VkDevice device,
 inline VkResult TransitionImageLayout(long long device,
                                       long long transitionCount,
                                       const VkHostImageLayoutTransitionInfo* pTransitions) {
-    return ::vkTransitionImageLayout((VkDevice)(device), (uint32_t)(transitionCount), pTransitions);
+    return ::vkTransitionImageLayout(reinterpret_cast<VkDevice>(device),
+                                     static_cast<uint32_t>(transitionCount), pTransitions);
 }
 
 /**
@@ -5001,9 +5152,10 @@ inline void CmdPushDescriptorSet(long long commandBuffer,
                                  long long set,
                                  long long descriptorWriteCount,
                                  const VkWriteDescriptorSet* pDescriptorWrites) {
-    ::vkCmdPushDescriptorSet((VkCommandBuffer)(commandBuffer),
-                             (VkPipelineBindPoint)(pipelineBindPoint), (VkPipelineLayout)(layout),
-                             (uint32_t)(set), (uint32_t)(descriptorWriteCount), pDescriptorWrites);
+    ::vkCmdPushDescriptorSet(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                             static_cast<VkPipelineBindPoint>(pipelineBindPoint),
+                             reinterpret_cast<VkPipelineLayout>(layout), static_cast<uint32_t>(set),
+                             static_cast<uint32_t>(descriptorWriteCount), pDescriptorWrites);
 }
 
 /**
@@ -5029,9 +5181,10 @@ inline void CmdPushDescriptorSetWithTemplate(long long commandBuffer,
                                              long long layout,
                                              long long set,
                                              const void* pData) {
-    ::vkCmdPushDescriptorSetWithTemplate((VkCommandBuffer)(commandBuffer),
-                                         (VkDescriptorUpdateTemplate)(descriptorUpdateTemplate),
-                                         (VkPipelineLayout)(layout), (uint32_t)(set), pData);
+    ::vkCmdPushDescriptorSetWithTemplate(
+        reinterpret_cast<VkCommandBuffer>(commandBuffer),
+        reinterpret_cast<VkDescriptorUpdateTemplate>(descriptorUpdateTemplate),
+        reinterpret_cast<VkPipelineLayout>(layout), static_cast<uint32_t>(set), pData);
 }
 
 /**
@@ -5050,7 +5203,8 @@ inline void CmdBindDescriptorSets2(VkCommandBuffer commandBuffer,
  */
 inline void CmdBindDescriptorSets2(long long commandBuffer,
                                    const VkBindDescriptorSetsInfo* pBindDescriptorSetsInfo) {
-    ::vkCmdBindDescriptorSets2((VkCommandBuffer)(commandBuffer), pBindDescriptorSetsInfo);
+    ::vkCmdBindDescriptorSets2(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                               pBindDescriptorSetsInfo);
 }
 
 /**
@@ -5069,7 +5223,7 @@ inline void CmdPushConstants2(VkCommandBuffer commandBuffer,
  */
 inline void CmdPushConstants2(long long commandBuffer,
                               const VkPushConstantsInfo* pPushConstantsInfo) {
-    ::vkCmdPushConstants2((VkCommandBuffer)(commandBuffer), pPushConstantsInfo);
+    ::vkCmdPushConstants2(reinterpret_cast<VkCommandBuffer>(commandBuffer), pPushConstantsInfo);
 }
 
 /**
@@ -5088,7 +5242,8 @@ inline void CmdPushDescriptorSet2(VkCommandBuffer commandBuffer,
  */
 inline void CmdPushDescriptorSet2(long long commandBuffer,
                                   const VkPushDescriptorSetInfo* pPushDescriptorSetInfo) {
-    ::vkCmdPushDescriptorSet2((VkCommandBuffer)(commandBuffer), pPushDescriptorSetInfo);
+    ::vkCmdPushDescriptorSet2(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                              pPushDescriptorSetInfo);
 }
 
 /**
@@ -5109,7 +5264,7 @@ inline void CmdPushDescriptorSetWithTemplate2(
 inline void CmdPushDescriptorSetWithTemplate2(
     long long commandBuffer,
     const VkPushDescriptorSetWithTemplateInfo* pPushDescriptorSetWithTemplateInfo) {
-    ::vkCmdPushDescriptorSetWithTemplate2((VkCommandBuffer)(commandBuffer),
+    ::vkCmdPushDescriptorSetWithTemplate2(reinterpret_cast<VkCommandBuffer>(commandBuffer),
                                           pPushDescriptorSetWithTemplateInfo);
 }
 
@@ -5131,8 +5286,9 @@ inline void CmdSetLineStipple(VkCommandBuffer commandBuffer,
 inline void CmdSetLineStipple(long long commandBuffer,
                               long long lineStippleFactor,
                               long long lineStipplePattern) {
-    ::vkCmdSetLineStipple((VkCommandBuffer)(commandBuffer), (uint32_t)(lineStippleFactor),
-                          (uint16_t)(lineStipplePattern));
+    ::vkCmdSetLineStipple(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                          static_cast<uint32_t>(lineStippleFactor),
+                          static_cast<uint16_t>(lineStipplePattern));
 }
 
 /**
@@ -5157,8 +5313,9 @@ inline void CmdBindIndexBuffer2(long long commandBuffer,
                                 long long offset,
                                 long long size,
                                 long long indexType) {
-    ::vkCmdBindIndexBuffer2((VkCommandBuffer)(commandBuffer), (VkBuffer)(buffer),
-                            (VkDeviceSize)(offset), (VkDeviceSize)(size), (VkIndexType)(indexType));
+    ::vkCmdBindIndexBuffer2(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                            reinterpret_cast<VkBuffer>(buffer), static_cast<VkDeviceSize>(offset),
+                            static_cast<VkDeviceSize>(size), static_cast<VkIndexType>(indexType));
 }
 
 /**
@@ -5179,7 +5336,8 @@ inline void GetRenderingAreaGranularity(VkDevice device,
 inline void GetRenderingAreaGranularity(long long device,
                                         const VkRenderingAreaInfo* pRenderingAreaInfo,
                                         VkExtent2D* pGranularity) {
-    ::vkGetRenderingAreaGranularity((VkDevice)(device), pRenderingAreaInfo, pGranularity);
+    ::vkGetRenderingAreaGranularity(reinterpret_cast<VkDevice>(device), pRenderingAreaInfo,
+                                    pGranularity);
 }
 
 /**
@@ -5200,7 +5358,8 @@ CmdSetRenderingAttachmentLocations(VkCommandBuffer commandBuffer,
 inline void
 CmdSetRenderingAttachmentLocations(long long commandBuffer,
                                    const VkRenderingAttachmentLocationInfo* pLocationInfo) {
-    ::vkCmdSetRenderingAttachmentLocations((VkCommandBuffer)(commandBuffer), pLocationInfo);
+    ::vkCmdSetRenderingAttachmentLocations(reinterpret_cast<VkCommandBuffer>(commandBuffer),
+                                           pLocationInfo);
 }
 
 /**
@@ -5220,7 +5379,7 @@ inline void CmdSetRenderingInputAttachmentIndices(
  */
 inline void CmdSetRenderingInputAttachmentIndices(
     long long commandBuffer, const VkRenderingInputAttachmentIndexInfo* pInputAttachmentIndexInfo) {
-    ::vkCmdSetRenderingInputAttachmentIndices((VkCommandBuffer)(commandBuffer),
+    ::vkCmdSetRenderingInputAttachmentIndices(reinterpret_cast<VkCommandBuffer>(commandBuffer),
                                               pInputAttachmentIndexInfo);
 }
 

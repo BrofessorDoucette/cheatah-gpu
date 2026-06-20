@@ -119,8 +119,10 @@ fn doc_block(name, cmd_block) {
     return out
 }
 
-# One inline forwarder for command `name` given its block (proto + params).
-fn forwarder(name, block, cmd_block) {
+# One inline forwarder for command `name` given its block (proto + params). `handles` is the set of
+# Vulkan handle type names — ALL pointer typedefs on 64-bit (dispatchable and non-dispatchable alike),
+# so a long long -> handle conversion needs reinterpret_cast; ints/enums/flags/float use static_cast.
+fn forwarder(name, block, cmd_block, handles) {
     let p = parse_proto(block)
     let decls: list[str] = []
     let names: list[str] = []
@@ -169,10 +171,13 @@ fn forwarder(name, block, cmd_block) {
             let ty = string.strip(dcl[:len(dcl) - len(nm)])
             if ty == "float" {
                 odecls.append("double " + nm)
-                oargs.append("(float)(" + nm + ")")
+                oargs.append("static_cast<float>(" + nm + ")")
+            } elif ty in handles {
+                odecls.append("long long " + nm)
+                oargs.append("reinterpret_cast<" + ty + ">(" + nm + ")")
             } else {
                 odecls.append("long long " + nm)
-                oargs.append("(" + ty + ")(" + nm + ")")
+                oargs.append("static_cast<" + ty + ">(" + nm + ")")
             }
             widened = true
         }
@@ -205,6 +210,32 @@ for chunk in string.split(commands_xml, "</command>") {
         let nm = attr(chunk, "name")
         let al = attr(chunk, "alias")
         if nm != "" and al != "" { alias_map[nm] = al }
+    }
+}
+
+# 1b) Index every Vulkan handle type (dispatchable + non-dispatchable + aliases). On 64-bit these are
+#     ALL pointer typedefs, so handle params need reinterpret_cast in the cheatah-friendly overloads.
+let handles: dict[str, str] = {}
+let types_xml = xml[string.find(xml, "<types"):string.find(xml, "</types>")]
+# A handle def nests <type>VK_DEFINE_HANDLE</type>, so DON'T split on </type>; split on the handle
+# marker and read the name from the region up to the next type def (the inner <type> has no space).
+let hfirst = true
+for hp in string.split(types_xml, "category=\"handle\"") {
+    if hfirst {
+        hfirst = false
+        continue
+    }
+    let nt = string.find(hp, "<type ")
+    let window = hp
+    if nt >= 0 {
+        window = hp[:nt]
+    }
+    let nm = between(window, "<name>", "</name>")   # <type ...><name>VkInstance</name>
+    if nm == "" {
+        nm = attr(window, "name")                   # alias form: name="VkX" alias="VkY"
+    }
+    if nm != "" {
+        handles[nm] = "1"
     }
 }
 
@@ -266,7 +297,7 @@ for n in core {
             tbody = tbody + "#ifdef VK_VERSION_" + v + "\n"
             cur_ver = v
         }
-        body = body + forwarder(n, cmd_block[real], cmd_block)
+        body = body + forwarder(n, cmd_block[real], cmd_block, handles)
         # One TEST_F per forwarder = 100% coverage, each a named, visible test. Probed on every device
         # via the VulkanPresence fixture; capability-gated + non-blocking (unsupported never fails).
         tbody = tbody + "TEST_F(VulkanPresence, " + n[2:] + ") { probe(\"" + n[2:] + "\", (void**) &::" + n + ", VK_API_VERSION_" + v + "); }\n"
