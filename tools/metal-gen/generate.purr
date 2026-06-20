@@ -79,7 +79,7 @@ fn cut(s) {
 # header may forward-declare a class that is actually DEFINED in another namespace (e.g. MTL4), and
 # aliasing that to this namespace would not compile.
 fn classes(blob) {
-    let out: list[str] = []
+    let out: list<str> = []
     let first = true
     for chunk in string.split(blob, "\nclass ") {
         if first { first = false; continue }
@@ -95,7 +95,7 @@ fn classes(blob) {
 
 # Collect value-struct names (MTL::Size, MTL::Origin, MTL::Region, …) — same rules as classes().
 fn structs(blob) {
-    let out: list[str] = []
+    let out: list<str> = []
     let first = true
     for chunk in string.split(blob, "\nstruct ") {
         if first { first = false; continue }
@@ -111,7 +111,7 @@ fn structs(blob) {
 
 # Collect (enum type name, [constant names]) from each _XXX_ENUM / _XXX_OPTIONS block of a blob.
 fn enum_types(blob, marker) {
-    let out: list[str] = []
+    let out: list<str> = []
     let first = true
     for chunk in string.split(blob, marker) {
         if first { first = false; continue }
@@ -122,7 +122,7 @@ fn enum_types(blob, marker) {
 }
 
 fn enum_consts(blob, marker) {
-    let out: list[str] = []
+    let out: list<str> = []
     let first = true
     for chunk in string.split(blob, marker) {
         if first { first = false; continue }
@@ -144,9 +144,9 @@ let mtl = io.read_file(MTL_IN)
 let ns = io.read_file(NS_IN)
 let mtl4 = io.read_file("tools/metal-gen/_inputs/mtl4.hpp")
 
-let seen: dict[str, str] = {}
+let seen: dict<str, str> = {}
 let body = ""
-let entries: list[str] = []
+let entries: list<str> = []
 let n_class = 0
 let n_enum = 0
 let n_const = 0
@@ -230,7 +230,7 @@ for marker in ["_MTL_ENUM(", "_MTL_OPTIONS("] {
 # A name already in the Metal 3 set (`seen`) is a Metal 3 type that a Metal 4 header merely references
 # (or a deliberate cross-version name); without full namespace-brace tracking we keep only the names
 # UNIQUE to Metal 4, which are exactly the MTL4-namespace types and compile cleanly.
-let seen4: dict[str, str] = {}
+let seen4: dict<str, str> = {}
 let body4 = ""
 let n4 = 0
 for nm in classes(mtl4) {

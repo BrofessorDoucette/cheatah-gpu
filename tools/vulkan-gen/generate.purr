@@ -162,8 +162,8 @@ fn doc_block(name, cmd_block) {
 # so a long long -> handle conversion needs reinterpret_cast; ints/enums/flags/float use static_cast.
 fn forwarder(name, block, cmd_block, handles) {
     let p = parse_proto(block)
-    let decls: list[str] = []
-    let names: list[str] = []
+    let decls: list<str> = []
+    let names: list<str> = []
     # Params are everything after </proto>; split on </param>.
     let tail = block[string.find(block, "</proto>") + len("</proto>"):]
     for seg in string.split(tail, "</param>") {
@@ -195,8 +195,8 @@ fn forwarder(name, block, cmd_block, handles) {
     # back to the exact Vulkan width, so a cheatah caller passes plain ints/floats and never juggles
     # uint32_t / VkDeviceSize / handles / enums. Pointers + arrays stay exact (use a cpp{} hatch for
     # those, or the easy `import gpu` layer). A caller wanting explicit widths still gets the exact one.
-    let odecls: list[str] = []
-    let oargs: list[str] = []
+    let odecls: list<str> = []
+    let oargs: list<str> = []
     let widened = false
     let i = 0
     while i < len(decls) {
@@ -235,8 +235,8 @@ fn forwarder(name, block, cmd_block, handles) {
 let xml = io.read_file(XML_PATH)
 
 # 1) Index every real <command> (proto + params) by its vk name; record alias -> target.
-let cmd_block: dict[str, str] = {}
-let alias_map: dict[str, str] = {}
+let cmd_block: dict<str, str> = {}
+let alias_map: dict<str, str> = {}
 let commands_xml = xml[string.find(xml, "<commands "):string.find(xml, "</commands>")]
 for chunk in string.split(commands_xml, "</command>") {
     if string.contains(chunk, "<proto>") {
@@ -253,7 +253,7 @@ for chunk in string.split(commands_xml, "</command>") {
 
 # 1b) Index every Vulkan handle type (dispatchable + non-dispatchable + aliases). On 64-bit these are
 #     ALL pointer typedefs, so handle params need reinterpret_cast in the cheatah-friendly overloads.
-let handles: dict[str, str] = {}
+let handles: dict<str, str> = {}
 let types_xml = xml[string.find(xml, "<types"):string.find(xml, "</types>")]
 # A handle def nests <type>VK_DEFINE_HANDLE</type>, so DON'T split on </type>; split on the handle
 # marker and read the name from the region up to the next type def (the inner <type> has no space).
@@ -281,7 +281,7 @@ for hp in string.split(types_xml, "category=\"handle\"") {
 #     interface. Splitting on "<type " (WITH the trailing space) hits only top-level type DEFINITIONS;
 #     member references like <type>uint32_t</type> have no space, so they're skipped. (Handles are
 #     already in `handles`.)
-let type_kind: dict[str, str] = {}
+let type_kind: dict<str, str> = {}
 let tdfirst = true
 for te in string.split(types_xml, "<type ") {
     if tdfirst {
@@ -304,8 +304,8 @@ for te in string.split(types_xml, "<type ") {
 # 1d) Index every enum CONSTANT -> its enum type, from the <enums> blocks (the base values, plus the
 #     "API Constants" block: VK_WHOLE_SIZE, VK_UUID_SIZE, …). Version-added values (1.1+) come from
 #     the <feature> <enum> requires instead, collected in the feature scan below.
-let const_type: dict[str, str] = {}
-let const_order: list[str] = []
+let const_type: dict<str, str> = {}
+let const_order: list<str> = []
 let edfirst = true
 for eb in string.split(xml, "<enums ") {
     if edfirst {
@@ -338,14 +338,14 @@ for eb in string.split(xml, "<enums ") {
 
 # 2) Collect the core command names, in order, from the vulkan-api VK_VERSION_* features. The same
 #    scan records each required TYPE and version-added ENUM value with its version, for the aliases.
-let core: list[str] = []
-let seen: dict[str, str] = {}
-let cmd_version: dict[str, str] = {}
-let type_version: dict[str, str] = {}
-let type_order: list[str] = []
-let const_add_version: dict[str, str] = {}
-let const_add_order: list[str] = []
-let const_ext: dict[str, str] = {}
+let core: list<str> = []
+let seen: dict<str, str> = {}
+let cmd_version: dict<str, str> = {}
+let type_version: dict<str, str> = {}
+let type_order: list<str> = []
+let const_add_version: dict<str, str> = {}
+let const_add_order: list<str> = []
+let const_ext: dict<str, str> = {}
 let fsegs = string.split(xml, "<feature ")
 for seg in fsegs {
     let fe = string.find(seg, "</feature>")
@@ -534,7 +534,7 @@ tyf.close()
 #     cheatah VS Code extension loads this for the resolved `gpu.vulkan` module to (a) color functions,
 #     types and enum values distinctly (so `vk.Instance` reads as a type even though `vk.Instance()`
 #     looks like a call) and (b) show a hover popup with the documentation link.
-let entries: list[str] = []
+let entries: list<str> = []
 for n in core {
     let real = n
     if (not (n in cmd_block)) and (n in alias_map) { real = alias_map[n] }
@@ -548,7 +548,7 @@ for tn in type_order {
     if tn in type_kind { k = type_kind[tn] }
     entries.append("    \"" + strip_vk_type(tn) + "\": {\"kind\": \"" + k + "\", \"vk\": \"" + tn + "\", \"doc\": \"" + MAN + tn + ".html\"}")
 }
-let cseen: dict[str, str] = {}
+let cseen: dict<str, str> = {}
 for cn in const_order {
     if const_ver(cn, const_add_version, const_type, type_version) == "" { continue }
     if cn == "VK_TRUE" or cn == "VK_FALSE" { continue }
