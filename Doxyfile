@@ -1,0 +1,84 @@
+# Doxyfile for cheatah-gpu's public API.
+#
+# Used two ways:
+#   • doxygen Doxyfile                       — emit XML (the parser for future site/hover tooling)
+#   • scripts/doc_coverage.sh                — strict, check-only pass that fails on any undocumented
+#                                              public entity (it appends EXTRACT_ALL=NO + WARN_* here)
+
+#---------------------------------------------------------------------------
+# Project
+#---------------------------------------------------------------------------
+PROJECT_NAME           = "cheatah-gpu"
+PROJECT_BRIEF          = "One shared interface over Vulkan + Metal — the simplest way onto the GPU from cheatah."
+OUTPUT_DIRECTORY       = docs
+CREATE_SUBDIRS         = NO
+ALLOW_UNICODE_NAMES    = YES
+OUTPUT_LANGUAGE        = English
+MARKDOWN_SUPPORT       = YES
+TOC_INCLUDE_HEADINGS   = 5
+AUTOLINK_SUPPORT       = YES
+TAB_SIZE               = 4
+
+# Custom doc tags — structured, separately styled sections (kept byte-for-byte in sync with the
+# cheatah toolchain so the same Javadoc renders everywhere).
+ALIASES                = "complexity=\xrefitem complexity \"Complexity\" \"Complexity\""
+ALIASES               += "alloc=\xrefitem alloc \"Allocation\" \"Allocation\""
+# Test kinds shown per function and linked to their source by the generator.
+ALIASES               += "crtest=\xrefitem crtest \"Compile-run test\" \"Compile-run test\""
+ALIASES               += "systest=\xrefitem systest \"System test\" \"System test\""
+
+#---------------------------------------------------------------------------
+# Build / extraction
+#---------------------------------------------------------------------------
+EXTRACT_ALL            = YES
+EXTRACT_STATIC         = YES
+EXTRACT_LOCAL_CLASSES  = YES
+EXTRACT_PRIVATE        = NO
+JAVADOC_AUTOBRIEF      = YES
+QT_AUTOBRIEF           = NO
+SORT_MEMBER_DOCS       = NO
+GENERATE_TODOLIST      = NO
+GENERATE_TESTLIST      = YES
+GENERATE_BUGLIST       = NO
+
+#---------------------------------------------------------------------------
+# Warnings
+#---------------------------------------------------------------------------
+QUIET                  = YES
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = NO
+WARN_IF_DOC_ERROR      = YES
+WARN_NO_PARAMDOC       = NO
+
+#---------------------------------------------------------------------------
+# Input — the gpu package headers (the public API) + their READMEs.
+#---------------------------------------------------------------------------
+INPUT                  = gpu
+INPUT_ENCODING         = UTF-8
+FILE_PATTERNS          = *.hpp *.cpp *.md
+RECURSIVE              = YES
+IMPLICIT_DIR_DOCS      = NO
+EXCLUDE_PATTERNS       = */tests/* */systests/* */scripts/* */vendor/*
+# Internal implementation helpers (any `detail` namespace) are NOT public API.
+EXCLUDE_SYMBOLS        = *::detail::* *::detail
+
+#---------------------------------------------------------------------------
+# Output: Doxygen is used only as the C++ parser (XML). No HTML/LaTeX, no dot.
+#---------------------------------------------------------------------------
+GENERATE_HTML          = NO
+GENERATE_XML           = YES
+XML_OUTPUT             = xml
+XML_PROGRAMLISTING     = NO
+GENERATE_LATEX         = NO
+HAVE_DOT               = NO
+
+#---------------------------------------------------------------------------
+# Preprocessor — define BOTH backend macros so Doxygen documents the full surface regardless of
+# which one a given build selects (the real selection is compile-time; see gpu/backend.hpp).
+#---------------------------------------------------------------------------
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
+SKIP_FUNCTION_MACROS   = YES
+SEARCH_INCLUDES        = YES
+PREDEFINED             = CHEATAH_GPU_BACKEND_VULKAN=1

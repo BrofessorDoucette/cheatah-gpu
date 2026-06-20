@@ -1,0 +1,36 @@
+# cheatah-gpu — biome manifest.
+#
+# Marks this repo as a cheatah standard-library extension (biome already knows cheatah-gpu ->
+# github.com/BrofessorDoucette/cheatah-gpu). A downstream project runs `biome add cheatah-gpu` and
+# then `import gpu.dispatch` (etc.).
+
+[project]
+name = "cheatah-gpu"
+
+[cheatah]
+# Toolchain version this extension targets (git tag of the cheatah repo). Bump deliberately.
+version = "0.9.0"
+
+# [system-dependencies] — the painless-install convention (NEW; biome has no native hook yet, so
+# scripts/install-deps.sh consumes this today and a future `biome install`/`biome doctor` will too).
+# These are the USERSPACE GPU packages a machine needs to compile + run shaders. Kernel/GPU drivers
+# are intentionally NOT listed: they're machine-specific and installed/guided by scripts/doctor.sh.
+[system-dependencies]
+# What the extension needs at runtime/build time, named per platform package manager.
+linux-apt    = ["libvulkan-dev", "vulkan-validationlayers", "vulkan-tools", "glslang-tools", "spirv-tools"]
+linux-dnf    = ["vulkan-loader-devel", "vulkan-validation-layers", "vulkan-tools", "glslang", "spirv-tools"]
+linux-pacman = ["vulkan-icd-loader", "vulkan-headers", "vulkan-validation-layers", "vulkan-tools", "glslang", "spirv-tools"]
+macos-brew   = ["molten-vk", "shader-slang"]
+# slangc (the Slang shader compiler) ships in the LunarG Vulkan SDK; install-deps.sh points the user
+# there if it isn't already on PATH.
+slang        = { sdk = "vulkan", url = "https://vulkan.lunarg.com/sdk/home" }
+# Provisioned + verified by:
+install      = "scripts/install-deps.sh"
+doctor       = "scripts/doctor.sh"
+
+# GLFW is a TEST-ONLY dependency (cheatah-gpu does not own windowing — that's a consumer concern).
+[dev-dependencies.system]
+linux-apt    = ["libglfw3-dev"]
+linux-dnf    = ["glfw-devel"]
+linux-pacman = ["glfw"]
+macos-brew   = ["glfw"]

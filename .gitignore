@@ -1,0 +1,80 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Linker files
+*.ilk
+
+# Debugger Files
+*.pdb
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+*.so.*
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Build directories
+build/
+Build/
+build-*/
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+install_manifest.txt
+compile_commands.json
+
+# Temporary files
+*.tmp
+*.log
+*.bak
+*.swp
+
+# debug information files
+*.dwo
+
+# test output & cache
+Testing/
+.cache/
+
+# --- cheatah-gpu ---
+# CPM's downloaded bootstrap (the committed cmake/CPM.cmake stays; the versioned copy is fetched).
+cmake/CPM_*.cmake
+# Clang source-based coverage scratch.
+*.profraw
+*.profdata
+# Compiled shaders (Slang -> SPIR-V is produced on demand by the build/doctor).
+*.spv
+# Optional, dev-only backend SDKs / vendored refs — fetched ad hoc, NEVER committed, NEVER required.
+gpu/vulkan/vendor/
+gpu/metal/vendor/
+# Generated system-test helper header (qa_gate emits check.purr to a temp dir; guard stray copies).
+systests/check.hpp
+systests/check.hpp.sha512
+# The gpu.* module headers are hand-authored C++ and ARE committed (gpu/**/*.hpp).
+
+# Local Claude Code session settings (not part of the library).
+.claude/

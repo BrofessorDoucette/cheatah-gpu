@@ -1,0 +1,56 @@
+# systests/check — a tiny assertion helper for cheatah-gpu's system-test suite.
+#
+# Imported (relative) by each test program: `import check`. Every assertion prints a PASS/FAIL line
+# and RETURNS the failure count (0 or 1), so a test accumulates `f += check.eq_int(...)`, then calls
+# `check.result(f)` to emit the machine-checked verdict the qa_gate greps for. Definitions only —
+# importing this runs nothing.
+
+import io
+
+# Assert two integers are exactly equal; print PASS/FAIL, return the failure count.
+#
+# @param name the check's label.
+# @param got the computed value.
+# @param want the expected value.
+# @return 0 on pass, 1 on fail.
+# @complexity O(1).
+# @alloc none.
+fn eq_int(name, got, want) {
+    if got == want {
+        io.print("  PASS", name)
+        return 0
+    }
+    io.print("  FAIL", name, "got", got, "want", want)
+    return 1
+}
+
+# Assert a boolean condition holds; print PASS/FAIL, return the failure count.
+#
+# @param name the check's label.
+# @param cond the condition that must hold.
+# @return 0 on pass, 1 on fail.
+# @complexity O(1).
+# @alloc none.
+fn is_true(name, cond) {
+    if cond {
+        io.print("  PASS", name)
+        return 0
+    }
+    io.print("  FAIL", name)
+    return 1
+}
+
+# Emit the suite verdict the qa_gate parses. Prints `RESULT: PASS` iff no checks failed.
+#
+# @param fails the accumulated failure count.
+# @return the failure count (so a caller may chain/propagate it).
+# @complexity O(1).
+# @alloc none.
+fn result(fails) {
+    if fails == 0 {
+        io.print("RESULT: PASS")
+    } else {
+        io.print("RESULT: FAIL", fails)
+    }
+    return fails
+}
