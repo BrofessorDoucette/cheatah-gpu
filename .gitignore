@@ -78,3 +78,6 @@ systests/check.hpp.sha512
 
 # Local Claude Code session settings (not part of the library).
 .claude/
+
+# Transient window-test module archive (built + removed by scripts/window_test.sh).
+tests/window/libcheatah_window.a

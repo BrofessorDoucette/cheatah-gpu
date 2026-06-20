@@ -1,0 +1,26 @@
+# test_window.purr — OPTIONAL system test: draw the Slang plasma in a real window, with the WHOLE
+# animation loop written in cheatah. `window` is a normal cheatah module (tests/window/window.hpp) —
+# so we just call window.open / window.draw / window.close. No cpp{} escape hatches, no casts: cheatah
+# is C++, so it calls our generated code directly. Run by scripts/window_test.sh.
+
+import io
+import window as window
+
+io.print("== cheatah-gpu window test: slang plasma ==")
+
+let win = window.open(640, 480)
+if win == 0 {
+    io.print("RESULT: FAIL (could not open a window / Vulkan surface)")
+} else {
+    # The animation is pure cheatah: advance time, draw each frame, stop early if the user closes it.
+    let frame = 0
+    let frames = 180
+    let alive = 1
+    while frame < frames and alive == 1 {
+        alive = window.draw(win, frame * 0.03)
+        frame = frame + 1
+    }
+    window.close(win)
+    io.print("drew", frame, "frames of the plasma")
+    io.print("RESULT: PASS")
+}
