@@ -157,4 +157,4 @@ Every public function documents `@param`, `@return`, `@complexity`, `@alloc`, an
 
 ## License
 
-MIT © Joshua Doucette — see [LICENSE](LICENSE).
+MIT — © 2026 BigBrain LLC (Joshua Doucette, on its behalf). See [LICENSE](LICENSE) and [NOTICE](NOTICE).
