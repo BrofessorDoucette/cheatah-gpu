@@ -31,6 +31,7 @@ fi
 
 TEST="tests/metal/metal_compute_test.cpp"
 MLTEST="tests/metal/metal_multiline_test.cpp"   # mtl.* calls with multi-line arguments
+TXTEST="tests/metal/metal_texture_test.cpp"     # texture -> render-pass clear -> readback (graphics)
 W="$(mktemp -d)"; trap 'rm -rf "$W"' EXIT
 
 if [ "$(uname -s)" = "Darwin" ]; then
@@ -55,6 +56,11 @@ if [ "$(uname -s)" = "Darwin" ]; then
         || { cat "$W/real_ml.log"; fail "real Metal multi-line build"; }
     "$W/metal_real_ml" | sed 's/^/    /' || fail "real Metal multi-line run"
     "$W/metal_real_ml" | grep -q "RESULT: PASS" || fail "real Metal multi-line did not pass"
+    # The graphics half: texture -> render-pass clear -> readback, on the real GPU.
+    $CXX $CF "$TXTEST" "$IMPL" $FW -o "$W/metal_real_tx" >"$W/real_tx.log" 2>&1 \
+        || { cat "$W/real_tx.log"; fail "real Metal texture build"; }
+    "$W/metal_real_tx" | sed 's/^/    /' || fail "real Metal texture run"
+    "$W/metal_real_tx" | grep -q "RESULT: PASS" || fail "real Metal texture/clear/readback did not pass"
 else
     # ===== Off Apple: run the SAME test on the software-emulated device (CPU), fully sanitized. ===
     # metal-cpp on a non-Apple OS needs the small Objective-C/CoreFoundation shim + Clang blocks + a
@@ -76,6 +82,14 @@ else
         -g -O1 $EMU "$MLTEST" -o "$W/metal_ml" >"$W/ml_build.log" 2>&1 || { cat "$W/ml_build.log"; fail "multi-line ASan build"; }
     ASAN_OPTIONS=detect_leaks=1 "$W/metal_ml" | sed 's/^/    /' || fail "multi-line ASan run"
 
+    # The GRAPHICS half — texture, render-pass clear, readback — under ASan. This is what lets a
+    # consumer's offscreen render tier run on Metal off-Apple, byte-identical to Vulkan.
+    bold "Building + running the emulated Metal texture/clear/readback test under ASan + UBSan…"
+    $CXX $CF -DCHEATAH_GPU_METAL_LEAKCHECK=1 -fsanitize=address,undefined -fno-sanitize=function \
+        -g -O1 $EMU "$TXTEST" -o "$W/metal_tx" >"$W/tx_build.log" 2>&1 || { cat "$W/tx_build.log"; fail "texture ASan build"; }
+    ASAN_OPTIONS=detect_leaks=1 "$W/metal_tx" | sed 's/^/    /' || fail "texture ASan run"
+    ASAN_OPTIONS=detect_leaks=1 "$W/metal_tx" | grep -q "RESULT: PASS" || fail "texture/clear/readback did not pass"
+
     # Valgrind memcheck (no definite/indirect leaks) + Helgrind (no races).
     if command -v valgrind >/dev/null 2>&1; then
         bold "Building + running under Valgrind memcheck…"
@@ -83,6 +97,11 @@ else
             || { cat "$W/vg_build.log"; fail "Valgrind build"; }
         valgrind --error-exitcode=1 --leak-check=full --errors-for-leak-kinds=definite,indirect \
             "$W/metal_vg" >"$W/vg.log" 2>&1 || { sed 's/^/    /' "$W/vg.log"; fail "Valgrind (leaks/errors)"; }
+        # The texture path too — the render objects are the newest allocation sites.
+        $CXX $CF -DCHEATAH_GPU_METAL_LEAKCHECK=1 -g -O0 $EMU "$TXTEST" -o "$W/metal_tx_vg" >"$W/tx_vg_build.log" 2>&1 \
+            || { cat "$W/tx_vg_build.log"; fail "Valgrind texture build"; }
+        valgrind --error-exitcode=1 --leak-check=full --errors-for-leak-kinds=definite,indirect \
+            "$W/metal_tx_vg" >"$W/tx_vg.log" 2>&1 || { sed 's/^/    /' "$W/tx_vg.log"; fail "Valgrind texture (leaks/errors)"; }
         bold "Running under Helgrind (race detection)…"
         valgrind --tool=helgrind --error-exitcode=1 "$W/metal_vg" >"$W/hg.log" 2>&1 \
             || { sed 's/^/    /' "$W/hg.log"; fail "Helgrind (data race)"; }

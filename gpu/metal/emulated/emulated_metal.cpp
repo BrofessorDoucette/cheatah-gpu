@@ -21,6 +21,7 @@
 #define CA_PRIVATE_IMPLEMENTATION
 #include <Metal/Metal.hpp>
 
+#include <array>
 #include <cstdarg>
 #include <cstdint>
 #include <cstring>
@@ -32,7 +33,12 @@
 
 namespace {
 
-enum Tag { T_CLASS, T_STR, T_DEV, T_QUEUE, T_LIB, T_FUNC, T_PIPE, T_BUF, T_CMDBUF, T_ENC, T_POOL, T_OBJ };
+enum Tag {
+    T_CLASS, T_STR, T_DEV, T_QUEUE, T_LIB, T_FUNC, T_PIPE, T_BUF, T_CMDBUF, T_ENC, T_POOL, T_OBJ,
+    // The render/texture path: enough to create a 2D texture, clear it through a render pass, and
+    // read the pixels back — the graphics analogue of the compute objects above.
+    T_TEXDESC, T_TEX, T_RPDESC, T_RPCAA, T_RPCA, T_RENC,
+};
 
 struct Base {
     void* isa = nullptr;
@@ -46,6 +52,46 @@ struct Pipe : Base { std::string fn; };
 struct Buf : Base { std::vector<unsigned char> data; };
 struct CmdBuf : Base { std::vector<std::function<void()>> work; };
 struct Enc : Base { CmdBuf* cb = nullptr; std::string fn; std::map<unsigned long, std::pair<Buf*, unsigned long>> bufs; };
+
+// --- the render/texture objects ------------------------------------------------------------------
+// Only RGBA8Unorm is emulated (bytes in memory are R,G,B,A) — the one format cheatah-gpu's consumers
+// use for an offscreen target, and byte-for-byte what Vulkan's VK_FORMAT_R8G8B8A8_UNORM gives.
+constexpr unsigned long kBytesPerPixel = 4;
+
+struct TexDesc : Base {
+    unsigned long width = 0, height = 0;
+    unsigned long pixel_format = 0, usage = 0, storage_mode = 0, texture_type = 0;
+};
+struct Tex : Base {
+    unsigned long width = 0, height = 0, pixel_format = 0;
+    std::vector<unsigned char> data;  ///< width * height * 4, row-major, tightly packed
+};
+/// One colour attachment of a render pass: which texture, and what to do with it on load/store.
+struct RPCA : Base {
+    Tex* texture = nullptr;
+    unsigned long load_action = 0;   ///< MTL::LoadActionDontCare(0) / Load(1) / Clear(2)
+    unsigned long store_action = 0;
+    double clear_color[4] = {0.0, 0.0, 0.0, 0.0};
+};
+/// The attachment array. Owns its attachments (they are unowned views to metal-cpp).
+struct RPCAA : Base {
+    std::map<unsigned long, RPCA*> attachments;
+    ~RPCAA() { for (auto& kv : attachments) { delete kv.second; } }
+};
+struct RPDesc : Base {
+    RPCAA* colors = nullptr;  ///< created lazily by `colorAttachments`; owned
+    ~RPDesc() { delete colors; }
+};
+/// A render encoder. Clear-only for now: the work is queued at endEncoding, run at commit.
+struct REnc : Base { CmdBuf* cb = nullptr; RPDesc* pass = nullptr; };
+
+/// Metal's float->unorm8 conversion: round to nearest, matching what a real GPU stores (and what
+/// Vulkan's UNORM clear produces), so a clear of 0.25/0.5/0.75/1.0 reads back as 64/128/191/255.
+unsigned char to_unorm8(double c) {
+    if (c <= 0.0) { return 0; }
+    if (c >= 1.0) { return 255; }
+    return static_cast<unsigned char>(c * 255.0 + 0.5);
+}
 
 // Function-local statics dodge the static-init-order fiasco: metal-cpp registers its classes/selectors
 // during static init, which calls back into sel_registerName / objc_lookUpClass below.
@@ -77,6 +123,10 @@ void destroy(Base* b) {
         case T_CMDBUF:
         case T_QUEUE:  delete static_cast<CmdBuf*>(b); break;
         case T_ENC:    delete static_cast<Enc*>(b); break;
+        case T_TEXDESC: delete static_cast<TexDesc*>(b); break;
+        case T_TEX:    delete static_cast<Tex*>(b); break;
+        case T_RPDESC: delete static_cast<RPDesc*>(b); break;  // frees its attachment array
+        case T_RENC:   delete static_cast<REnc*>(b); break;
         default:       delete b; break;
     }
 }
@@ -143,7 +193,11 @@ id objc_msgSend(id self, SEL op, ...) {
     if (b->tag == T_CLASS) {
         const std::string& cls = static_cast<ClassObj*>(b)->name;
         if (s == "alloc") {
+            // `alloc` is the one place the class name decides the object, so a later `init` (which
+            // just returns self) yields a descriptor of the right kind.
             if (cls == "NSAutoreleasePool") { ret = reinterpret_cast<id>(make<Base>(T_POOL)); }
+            else if (cls == "MTLTextureDescriptor") { ret = reinterpret_cast<id>(make<TexDesc>(T_TEXDESC)); }
+            else if (cls == "MTLRenderPassDescriptor") { ret = reinterpret_cast<id>(make<RPDesc>(T_RPDESC)); }
             else { ret = reinterpret_cast<id>(make<Base>(T_OBJ)); }
         } else if (s.rfind("stringWithCString", 0) == 0 || s.rfind("stringWithUTF8", 0) == 0) {
             const char* c = va_arg(ap, const char*);
@@ -166,10 +220,13 @@ id objc_msgSend(id self, SEL op, ...) {
             va_end(ap);
             return nullptr;
         }
+        // `init` returns self for every object; a pool additionally opens an autorelease scope.
+        if (s == "init") {
+            if (b->tag == T_POOL) { autorelease_stack().emplace_back(); }
+            va_end(ap);
+            return self;
+        }
         switch (b->tag) {
-            case T_POOL:
-                if (s == "init") { autorelease_stack().emplace_back(); ret = self; }
-                break;
             case T_DEV:
                 if (s == "newCommandQueue" || s == "newCommandQueueWithMaxCommandBufferCount:")
                     ret = reinterpret_cast<id>(make<CmdBuf>(T_QUEUE));
@@ -186,6 +243,14 @@ id objc_msgSend(id self, SEL op, ...) {
                     Buf* bf = make<Buf>(T_BUF);
                     bf->data.assign(static_cast<unsigned char*>(p), static_cast<unsigned char*>(p) + len);
                     ret = reinterpret_cast<id>(bf);
+                } else if (s == "newTextureWithDescriptor:") {
+                    TexDesc* d = reinterpret_cast<TexDesc*>(va_arg(ap, id));
+                    Tex* t = make<Tex>(T_TEX);
+                    if (d != nullptr) {
+                        t->width = d->width; t->height = d->height; t->pixel_format = d->pixel_format;
+                    }
+                    t->data.assign(t->width * t->height * kBytesPerPixel, 0);
+                    ret = reinterpret_cast<id>(t);
                 }
                 break;
             case T_LIB:
@@ -203,6 +268,12 @@ id objc_msgSend(id self, SEL op, ...) {
                 CmdBuf* c = static_cast<CmdBuf*>(b);
                 if (s == "computeCommandEncoder") {
                     Enc* e = make<Enc>(T_ENC); e->cb = c; autorelease(e); ret = reinterpret_cast<id>(e);
+                } else if (s == "renderCommandEncoderWithDescriptor:") {
+                    REnc* e = make<REnc>(T_RENC);
+                    e->cb = c;
+                    e->pass = reinterpret_cast<RPDesc*>(va_arg(ap, id));
+                    autorelease(e);
+                    ret = reinterpret_cast<id>(e);
                 } else if (s == "commit") {
                     for (auto& w : c->work) w();
                 }  // waitUntilCompleted: synchronous already
@@ -236,6 +307,112 @@ id objc_msgSend(id self, SEL op, ...) {
                 Buf* bf = static_cast<Buf*>(b);
                 if (s == "contents") ret = reinterpret_cast<id>(bf->data.data());
                 else if (s == "length") ret = reinterpret_cast<id>(static_cast<uintptr_t>(bf->data.size()));
+                break;
+            }
+            case T_TEXDESC: {
+                TexDesc* d = static_cast<TexDesc*>(b);
+                if (s == "setWidth:") d->width = va_arg(ap, unsigned long);
+                else if (s == "setHeight:") d->height = va_arg(ap, unsigned long);
+                else if (s == "setPixelFormat:") d->pixel_format = va_arg(ap, unsigned long);
+                else if (s == "setUsage:") d->usage = va_arg(ap, unsigned long);
+                else if (s == "setStorageMode:") d->storage_mode = va_arg(ap, unsigned long);
+                else if (s == "setTextureType:") d->texture_type = va_arg(ap, unsigned long);
+                else if (s == "width") ret = reinterpret_cast<id>(static_cast<uintptr_t>(d->width));
+                else if (s == "height") ret = reinterpret_cast<id>(static_cast<uintptr_t>(d->height));
+                break;
+            }
+            case T_TEX: {
+                Tex* t = static_cast<Tex*>(b);
+                if (s == "width") ret = reinterpret_cast<id>(static_cast<uintptr_t>(t->width));
+                else if (s == "height") ret = reinterpret_cast<id>(static_cast<uintptr_t>(t->height));
+                else if (s == "getBytes:bytesPerRow:fromRegion:mipmapLevel:") {
+                    // (void* bytes, NS::UInteger bytesPerRow, MTL::Region region, NS::UInteger level)
+                    unsigned char* out = static_cast<unsigned char*>(va_arg(ap, void*));
+                    unsigned long dst_stride = va_arg(ap, unsigned long);
+                    MTL::Region r = va_arg(ap, MTL::Region);
+                    va_arg(ap, unsigned long);  // mipmapLevel — only level 0 exists here
+                    const unsigned long src_stride = t->width * kBytesPerPixel;
+                    if (out != nullptr && r.origin.x + r.size.width <= t->width &&
+                        r.origin.y + r.size.height <= t->height) {
+                        for (unsigned long row = 0; row < r.size.height; ++row) {
+                            const unsigned char* src =
+                                t->data.data() + (r.origin.y + row) * src_stride + r.origin.x * kBytesPerPixel;
+                            std::memcpy(out + row * dst_stride, src, r.size.width * kBytesPerPixel);
+                        }
+                    }
+                } else if (s == "replaceRegion:mipmapLevel:withBytes:bytesPerRow:") {
+                    // (MTL::Region region, NS::UInteger level, const void* bytes, NS::UInteger bpr)
+                    MTL::Region r = va_arg(ap, MTL::Region);
+                    va_arg(ap, unsigned long);  // mipmapLevel
+                    const unsigned char* in = static_cast<const unsigned char*>(va_arg(ap, void*));
+                    unsigned long src_stride = va_arg(ap, unsigned long);
+                    const unsigned long dst_stride = t->width * kBytesPerPixel;
+                    if (in != nullptr && r.origin.x + r.size.width <= t->width &&
+                        r.origin.y + r.size.height <= t->height) {
+                        for (unsigned long row = 0; row < r.size.height; ++row) {
+                            unsigned char* dst =
+                                t->data.data() + (r.origin.y + row) * dst_stride + r.origin.x * kBytesPerPixel;
+                            std::memcpy(dst, in + row * src_stride, r.size.width * kBytesPerPixel);
+                        }
+                    }
+                }
+                break;
+            }
+            case T_RPDESC: {
+                RPDesc* d = static_cast<RPDesc*>(b);
+                if (s == "colorAttachments") {
+                    if (d->colors == nullptr) {
+                        d->colors = make<RPCAA>(T_RPCAA);
+                        untrack(d->colors);  // an unowned view to metal-cpp; the descriptor frees it
+                    }
+                    ret = reinterpret_cast<id>(d->colors);
+                }
+                break;
+            }
+            case T_RPCAA: {
+                RPCAA* arr = static_cast<RPCAA*>(b);
+                if (s == "objectAtIndexedSubscript:") {
+                    unsigned long i = va_arg(ap, unsigned long);
+                    RPCA*& slot = arr->attachments[i];
+                    if (slot == nullptr) {
+                        slot = make<RPCA>(T_RPCA);
+                        untrack(slot);  // unowned view; the array frees it
+                    }
+                    ret = reinterpret_cast<id>(slot);
+                }
+                break;
+            }
+            case T_RPCA: {
+                RPCA* att = static_cast<RPCA*>(b);
+                if (s == "setTexture:") att->texture = reinterpret_cast<Tex*>(va_arg(ap, id));
+                else if (s == "setLoadAction:") att->load_action = va_arg(ap, unsigned long);
+                else if (s == "setStoreAction:") att->store_action = va_arg(ap, unsigned long);
+                else if (s == "setClearColor:") {
+                    MTL::ClearColor c = va_arg(ap, MTL::ClearColor);
+                    att->clear_color[0] = c.red; att->clear_color[1] = c.green;
+                    att->clear_color[2] = c.blue; att->clear_color[3] = c.alpha;
+                }
+                break;
+            }
+            case T_RENC: {
+                REnc* e = static_cast<REnc*>(b);
+                if (s == "endEncoding" && e->pass != nullptr && e->pass->colors != nullptr) {
+                    // A clear-only render pass: at commit, every attachment whose loadAction is Clear
+                    // fills its texture with the clear colour. (Draw calls arrive with the mesh work.)
+                    for (auto& kv : e->pass->colors->attachments) {
+                        RPCA* att = kv.second;
+                        if (att->texture == nullptr || att->load_action != MTL::LoadActionClear) { continue; }
+                        Tex* t = att->texture;
+                        const std::array<unsigned char, kBytesPerPixel> px = {
+                            to_unorm8(att->clear_color[0]), to_unorm8(att->clear_color[1]),
+                            to_unorm8(att->clear_color[2]), to_unorm8(att->clear_color[3])};
+                        e->cb->work.push_back([t, px]() {
+                            for (std::size_t i = 0; i + kBytesPerPixel <= t->data.size(); i += kBytesPerPixel) {
+                                std::memcpy(t->data.data() + i, px.data(), kBytesPerPixel);
+                            }
+                        });
+                    }
+                }
                 break;
             }
             case T_STR: {
