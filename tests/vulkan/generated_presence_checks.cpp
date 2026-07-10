@@ -770,5 +770,58 @@ TEST_F(VulkanPresence, CmdSetRenderingInputAttachmentIndices) {
           (void**)&::vkCmdSetRenderingInputAttachmentIndices, VK_API_VERSION_1_4);
 }
 #endif
+#ifdef VK_KHR_surface
+TEST_F(VulkanPresence, DestroySurfaceKHR) {
+    probe("DestroySurfaceKHR", (void**)&::vkDestroySurfaceKHR, VK_API_VERSION_1_0);
+}
+TEST_F(VulkanPresence, GetPhysicalDeviceSurfaceSupportKHR) {
+    probe("GetPhysicalDeviceSurfaceSupportKHR", (void**)&::vkGetPhysicalDeviceSurfaceSupportKHR,
+          VK_API_VERSION_1_0);
+}
+TEST_F(VulkanPresence, GetPhysicalDeviceSurfaceCapabilitiesKHR) {
+    probe("GetPhysicalDeviceSurfaceCapabilitiesKHR",
+          (void**)&::vkGetPhysicalDeviceSurfaceCapabilitiesKHR, VK_API_VERSION_1_0);
+}
+TEST_F(VulkanPresence, GetPhysicalDeviceSurfaceFormatsKHR) {
+    probe("GetPhysicalDeviceSurfaceFormatsKHR", (void**)&::vkGetPhysicalDeviceSurfaceFormatsKHR,
+          VK_API_VERSION_1_0);
+}
+TEST_F(VulkanPresence, GetPhysicalDeviceSurfacePresentModesKHR) {
+    probe("GetPhysicalDeviceSurfacePresentModesKHR",
+          (void**)&::vkGetPhysicalDeviceSurfacePresentModesKHR, VK_API_VERSION_1_0);
+}
+#endif
+#ifdef VK_KHR_swapchain
+TEST_F(VulkanPresence, CreateSwapchainKHR) {
+    probe("CreateSwapchainKHR", (void**)&::vkCreateSwapchainKHR, VK_API_VERSION_1_0);
+}
+TEST_F(VulkanPresence, DestroySwapchainKHR) {
+    probe("DestroySwapchainKHR", (void**)&::vkDestroySwapchainKHR, VK_API_VERSION_1_0);
+}
+TEST_F(VulkanPresence, GetSwapchainImagesKHR) {
+    probe("GetSwapchainImagesKHR", (void**)&::vkGetSwapchainImagesKHR, VK_API_VERSION_1_0);
+}
+TEST_F(VulkanPresence, AcquireNextImageKHR) {
+    probe("AcquireNextImageKHR", (void**)&::vkAcquireNextImageKHR, VK_API_VERSION_1_0);
+}
+TEST_F(VulkanPresence, QueuePresentKHR) {
+    probe("QueuePresentKHR", (void**)&::vkQueuePresentKHR, VK_API_VERSION_1_0);
+}
+TEST_F(VulkanPresence, GetDeviceGroupPresentCapabilitiesKHR) {
+    probe("GetDeviceGroupPresentCapabilitiesKHR", (void**)&::vkGetDeviceGroupPresentCapabilitiesKHR,
+          VK_API_VERSION_1_0);
+}
+TEST_F(VulkanPresence, GetDeviceGroupSurfacePresentModesKHR) {
+    probe("GetDeviceGroupSurfacePresentModesKHR", (void**)&::vkGetDeviceGroupSurfacePresentModesKHR,
+          VK_API_VERSION_1_0);
+}
+TEST_F(VulkanPresence, GetPhysicalDevicePresentRectanglesKHR) {
+    probe("GetPhysicalDevicePresentRectanglesKHR",
+          (void**)&::vkGetPhysicalDevicePresentRectanglesKHR, VK_API_VERSION_1_0);
+}
+TEST_F(VulkanPresence, AcquireNextImage2KHR) {
+    probe("AcquireNextImage2KHR", (void**)&::vkAcquireNextImage2KHR, VK_API_VERSION_1_0);
+}
+#endif
 
 } // namespace cheatah::gpu::vktest

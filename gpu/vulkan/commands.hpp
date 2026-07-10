@@ -5,12 +5,13 @@
 
 /**
  * @file commands.hpp
- * @brief gpu.vulkan — inline forwarders for the core Vulkan API (the real `vk*` calls).
+ * @brief gpu.vulkan — inline forwarders for the Vulkan API (the real `vk*` calls).
  *
- * One `inline` wrapper per core Vulkan command in `cheatah::gpu::vulkan`, each forwarding to
+ * One `inline` wrapper per Vulkan command in `cheatah::gpu::vulkan` — the core feature set plus
+ * the portable WSI extensions (VK_KHR_surface, VK_KHR_swapchain) — each forwarding to
  * the genuine `vk*` entry point through volk (loader.hpp). Parameters keep the exact Vulkan
  * integer widths so cheatah's int binds to the proper size. This is the faithful native
- * surface (`import gpu.vulkan`); the ergonomic cross-platform layer is `import gpu`.
+ * surface (`import gpu.vulkan`); a cheatah-friendly overload per command fixes the typing.
  */
 
 #include "loader.hpp"
@@ -5385,5 +5386,343 @@ inline void CmdSetRenderingInputAttachmentIndices(
 }
 
 #endif // VK_VERSION_1_4
+
+#ifdef VK_KHR_surface
+
+/**
+ * Inline forwarder for
+ * [`vkDestroySurfaceKHR`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroySurfaceKHR.html)
+ * — the real Vulkan call via volk.
+ */
+inline void DestroySurfaceKHR(VkInstance instance,
+                              VkSurfaceKHR surface,
+                              const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroySurfaceKHR(instance, surface, pAllocator);
+}
+
+/**
+ * cheatah-friendly overload of `DestroySurfaceKHR`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void
+DestroySurfaceKHR(long long instance, long long surface, const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroySurfaceKHR(reinterpret_cast<VkInstance>(instance),
+                          reinterpret_cast<VkSurfaceKHR>(surface), pAllocator);
+}
+
+/**
+ * Inline forwarder for
+ * [`vkGetPhysicalDeviceSurfaceSupportKHR`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetPhysicalDeviceSurfaceSupportKHR.html)
+ * — the real Vulkan call via volk.
+ */
+inline VkResult GetPhysicalDeviceSurfaceSupportKHR(VkPhysicalDevice physicalDevice,
+                                                   uint32_t queueFamilyIndex,
+                                                   VkSurfaceKHR surface,
+                                                   VkBool32* pSupported) {
+    return ::vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, queueFamilyIndex, surface,
+                                                  pSupported);
+}
+
+/**
+ * cheatah-friendly overload of `GetPhysicalDeviceSurfaceSupportKHR`: pass plain ints/floats; the
+ * exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult GetPhysicalDeviceSurfaceSupportKHR(long long physicalDevice,
+                                                   long long queueFamilyIndex,
+                                                   long long surface,
+                                                   VkBool32* pSupported) {
+    return ::vkGetPhysicalDeviceSurfaceSupportKHR(
+        reinterpret_cast<VkPhysicalDevice>(physicalDevice), static_cast<uint32_t>(queueFamilyIndex),
+        reinterpret_cast<VkSurfaceKHR>(surface), pSupported);
+}
+
+/**
+ * Inline forwarder for
+ * [`vkGetPhysicalDeviceSurfaceCapabilitiesKHR`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetPhysicalDeviceSurfaceCapabilitiesKHR.html)
+ * — the real Vulkan call via volk.
+ */
+inline VkResult
+GetPhysicalDeviceSurfaceCapabilitiesKHR(VkPhysicalDevice physicalDevice,
+                                        VkSurfaceKHR surface,
+                                        VkSurfaceCapabilitiesKHR* pSurfaceCapabilities) {
+    return ::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface,
+                                                       pSurfaceCapabilities);
+}
+
+/**
+ * cheatah-friendly overload of `GetPhysicalDeviceSurfaceCapabilitiesKHR`: pass plain ints/floats;
+ * the exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult GetPhysicalDeviceSurfaceCapabilitiesKHR(
+    long long physicalDevice, long long surface, VkSurfaceCapabilitiesKHR* pSurfaceCapabilities) {
+    return ::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+        reinterpret_cast<VkPhysicalDevice>(physicalDevice), reinterpret_cast<VkSurfaceKHR>(surface),
+        pSurfaceCapabilities);
+}
+
+/**
+ * Inline forwarder for
+ * [`vkGetPhysicalDeviceSurfaceFormatsKHR`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetPhysicalDeviceSurfaceFormatsKHR.html)
+ * — the real Vulkan call via volk.
+ */
+inline VkResult GetPhysicalDeviceSurfaceFormatsKHR(VkPhysicalDevice physicalDevice,
+                                                   VkSurfaceKHR surface,
+                                                   uint32_t* pSurfaceFormatCount,
+                                                   VkSurfaceFormatKHR* pSurfaceFormats) {
+    return ::vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, pSurfaceFormatCount,
+                                                  pSurfaceFormats);
+}
+
+/**
+ * cheatah-friendly overload of `GetPhysicalDeviceSurfaceFormatsKHR`: pass plain ints/floats; the
+ * exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult GetPhysicalDeviceSurfaceFormatsKHR(long long physicalDevice,
+                                                   long long surface,
+                                                   uint32_t* pSurfaceFormatCount,
+                                                   VkSurfaceFormatKHR* pSurfaceFormats) {
+    return ::vkGetPhysicalDeviceSurfaceFormatsKHR(
+        reinterpret_cast<VkPhysicalDevice>(physicalDevice), reinterpret_cast<VkSurfaceKHR>(surface),
+        pSurfaceFormatCount, pSurfaceFormats);
+}
+
+/**
+ * Inline forwarder for
+ * [`vkGetPhysicalDeviceSurfacePresentModesKHR`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetPhysicalDeviceSurfacePresentModesKHR.html)
+ * — the real Vulkan call via volk.
+ */
+inline VkResult GetPhysicalDeviceSurfacePresentModesKHR(VkPhysicalDevice physicalDevice,
+                                                        VkSurfaceKHR surface,
+                                                        uint32_t* pPresentModeCount,
+                                                        VkPresentModeKHR* pPresentModes) {
+    return ::vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface, pPresentModeCount,
+                                                       pPresentModes);
+}
+
+/**
+ * cheatah-friendly overload of `GetPhysicalDeviceSurfacePresentModesKHR`: pass plain ints/floats;
+ * the exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult GetPhysicalDeviceSurfacePresentModesKHR(long long physicalDevice,
+                                                        long long surface,
+                                                        uint32_t* pPresentModeCount,
+                                                        VkPresentModeKHR* pPresentModes) {
+    return ::vkGetPhysicalDeviceSurfacePresentModesKHR(
+        reinterpret_cast<VkPhysicalDevice>(physicalDevice), reinterpret_cast<VkSurfaceKHR>(surface),
+        pPresentModeCount, pPresentModes);
+}
+
+#endif // VK_KHR_surface
+
+#ifdef VK_KHR_swapchain
+
+/**
+ * Inline forwarder for
+ * [`vkCreateSwapchainKHR`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkCreateSwapchainKHR.html)
+ * — the real Vulkan call via volk.
+ * @destroy the returned handle must be released with `DestroySwapchainKHR()`.
+ */
+inline VkResult CreateSwapchainKHR(VkDevice device,
+                                   const VkSwapchainCreateInfoKHR* pCreateInfo,
+                                   const VkAllocationCallbacks* pAllocator,
+                                   VkSwapchainKHR* pSwapchain) {
+    return ::vkCreateSwapchainKHR(device, pCreateInfo, pAllocator, pSwapchain);
+}
+
+/**
+ * cheatah-friendly overload of `CreateSwapchainKHR`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult CreateSwapchainKHR(long long device,
+                                   const VkSwapchainCreateInfoKHR* pCreateInfo,
+                                   const VkAllocationCallbacks* pAllocator,
+                                   VkSwapchainKHR* pSwapchain) {
+    return ::vkCreateSwapchainKHR(reinterpret_cast<VkDevice>(device), pCreateInfo, pAllocator,
+                                  pSwapchain);
+}
+
+/**
+ * Inline forwarder for
+ * [`vkDestroySwapchainKHR`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkDestroySwapchainKHR.html)
+ * — the real Vulkan call via volk.
+ */
+inline void DestroySwapchainKHR(VkDevice device,
+                                VkSwapchainKHR swapchain,
+                                const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroySwapchainKHR(device, swapchain, pAllocator);
+}
+
+/**
+ * cheatah-friendly overload of `DestroySwapchainKHR`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline void DestroySwapchainKHR(long long device,
+                                long long swapchain,
+                                const VkAllocationCallbacks* pAllocator) {
+    ::vkDestroySwapchainKHR(reinterpret_cast<VkDevice>(device),
+                            reinterpret_cast<VkSwapchainKHR>(swapchain), pAllocator);
+}
+
+/**
+ * Inline forwarder for
+ * [`vkGetSwapchainImagesKHR`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetSwapchainImagesKHR.html)
+ * — the real Vulkan call via volk.
+ */
+inline VkResult GetSwapchainImagesKHR(VkDevice device,
+                                      VkSwapchainKHR swapchain,
+                                      uint32_t* pSwapchainImageCount,
+                                      VkImage* pSwapchainImages) {
+    return ::vkGetSwapchainImagesKHR(device, swapchain, pSwapchainImageCount, pSwapchainImages);
+}
+
+/**
+ * cheatah-friendly overload of `GetSwapchainImagesKHR`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult GetSwapchainImagesKHR(long long device,
+                                      long long swapchain,
+                                      uint32_t* pSwapchainImageCount,
+                                      VkImage* pSwapchainImages) {
+    return ::vkGetSwapchainImagesKHR(reinterpret_cast<VkDevice>(device),
+                                     reinterpret_cast<VkSwapchainKHR>(swapchain),
+                                     pSwapchainImageCount, pSwapchainImages);
+}
+
+/**
+ * Inline forwarder for
+ * [`vkAcquireNextImageKHR`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkAcquireNextImageKHR.html)
+ * — the real Vulkan call via volk.
+ */
+inline VkResult AcquireNextImageKHR(VkDevice device,
+                                    VkSwapchainKHR swapchain,
+                                    uint64_t timeout,
+                                    VkSemaphore semaphore,
+                                    VkFence fence,
+                                    uint32_t* pImageIndex) {
+    return ::vkAcquireNextImageKHR(device, swapchain, timeout, semaphore, fence, pImageIndex);
+}
+
+/**
+ * cheatah-friendly overload of `AcquireNextImageKHR`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult AcquireNextImageKHR(long long device,
+                                    long long swapchain,
+                                    long long timeout,
+                                    long long semaphore,
+                                    long long fence,
+                                    uint32_t* pImageIndex) {
+    return ::vkAcquireNextImageKHR(
+        reinterpret_cast<VkDevice>(device), reinterpret_cast<VkSwapchainKHR>(swapchain),
+        static_cast<uint64_t>(timeout), reinterpret_cast<VkSemaphore>(semaphore),
+        reinterpret_cast<VkFence>(fence), pImageIndex);
+}
+
+/**
+ * Inline forwarder for
+ * [`vkQueuePresentKHR`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkQueuePresentKHR.html)
+ * — the real Vulkan call via volk.
+ */
+inline VkResult QueuePresentKHR(VkQueue queue, const VkPresentInfoKHR* pPresentInfo) {
+    return ::vkQueuePresentKHR(queue, pPresentInfo);
+}
+
+/**
+ * cheatah-friendly overload of `QueuePresentKHR`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult QueuePresentKHR(long long queue, const VkPresentInfoKHR* pPresentInfo) {
+    return ::vkQueuePresentKHR(reinterpret_cast<VkQueue>(queue), pPresentInfo);
+}
+
+/**
+ * Inline forwarder for
+ * [`vkGetDeviceGroupPresentCapabilitiesKHR`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetDeviceGroupPresentCapabilitiesKHR.html)
+ * — the real Vulkan call via volk.
+ */
+inline VkResult GetDeviceGroupPresentCapabilitiesKHR(
+    VkDevice device, VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities) {
+    return ::vkGetDeviceGroupPresentCapabilitiesKHR(device, pDeviceGroupPresentCapabilities);
+}
+
+/**
+ * cheatah-friendly overload of `GetDeviceGroupPresentCapabilitiesKHR`: pass plain ints/floats; the
+ * exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult GetDeviceGroupPresentCapabilitiesKHR(
+    long long device, VkDeviceGroupPresentCapabilitiesKHR* pDeviceGroupPresentCapabilities) {
+    return ::vkGetDeviceGroupPresentCapabilitiesKHR(reinterpret_cast<VkDevice>(device),
+                                                    pDeviceGroupPresentCapabilities);
+}
+
+/**
+ * Inline forwarder for
+ * [`vkGetDeviceGroupSurfacePresentModesKHR`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetDeviceGroupSurfacePresentModesKHR.html)
+ * — the real Vulkan call via volk.
+ */
+inline VkResult GetDeviceGroupSurfacePresentModesKHR(VkDevice device,
+                                                     VkSurfaceKHR surface,
+                                                     VkDeviceGroupPresentModeFlagsKHR* pModes) {
+    return ::vkGetDeviceGroupSurfacePresentModesKHR(device, surface, pModes);
+}
+
+/**
+ * cheatah-friendly overload of `GetDeviceGroupSurfacePresentModesKHR`: pass plain ints/floats; the
+ * exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult GetDeviceGroupSurfacePresentModesKHR(long long device,
+                                                     long long surface,
+                                                     VkDeviceGroupPresentModeFlagsKHR* pModes) {
+    return ::vkGetDeviceGroupSurfacePresentModesKHR(
+        reinterpret_cast<VkDevice>(device), reinterpret_cast<VkSurfaceKHR>(surface), pModes);
+}
+
+/**
+ * Inline forwarder for
+ * [`vkGetPhysicalDevicePresentRectanglesKHR`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkGetPhysicalDevicePresentRectanglesKHR.html)
+ * — the real Vulkan call via volk.
+ */
+inline VkResult GetPhysicalDevicePresentRectanglesKHR(VkPhysicalDevice physicalDevice,
+                                                      VkSurfaceKHR surface,
+                                                      uint32_t* pRectCount,
+                                                      VkRect2D* pRects) {
+    return ::vkGetPhysicalDevicePresentRectanglesKHR(physicalDevice, surface, pRectCount, pRects);
+}
+
+/**
+ * cheatah-friendly overload of `GetPhysicalDevicePresentRectanglesKHR`: pass plain ints/floats; the
+ * exact Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult GetPhysicalDevicePresentRectanglesKHR(long long physicalDevice,
+                                                      long long surface,
+                                                      uint32_t* pRectCount,
+                                                      VkRect2D* pRects) {
+    return ::vkGetPhysicalDevicePresentRectanglesKHR(
+        reinterpret_cast<VkPhysicalDevice>(physicalDevice), reinterpret_cast<VkSurfaceKHR>(surface),
+        pRectCount, pRects);
+}
+
+/**
+ * Inline forwarder for
+ * [`vkAcquireNextImage2KHR`](https://registry.khronos.org/vulkan/specs/latest/man/html/vkAcquireNextImage2KHR.html)
+ * — the real Vulkan call via volk.
+ */
+inline VkResult AcquireNextImage2KHR(VkDevice device,
+                                     const VkAcquireNextImageInfoKHR* pAcquireInfo,
+                                     uint32_t* pImageIndex) {
+    return ::vkAcquireNextImage2KHR(device, pAcquireInfo, pImageIndex);
+}
+
+/**
+ * cheatah-friendly overload of `AcquireNextImage2KHR`: pass plain ints/floats; the exact
+ * Vulkan widths (uint32_t / VkDeviceSize / handles / enums) are cast for you.
+ */
+inline VkResult AcquireNextImage2KHR(long long device,
+                                     const VkAcquireNextImageInfoKHR* pAcquireInfo,
+                                     uint32_t* pImageIndex) {
+    return ::vkAcquireNextImage2KHR(reinterpret_cast<VkDevice>(device), pAcquireInfo, pImageIndex);
+}
+
+#endif // VK_KHR_swapchain
 
 } // namespace cheatah::gpu::vulkan

@@ -1,10 +1,12 @@
-# gpu.vulkan — Vulkan backend behind the shared GPU interface  ·  status: **roadmap**
+# gpu.vulkan — the native Vulkan surface  ·  status: **roadmap**
 
-`import gpu.vulkan` is the **power-user interface**: kept **as true to the native Vulkan C API as
+`import gpu.vulkan` is the **native interface**: kept **as true to the native Vulkan C API as
 possible** so developers who want to be picky get the real thing, not a lowest-common-denominator
-wrapper. (The easy, cross-platform layer is `import gpu` — built on top of whichever backend the
-build selected; this module is what it sits on when the target is Vulkan.) It exposes **as much of
-the modern Vulkan API as possible** so a user feels free.
+wrapper. There is no "easy" layer above it — cheatah-gpu's one value-add is the **typing fix**: each
+command also carries a cheatah-friendly overload taking plain cheatah numbers (`long long`, `double`)
+and casting them to the exact Vulkan widths and handles, so a caller writes no casts (see
+[`handles.hpp`](handles.hpp) for the reverse direction). It exposes **as much of the modern Vulkan
+API as possible** so a user feels free.
 
 > This directory is an **outline**. No compiled headers live here yet, so the QA gate stays scoped
 > to the documented, tested seed ([`../dispatch`](../dispatch)). The decisions below are locked so
@@ -12,6 +14,11 @@ the modern Vulkan API as possible** so a user feels free.
 
 ## Architecture decisions (locked)
 
+- **Generated scope: the core feature set (`VK_VERSION_1_0` … `1_4`) plus the portable WSI
+  extensions** — `VK_KHR_surface` and `VK_KHR_swapchain`, each under its own `#ifdef VK_KHR_*` guard.
+  Core Vulkan cannot present to a screen; those two turn a rendered image into a visible frame. The
+  **platform** surface extensions (xcb/xlib/wayland/win32/metal) stay out on purpose — see
+  *Windowing is out of scope*, below.
 - **Vulkan C API only.** We bind the C headers (`vulkan/vulkan.h`), not Vulkan-Hpp. The C API avoids
   template/codegen bloat in the generated cheatah C++ and tracks the spec's far better documentation
   (<https://docs.vulkan.org/spec/latest/>).

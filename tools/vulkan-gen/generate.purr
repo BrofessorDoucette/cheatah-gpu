@@ -11,7 +11,10 @@
 # so the cheatah binding narrows cheatah's 64-bit int to the proper size at the call boundary.
 #
 # Run from the repo root:  purrc tools/vulkan-gen/generate.purr -o /tmp/gen.so && cheatah /tmp/gen.so
-# Scope today: the core feature set (VK_VERSION_1_0 … 1_4). Platform-guarded extensions are next.
+# Scope today: the core feature set (VK_VERSION_1_0 … 1_4) plus the PORTABLE WSI extensions
+# (VK_KHR_surface, VK_KHR_swapchain) that turn a rendered image into a visible frame. Platform
+# surface extensions (xcb/xlib/wayland/win32/metal) stay out: the consumer's windowing library
+# creates the surface and hands over a finished VkSurfaceKHR.
 
 import io
 import string
@@ -410,6 +413,104 @@ for seg in fsegs {
     }
 }
 
+# 2b) Collect the PORTABLE WSI (Window System Integration) extensions. Core Vulkan cannot present to
+#     a screen at all — it only renders into images in memory. VK_KHR_surface names the presentable
+#     surface, VK_KHR_swapchain the queue of images the display shows; together they turn a rendered
+#     image into a visible frame.
+#
+#     The PLATFORM surface extensions (xcb/xlib/wayland/win32/metal) stay OUT on purpose: the
+#     consumer's windowing library (GLFW, SDL, …) creates the surface and hands over a finished
+#     VkSurfaceKHR, so cheatah-gpu needs no platform headers and stays portable.
+let WSI: dict<str, str> = {}
+WSI["VK_KHR_surface"] = "1"
+WSI["VK_KHR_swapchain"] = "1"
+
+let ext_order: list<str> = []
+let wsi_cmds: list<str> = []
+let wsi_types: list<str> = []
+let wsi_consts: list<str> = []
+let wsi_cmd_guard: dict<str, str> = {}
+let wsi_type_guard: dict<str, str> = {}
+let wsi_const_guard: dict<str, str> = {}
+let wsi_seen: dict<str, str> = {}
+
+for eseg in string.split(xml, "<extension ") {
+    let ee = string.find(eseg, "</extension>")
+    if ee < 0 { continue }
+    let ehead = eseg[:string.find(eseg, ">")]
+    let ename = attr(ehead, "name")
+    if not (ename in WSI) { continue }
+    if not string.contains(attr(ehead, "supported"), "vulkan") { continue }
+    let ebody = eseg[:ee]
+    ext_order.append(ename)
+
+    let ecfirst = true
+    for cs in string.split(ebody, "<command name=\"") {
+        if ecfirst {
+            ecfirst = false
+            continue
+        }
+        let cn = cs[:string.find(cs, "\"")]
+        if ("C:" + cn) in wsi_seen { continue }
+        wsi_seen["C:" + cn] = "1"
+        wsi_cmds.append(cn)
+        wsi_cmd_guard[cn] = ename
+    }
+    # Types the extension introduces. A type the CORE already introduced is skipped: it is aliased
+    # once under its version guard, and re-aliasing its enum values would be a redefinition.
+    let etfirst = true
+    for ts in string.split(ebody, "<type name=\"") {
+        if etfirst {
+            etfirst = false
+            continue
+        }
+        let tn = ts[:string.find(ts, "\"")]
+        if tn in type_version { continue }
+        if ("T:" + tn) in wsi_seen { continue }
+        wsi_seen["T:" + tn] = "1"
+        wsi_types.append(tn)
+        wsi_type_guard[tn] = ename
+    }
+    # Constants the extension declares: its name/spec-version macros, and the values it adds to core
+    # enums (VK_ERROR_OUT_OF_DATE_KHR extends VkResult, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR extends
+    # VkImageLayout, …). Anything the core already emits is skipped.
+    let eefirst = true
+    for es in string.split(ebody, "<enum ") {
+        if eefirst {
+            eefirst = false
+            continue
+        }
+        let eh = es[:string.find(es, ">")]
+        if string.contains(eh, "alias=") { continue }
+        let en = attr(eh, "name")
+        if en == "" { continue }
+        if not string.startswith(en, "VK_") { continue }
+        if const_ver(en, const_add_version, const_type, type_version) != "" { continue }
+        if ("E:" + en) in wsi_seen { continue }
+        let ex = attr(eh, "extends")
+        if ex != "" and not (en in const_ext) { const_ext[en] = ex }
+        wsi_seen["E:" + en] = "1"
+        wsi_consts.append(en)
+        wsi_const_guard[en] = ename
+    }
+}
+
+# The VALUES of an enum type the extension introduces (VK_PRESENT_MODE_FIFO_KHR, …) live in the
+# <enums> definition blocks, not in the extension's <require>. Pull them in so `vk.PRESENT_MODE_*`
+# exists alongside `vk.PresentModeKHR`.
+for tn in wsi_types {
+    if not (tn in type_kind) { continue }
+    if type_kind[tn] != "enum" { continue }
+    for cn in const_order {
+        if not (cn in const_type) { continue }
+        if const_type[cn] != tn { continue }
+        if ("E:" + cn) in wsi_seen { continue }
+        wsi_seen["E:" + cn] = "1"
+        wsi_consts.append(cn)
+        wsi_const_guard[cn] = wsi_type_guard[tn]
+    }
+}
+
 # 3) Emit the header.
 let body = ""
 let tbody = ""
@@ -446,17 +547,49 @@ if cur_ver != "" {
     tbody = tbody + "#endif\n"
 }
 
+# 3a) The WSI forwarders, each under its extension's own header macro (`#ifdef VK_KHR_swapchain`) —
+#     the same discipline as the core version guards, so headers predating an extension compile out.
+let cur_guard = ""
+for n in wsi_cmds {
+    let real = n
+    if (not (n in cmd_block)) and (n in alias_map) { real = alias_map[n] }
+    if not (real in cmd_block) {
+        skipped = skipped + 1
+        continue
+    }
+    let g = wsi_cmd_guard[n]
+    if g != cur_guard {
+        if cur_guard != "" {
+            body = body + "#endif  // " + cur_guard + "\n\n"
+            tbody = tbody + "#endif\n"
+        }
+        body = body + "#ifdef " + g + "\n\n"
+        tbody = tbody + "#ifdef " + g + "\n"
+        cur_guard = g
+    }
+    body = body + forwarder(n, cmd_block[real], cmd_block, handles)
+    # An extension command belongs to no core version, so probe it at 1.0 and let the harness's
+    # null-pointer capability check report which devices actually expose it (never a failure).
+    tbody = tbody + "TEST_F(VulkanPresence, " + n[2:] + ") { probe(\"" + n[2:] + "\", (void**) &::" + n + ", VK_API_VERSION_1_0); }\n"
+    emitted = emitted + 1
+}
+if cur_guard != "" {
+    body = body + "#endif  // " + cur_guard + "\n\n"
+    tbody = tbody + "#endif\n"
+}
+
 let head = "#pragma once\n\n"
 head = head + "// GENERATED by tools/vulkan-gen/generate.purr from tools/vulkan-gen/vk.xml — DO NOT EDIT.\n"
 head = head + "// Regenerated at release time against the latest Khronos registry (see regenerate.sh).\n\n"
 head = head + "/**\n"
 head = head + " * @file commands.hpp\n"
-head = head + " * @brief gpu.vulkan — inline forwarders for the core Vulkan API (the real `vk*` calls).\n"
+head = head + " * @brief gpu.vulkan — inline forwarders for the Vulkan API (the real `vk*` calls).\n"
 head = head + " *\n"
-head = head + " * One `inline` wrapper per core Vulkan command in `cheatah::gpu::vulkan`, each forwarding to\n"
+head = head + " * One `inline` wrapper per Vulkan command in `cheatah::gpu::vulkan` — the core feature set plus\n"
+head = head + " * the portable WSI extensions (VK_KHR_surface, VK_KHR_swapchain) — each forwarding to\n"
 head = head + " * the genuine `vk*` entry point through volk (loader.hpp). Parameters keep the exact Vulkan\n"
 head = head + " * integer widths so cheatah's int binds to the proper size. This is the faithful native\n"
-head = head + " * surface (`import gpu.vulkan`); the ergonomic cross-platform layer is `import gpu`.\n"
+head = head + " * surface (`import gpu.vulkan`); a cheatah-friendly overload per command fixes the typing.\n"
 head = head + " */\n\n"
 head = head + "#include \"loader.hpp\"\n"
 head = head + "#include \"types.hpp\"  // the `vk.<Name>` cheatah-interface aliases\n\n"
@@ -508,6 +641,26 @@ for v in versions {
         alias_count = alias_count + 1
     }
     tybody = tybody + "#ifdef VK_VERSION_" + v + "\n\n" + chunk + "\n#endif  // VK_VERSION_" + v + "\n\n"
+}
+
+# The WSI type + constant aliases (vk.SurfaceKHR, vk.SwapchainCreateInfoKHR, vk.PRESENT_MODE_FIFO_KHR,
+# vk.KHR_SWAPCHAIN_EXTENSION_NAME, …), under the same extension guards as their forwarders.
+for en in ext_order {
+    let chunk = ""
+    for tn in wsi_types {
+        if wsi_type_guard[tn] != en { continue }
+        if not ((tn in type_kind) or (tn in handles)) { continue }
+        chunk = chunk + "using " + strip_vk_type(tn) + " = ::" + tn + ";\n"
+        alias_count = alias_count + 1
+    }
+    for cn in wsi_consts {
+        if wsi_const_guard[cn] != en { continue }
+        chunk = chunk + "inline constexpr auto " + strip_vk_const(cn) + " = " + cn + ";\n"
+        alias_count = alias_count + 1
+    }
+    if chunk != "" {
+        tybody = tybody + "#ifdef " + en + "\n\n" + chunk + "\n#endif  // " + en + "\n\n"
+    }
 }
 
 let tyhead = "#pragma once\n\n"
@@ -574,6 +727,31 @@ for cn in const_add_order {
     if ety != "" and ety != "API Constants" { cdoc = MAN + ety + ".html" }
     entries.append("    \"" + strip_vk_const(cn) + "\": {\"kind\": \"constant\", \"vk\": \"" + cn + "\", \"doc\": \"" + cdoc + "\"}")
 }
+# The WSI symbols, so the editor colors + documents vk.CreateSwapchainKHR, vk.SurfaceKHR, … too.
+for n in wsi_cmds {
+    let real = n
+    if (not (n in cmd_block)) and (n in alias_map) { real = alias_map[n] }
+    if real in cmd_block {
+        entries.append("    \"" + n[2:] + "\": {\"kind\": \"function\", \"vk\": \"" + n + "\", \"doc\": \"" + MAN + n + ".html\"}")
+    }
+}
+for tn in wsi_types {
+    if not ((tn in type_kind) or (tn in handles)) { continue }
+    let k = "handle"
+    if tn in type_kind { k = type_kind[tn] }
+    entries.append("    \"" + strip_vk_type(tn) + "\": {\"kind\": \"" + k + "\", \"vk\": \"" + tn + "\", \"doc\": \"" + MAN + tn + ".html\"}")
+}
+for cn in wsi_consts {
+    if cn in cseen { continue }
+    cseen[cn] = "1"
+    let ety = ""
+    if cn in const_type { ety = const_type[cn] }
+    if cn in const_ext { ety = const_ext[cn] }
+    let cdoc = ""
+    if ety != "" and ety != "API Constants" { cdoc = MAN + ety + ".html" }
+    entries.append("    \"" + strip_vk_const(cn) + "\": {\"kind\": \"constant\", \"vk\": \"" + cn + "\", \"doc\": \"" + cdoc + "\"}")
+}
+
 let sj = "{\n  \"module\": \"gpu.vulkan\",\n  \"symbols\": {\n" + string.join(",\n", entries) + "\n  }\n}\n"
 let sjf = io.open(SYMS_OUT, "w")
 sjf.write(sj)
@@ -593,10 +771,11 @@ let tf = io.open(TEST_OUT, "w")
 tf.write(thead + tbody + tfoot)
 tf.close()
 
-io.print("generate.purr: emitted", emitted, "core forwarders ->", OUT_PATH)
+io.print("generate.purr: emitted", emitted, "forwarders (core + WSI) ->", OUT_PATH)
 io.print("generate.purr: emitted", alias_count, "type/constant aliases ->", TYPES_OUT)
 io.print("generate.purr: emitted", len(entries), "IDE symbols ->", SYMS_OUT)
 io.print("generate.purr: emitted", emitted, "presence checks ->", TEST_OUT)
+io.print("generate.purr: WSI extensions:", len(ext_order), "->", len(wsi_cmds), "commands,", len(wsi_types), "types,", len(wsi_consts), "constants")
 if skipped > 0 {
     io.print("generate.purr: skipped", skipped, "unresolved commands")
 }
