@@ -4,49 +4,50 @@ These are the load-bearing decisions cheatah-gpu honors **at all times**. They a
 recorded here (outside `gpu/`, so the doc-coverage gate doesn't treat prose as API) because the code
 under `gpu/` is currently an **outline** — these notes are the contract the implementation fills in.
 
-## Three interfaces (complexity when you want it; simplicity when you don't)
+## The native surfaces, and nothing above them
 
 | `import …` | audience | contract |
 |------------|----------|----------|
-| **`gpu`** | "I just want to use my GPU" | a **slim, cross-platform interface over the native APIs** — easier than OpenGL. This is where the ergonomic behaviors live (async I/O, array reuse/borrowing). Built on the compile-time-selected backend. |
 | **`gpu.vulkan`** | native Vulkan engineers | kept **as true to the native Vulkan C API as possible** — a Vulkan graphics engineer should feel at home. No lowest-common-denominator wrapper. |
 | **`gpu.metal`** | native Metal engineers | kept **as true to the native Metal API as possible** — same idea, for Apple. |
+| **`gpu`** | everyone | the **package header**: the compile-time backend switch, the dispatch math, and the active backend's native surface. |
+
+**There is no "easy" layer here, and there will not be one.** cheatah-gpu exposes each native API
+faithfully and does exactly one thing on top: it **fixes the typing**, so cheatah's numbers reach a C
+API that wants exact widths. Every generated forwarder carries a cheatah-friendly overload — pass a
+`long long` where Vulkan wants a handle or a `uint32_t`/`VkDeviceSize`, a `double` where it wants a
+`float`, and the cast is done for you. `gpu/vulkan/handles.hpp` (and its Metal mirror) names the
+reverse direction, for the three places a token cannot go: out-params, handle arrays, and native
+struct fields.
+
+Everything above that — what "open a device, clear a target, read it back" means, what is
+synchronous, who owns memory, what a frame is — is **policy**, and policy belongs to the **consumer**
+(a renderer, an engine, a compute app), which builds exactly the layer it wants on these surfaces.
+cheatah-gpu stays the honest ground. This is why a consuming engine's ergonomic GPU layer lives in
+that engine, not here.
 
 The backend is selected at **compile time** (`gpu/backend.hpp`), so a binary never carries code for
 an API it isn't using.
 
 ## Concurrency & memory ownership
 
-Motivated by a refusal to repeat Unity's painful asynchronous-GPU API. The agreement:
-
 1. **cheatah-gpu does no multithreading of its own.** This is a cheatah repo — *the user* decides
    their threading model. We never spawn threads behind the user's back.
-2. **Asynchronous GPU read/write is supported, and it works.** Submitting work and reading/writing
-   GPU memory does not block the user into a synchronous model.
-3. **No-copy array borrowing — the user keeps ownership.** The user passes in an array; the GPU works
-   on it asynchronously; **we do not copy the array**. The GPU gets a *non-owning view/handle*, and
-   the user **retains ownership** the whole time. (The GPU "has a copy" only in the sense of access —
-   not a deep copy of the data.)
-4. **The borrow is protected without us doing the threading.** A **simple mutex around the CPU↔GPU
-   communication interface** guards every transfer/submission. While the GPU is reading from (or
-   writing to) a CPU array, that array **cannot be taken, freed, disposed, moved, or mutated** out
-   from under the GPU. The guard releases when the GPU operation completes. So: we don't thread, but
-   the user's threading is made safe.
-5. **This model lives in the `gpu` (easy) layer.** Because `gpu` is a slim interface over the native
-   APIs, it owns the async + array-reuse/borrow ergonomics. The raw `gpu.vulkan` / `gpu.metal` layers
-   stay faithful to their native APIs (including those APIs' own synchronization primitives), so a
-   native engineer is never boxed in.
+2. **We impose no synchronization model.** The native surfaces expose each API's own synchronization
+   primitives (fences, semaphores, barriers, command buffers) unchanged, so a native engineer is
+   never boxed in and never has to fight a wrapper's idea of a frame.
+3. **Memory is the user's to manage; we never hide it.** What we do instead is make the ownership
+   contract *impossible to miss*: every call that hands back a resource carries an `@destroy` tag
+   naming exactly what must be released and how, and allocation is tagged `@alloc` (host) vs
+   `@gpualloc` (device).
 
-### Mechanism to implement (outline)
-
-- A **GPU lease** (RAII borrow handle): wraps a user array (e.g. a cheatah `ndarray` — pointer +
-  length + element type), pins it, and hands the backend a non-owning view. It holds the CPU↔GPU
-  interface guard (and tracks the completion fence / timeline-semaphore value) until the GPU op
-  finishes, then releases — automatically, via destruction. Ownership never transfers.
-- The CPU↔GPU interface is the single choke point the mutex protects, so concurrent user threads
-  can submit/transfer without racing and without the library imposing a thread model.
-- Lifetime safety: the lease keeps the array alive/valid for exactly as long as the GPU needs it;
-  attempting to free/resize a leased array is prevented (or diagnosed), never undefined.
+Async transfer, no-copy array borrowing, and lifetime-safe leases are **real problems worth solving —
+just not here.** They are policy, and policy belongs to the consumer that builds an ergonomic layer
+on these surfaces (motivated, originally, by a refusal to repeat Unity's painful asynchronous-GPU
+API). A consumer wanting a lifetime-safe borrow already has the vocabulary for it in cheatah's
+`memory` module (`Owner` / `Lease` / `Request`): pin a `ndarray`, hand the backend a non-owning view,
+release when the completion fence signals, and never transfer ownership. cheatah-gpu's job is to make
+that layer *possible and cheap to write*, not to pick its rules.
 
 ## Provisioning & windowing (recap)
 
@@ -91,6 +92,9 @@ Motivated by a refusal to repeat Unity's painful asynchronous-GPU API. The agree
   **llvmpipe** (Mesa lavapipe, software), **Intel Iris Xe** (Mesa), and **NVIDIA RTX 3070 Ti**
   (proprietary) — software + integrated + discrete, both major Linux drivers. Per-device supported
   surfaces differ (e.g. ray tracing on NVIDIA), so the denominator is per-device.
-- **Layering.** This 1:1 surface is the comfort layer for native Vulkan engineers; the ergonomic
-  `import gpu` sits on top with the async + no-copy-borrow model. Raw Vulkan structs make a direct
-  `.purr` 1:1 path awkward, so the cheatah-facing convenience lives in `import gpu`.
+- **Layering.** This 1:1 surface is the whole product — there is nothing above it here. What makes it
+  usable from cheatah is the **typing fix**: alongside each faithful forwarder, a cheatah-friendly
+  overload takes plain cheatah numbers (`long long`, `double`) and casts them to the exact Vulkan
+  widths and handles. So a `.purr` program (or a consumer's C++ shim) holds integer tokens, calls the
+  forwarders directly, and writes no casts. Any ergonomic "device / target / clear / readback" layer
+  is the consumer's to build and own.

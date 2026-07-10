@@ -13,17 +13,21 @@ backend is on the roadmap. Source under `gpu/` is hand-authored or generated, he
 
 ## What it is
 
-It exposes the GPU through **three interfaces** — so you get the complexity when you want it and skip
-it when you don't:
+It exposes each native GPU API **as faithfully as the API itself**, and does exactly one thing on
+top: it **fixes the typing**, so cheatah's numbers reach a C API that wants exact widths.
 
 | `import …` | for | flavor |
 |------------|-----|--------|
-| **`gpu`** | just getting on the GPU & having fun | one easy, cross-platform API — **simpler than OpenGL**, runs on whatever backend the build picked |
-| **`gpu.vulkan`** | power users who want to be picky | kept **as true to the native Vulkan C API as possible** |
-| **`gpu.metal`** | power users on Apple | kept **as true to the native Metal API as possible** |
+| **`gpu.vulkan`** | the Vulkan C API from cheatah | kept **as true to the native Vulkan C API as possible** |
+| **`gpu.metal`** | the Metal API from cheatah | kept **as true to the native Metal API as possible** |
+| **`gpu`** | the package header | the backend switch + dispatch math + the active backend's surface |
 
-This is the repo that **exposes the complexity when wanted, and simplifies it when not** — and makes
-*setup* and *access* trivial:
+Every generated forwarder carries a cheatah-friendly overload: pass a `long long` where Vulkan wants
+a handle or a `uint32_t`/`VkDeviceSize`, a `double` where it wants a `float` — the cast is done for
+you. There is **no easy/simplified layer here, by design**: what "open a device, clear a target, read
+it back" should mean is a policy decision (what is synchronous, who owns memory, what a frame is),
+and it belongs to the consumer — a renderer or engine builds exactly the layer it wants on top of
+these surfaces. cheatah-gpu stays the honest ground, and makes *setup* and *access* trivial:
 
 ```sh
 biome add cheatah-gpu      # pulls the extension + provisions the GPU userspace stack
@@ -38,7 +42,7 @@ let safe   = dispatch.clamp_group_count(groups, 65535)    # clamp to the device 
 ```
 
 Import convention: alias each submodule to its last segment — `import gpu.dispatch as dispatch`,
-`import gpu.vulkan as vulkan`, `import gpu.metal as metal` — while the easy layer stays `import gpu`.
+`import gpu.vulkan as vk`, `import gpu.metal as mtl` — while the package header stays `import gpu`.
 
 Then write a [Slang](https://shader-slang.org/) shader (see [`shaders/hello.slang`](shaders/hello.slang))
 and run it. Bringing up a **window** is intentionally *not* this library's job — that's
@@ -76,11 +80,9 @@ the convention a future `biome install`/`biome doctor` will consume directly.
   for the API it isn't using. No vtables, no both-API binary.
 - **Static typing, concepts & templates**, the optional pattern (`std::optional`) for fallible
   lookups — the cheatah house style. The interface is resolved and constraint-checked at compile time.
-- **No internal threading; safe async with no-copy array borrowing.** cheatah-gpu spawns no threads
-  of its own (your threading model is yours). The `gpu` layer still supports **asynchronous** GPU
-  read/write: you pass an array, the GPU borrows it **without a copy**, and **you keep ownership** —
-  a mutex around the CPU↔GPU interface guarantees the array can't be freed/moved while the GPU uses
-  it. (`gpu.vulkan`/`gpu.metal` stay true to their native APIs instead.) See [`docs/DESIGN.md`](docs/DESIGN.md).
+- **No internal threading.** cheatah-gpu spawns no threads of its own — your threading model is
+  yours, and the native surfaces stay true to their APIs. Synchronisation, async transfer, and
+  ownership policy belong to the consumer that builds on top. See [`docs/DESIGN.md`](docs/DESIGN.md).
 - **macOS prefers native Metal**; MoltenVK is a fallback only when the native Metal backend isn't
   available.
 - **Zero dependencies for the core**; the GPU stack is provisioned by the build + install script.
