@@ -2,30 +2,34 @@
 
 /**
  * @file gpu.hpp
- * @brief `import gpu` — the easy, cross-platform GPU interface.
+ * @brief `import gpu` — the package header: the NATIVE GPU APIs, generated 1:1, typed for cheatah.
  *
- * cheatah-gpu offers THREE interfaces, so you can have the complexity when you want it and skip it
- * when you don't:
+ * cheatah-gpu is deliberately a THIN library. It exposes each native GPU API as faithfully as the
+ * API itself, and does exactly one thing on top: it fixes the typing, so cheatah's numbers reach a
+ * C API that wants exact widths. Every generated forwarder has a cheatah-friendly overload — pass a
+ * `long long` where Vulkan wants a handle or a `uint32_t`/`VkDeviceSize`, a `double` where it wants
+ * a `float`, and the cast is done for you (see `vulkan/commands.hpp`; `vulkan/handles.hpp` names the
+ * reverse direction, for out-params, handle arrays, and native struct fields).
  *
- *   - **`import gpu`** (this header) — the combined, cross-platform interface: one simple API that
- *     runs on whatever backend the build selected, easier than OpenGL. For when you just want to get
- *     on the GPU and have fun, and so higher layers can be built without worrying about portability.
- *     This is the layer with the ergonomic behaviors — asynchronous GPU read/write and **no-copy**
- *     array borrowing where the caller keeps ownership (guarded by a mutex around the CPU↔GPU
- *     interface; cheatah-gpu never threads on its own). See docs/DESIGN.md.
- *   - **`import gpu.vulkan`** — the Vulkan backend kept as true to the native Vulkan C API as
- *     possible. The full-power escape hatch for developers who want to be picky.
- *   - **`import gpu.metal`** — the native Metal backend, kept as true to the Metal API as possible.
+ * There is **no easy/simplified layer here, by design.** An ergonomic "open a device, clear a
+ * target, read it back" surface is a policy decision — how much is synchronous, who owns memory,
+ * what a frame is — and belongs to the CONSUMER (a renderer, an engine, a compute app), which can
+ * build exactly the layer it wants on top of these surfaces. cheatah-gpu stays the honest ground.
  *
- * The easy layer is implemented on top of the backend chosen at COMPILE TIME (see @ref backend.hpp),
- * so a binary only ever carries the API it actually uses — the `#if` below is how a backend's code is
- * included without pulling in the other API's bloat.
+ * Likewise, bringing up a **window** is not this library's job — that is project-specific (GLFW,
+ * SDL, native); the consumer supplies a finished surface handle and cheatah-gpu hands it the
+ * surface/swapchain primitives.
  *
  * Submodules:
  *   - gpu.backend  — compile-time backend selection + the shared-interface conventions.  [working]
  *   - gpu.dispatch — compute-shader dispatch-dimensioning math (pure integer).            [working]
  *   - gpu.vulkan   — Vulkan backend, true to the Vulkan C API (volk + VMA).               [roadmap]
  *   - gpu.metal    — native Metal backend for Apple platforms.                            [roadmap]
+ *
+ * The backend is chosen at COMPILE TIME (see @ref backend.hpp), so a binary only ever carries the
+ * API it actually uses — the `#if` below is how one backend's surface is included without pulling in
+ * the other API's bloat. `import gpu` gives you the backend switch, the dispatch math, and the
+ * active backend's native surface; `import gpu.vulkan` / `import gpu.metal` name one directly.
  */
 
 #include "backend.hpp"
@@ -38,6 +42,7 @@
 #ifdef CHEATAH_GPU_BACKEND_VULKAN
 #  if __has_include(<volk.h>) || __has_include(<vulkan/vulkan.h>)
 #    include "vulkan/commands.hpp"
+#    include "vulkan/handles.hpp"  // native handle <-> cheatah `long long` token
 #  endif
 #endif
 // Pull in the native Metal surface — every `mtl.<Name>` alias (mtl.Device, mtl.Buffer, …) — when
@@ -45,6 +50,7 @@
 #ifdef CHEATAH_GPU_BACKEND_METAL
 #  if __has_include(<Metal/Metal.hpp>)
 #    include "metal/types.hpp"
+#    include "metal/handles.hpp"  // native object <-> cheatah `long long` token
 #  endif
 #endif
 
