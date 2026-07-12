@@ -21,7 +21,9 @@
 #define CA_PRIVATE_IMPLEMENTATION
 #include <Metal/Metal.hpp>
 
+#include <algorithm>
 #include <array>
+#include <cmath>
 #include <cstdarg>
 #include <cstdint>
 #include <cstring>
@@ -35,9 +37,10 @@ namespace {
 
 enum Tag {
     T_CLASS, T_STR, T_DEV, T_QUEUE, T_LIB, T_FUNC, T_PIPE, T_BUF, T_CMDBUF, T_ENC, T_POOL, T_OBJ,
-    // The render/texture path: enough to create a 2D texture, clear it through a render pass, and
-    // read the pixels back — the graphics analogue of the compute objects above.
-    T_TEXDESC, T_TEX, T_RPDESC, T_RPCAA, T_RPCA, T_RENC,
+    // The render/texture path: create a 2D texture, clear it through a render pass, read the pixels
+    // back — and DRAW: the render encoder rasterizes depth-tested, textured, indexed triangles (the
+    // graphics analogue of the registered compute kernels; see raster_draw below).
+    T_TEXDESC, T_TEX, T_RPDESC, T_RPCAA, T_RPCA, T_RPDA, T_RENC,
 };
 
 struct Base {
@@ -78,12 +81,29 @@ struct RPCAA : Base {
     std::map<unsigned long, RPCA*> attachments;
     ~RPCAA() { for (auto& kv : attachments) { delete kv.second; } }
 };
+/// The depth attachment of a render pass — texture, load/store, clear depth. Enough for LESS + write.
+struct RPDA : Base {
+    Tex* texture = nullptr;
+    unsigned long load_action = 0;
+    unsigned long store_action = 0;
+    double clear_depth = 1.0;
+};
 struct RPDesc : Base {
     RPCAA* colors = nullptr;  ///< created lazily by `colorAttachments`; owned
-    ~RPDesc() { delete colors; }
+    RPDA* depth = nullptr;    ///< created lazily by `depthAttachment`; owned
+    ~RPDesc() { delete colors; delete depth; }
 };
-/// A render encoder. Clear-only for now: the work is queued at endEncoding, run at commit.
-struct REnc : Base { CmdBuf* cb = nullptr; RPDesc* pass = nullptr; };
+/// A render encoder: the pass's load actions queue at CREATION (so a clear orders before the draws),
+/// draw state accumulates via the set* selectors, and each drawIndexedPrimitives queues a raster.
+struct REnc : Base {
+    CmdBuf* cb = nullptr;
+    RPDesc* pass = nullptr;
+    unsigned long fill_mode = 0;  ///< MTL::TriangleFillModeFill; Lines draws edges
+    std::map<unsigned long, std::pair<Buf*, unsigned long>> vbufs;        ///< setVertexBuffer (buf, offset)
+    std::map<unsigned long, std::vector<unsigned char>> vbytes;           ///< setVertexBytes copies
+    std::map<unsigned long, std::vector<unsigned char>> fbytes;           ///< setFragmentBytes copies
+    std::map<unsigned long, Tex*> ftex;                                   ///< setFragmentTexture
+};
 
 /// Metal's float->unorm8 conversion: round to nearest, matching what a real GPU stores (and what
 /// Vulkan's UNORM clear produces), so a clear of 0.25/0.5/0.75/1.0 reads back as 64/128/191/255.
@@ -91,6 +111,189 @@ unsigned char to_unorm8(double c) {
     if (c <= 0.0) { return 0; }
     if (c >= 1.0) { return 255; }
     return static_cast<unsigned char>(c * 255.0 + 0.5);
+}
+
+// --- the software render pipeline ------------------------------------------------------------------
+// The emulated draw: a depth-tested, texture-sampling, indexed-triangle rasterizer implementing the
+// STANDARD INTERLEAVED-MESH CONTRACT a slang mesh shader compiles to on Metal: stage_in vertices at
+// buffer(1) — position float3 @0, normal float3 @12, uv float2 @24, stride 32 — an 80-byte constant
+// at buffer(0) (column-major MVP then the light direction at byte 64), the base color at texture(0).
+// Shading is the contract's textured Lambert:
+// 0.25 + 0.75 * max(dot(n̂, L̂), 0) modulating the sampled texel. It is the C++ stand-in for compiled
+// MSL, exactly as the registered compute kernels stand in for compute MSL (no shader compiler exists
+// off Apple). Metal conventions throughout: NDC +y up onto a top-left-origin framebuffer, depth in
+// [0,1] tested LESS with write (the contract's depth state), no culling.
+
+/// One queued draw — the encoder state snapshot drawIndexedPrimitives captures for commit time.
+struct DrawState {
+    Tex* color = nullptr;
+    Tex* depth = nullptr;                                   ///< null = no depth test
+    unsigned long fill_mode = 0;                            ///< MTL::TriangleFillModeFill / Lines
+    std::vector<unsigned char> push;                        ///< buffer(0): mvp[16] + light[3]
+    Buf* vbuf = nullptr; unsigned long voff = 0;            ///< buffer(1): interleaved vertices
+    Buf* ibuf = nullptr; unsigned long ioff = 0;
+    unsigned long index_count = 0;
+    unsigned long index_type = 0;                           ///< MTL::IndexTypeUInt16 / UInt32
+    Tex* tex = nullptr;                                     ///< texture(0): the base color
+};
+
+void raster_draw(const DrawState& d) {
+    if (d.color == nullptr || d.vbuf == nullptr || d.ibuf == nullptr || d.push.size() < 80 ||
+        d.voff >= d.vbuf->data.size() || d.ioff >= d.ibuf->data.size()) {
+        return;
+    }
+    const long w = static_cast<long>(d.color->width);
+    const long h = static_cast<long>(d.color->height);
+    if (w <= 0 || h <= 0 || d.color->data.size() < static_cast<std::size_t>(w) * h * kBytesPerPixel) {
+        return;
+    }
+    float mvp[16];
+    float light[3];
+    std::memcpy(mvp, d.push.data(), sizeof(mvp));
+    std::memcpy(light, d.push.data() + 64, sizeof(light));
+    const float llen = std::sqrt(light[0] * light[0] + light[1] * light[1] + light[2] * light[2]);
+    if (llen > 0.0F) { light[0] /= llen; light[1] /= llen; light[2] /= llen; }  // uniform: normalize once
+
+    float* depth = nullptr;
+    if (d.depth != nullptr &&
+        d.depth->data.size() >= static_cast<std::size_t>(w) * h * sizeof(float)) {
+        depth = reinterpret_cast<float*>(d.depth->data.data());
+    }
+    const unsigned char* vb = d.vbuf->data.data() + d.voff;
+    const std::size_t vb_size = d.vbuf->data.size() - d.voff;
+    const unsigned char* ib = d.ibuf->data.data() + d.ioff;
+    const std::size_t ib_size = d.ibuf->data.size() - d.ioff;
+    const bool u16 = d.index_type == static_cast<unsigned long>(MTL::IndexTypeUInt16);
+
+    // A projected vertex: screen position + depth + 1/w for perspective correction + the attributes.
+    struct V { float sx, sy, sz, iw, nx, ny, nz, u, v; };
+    auto fetch = [&](unsigned long index, V& out) -> bool {
+        const std::size_t base = static_cast<std::size_t>(index) * 32;
+        if (base + 32 > vb_size) { return false; }
+        float in[8];
+        std::memcpy(in, vb + base, sizeof(in));
+        float clip[4];
+        for (int r = 0; r < 4; ++r) {  // clip = MVP (column-major) * (pos, 1)
+            clip[r] = mvp[0 * 4 + r] * in[0] + mvp[1 * 4 + r] * in[1] + mvp[2 * 4 + r] * in[2] +
+                      mvp[3 * 4 + r];
+        }
+        if (clip[3] <= 1e-6F) { return false; }  // behind the eye — this stand-in does not near-clip
+        const float iw = 1.0F / clip[3];
+        out.sx = (clip[0] * iw * 0.5F + 0.5F) * static_cast<float>(w);
+        out.sy = (1.0F - (clip[1] * iw * 0.5F + 0.5F)) * static_cast<float>(h);  // +y up -> row 0 top
+        out.sz = clip[2] * iw;
+        out.iw = iw;
+        out.nx = in[3]; out.ny = in[4]; out.nz = in[5];
+        out.u = in[6]; out.v = in[7];
+        return true;
+    };
+    auto sample = [&](float u, float v, float px[3]) {
+        if (d.tex == nullptr || d.tex->width == 0 || d.tex->height == 0) {
+            px[0] = px[1] = px[2] = 1.0F;  // no texture bound: white, so lighting still shows
+            return;
+        }
+        long tx = static_cast<long>(u * static_cast<float>(d.tex->width));
+        long ty = static_cast<long>(v * static_cast<float>(d.tex->height));
+        tx = std::min(std::max(tx, 0L), static_cast<long>(d.tex->width) - 1);   // clamp-to-edge
+        ty = std::min(std::max(ty, 0L), static_cast<long>(d.tex->height) - 1);
+        const unsigned char* p =
+            d.tex->data.data() + (static_cast<std::size_t>(ty) * d.tex->width + tx) * kBytesPerPixel;
+        px[0] = p[0] / 255.0F; px[1] = p[1] / 255.0F; px[2] = p[2] / 255.0F;
+    };
+    // Depth-test, shade (textured Lambert), and write one pixel.
+    auto shade_write = [&](long x, long y, float z, float nx, float ny, float nz, float u, float v) {
+        if (x < 0 || y < 0 || x >= w || y >= h || z < 0.0F || z > 1.0F) { return; }
+        const std::size_t di = static_cast<std::size_t>(y) * w + x;
+        if (depth != nullptr) {
+            if (!(z < depth[di])) { return; }  // CompareFunctionLess
+            depth[di] = z;                     // depth write enabled
+        }
+        const float nlen = std::sqrt(nx * nx + ny * ny + nz * nz);
+        float ndl = 0.0F;
+        if (nlen > 0.0F) {
+            ndl = std::max((nx * light[0] + ny * light[1] + nz * light[2]) / nlen, 0.0F);
+        }
+        const float lit = 0.25F + 0.75F * ndl;
+        float px[3];
+        sample(u, v, px);
+        unsigned char* out = d.color->data.data() + di * kBytesPerPixel;
+        out[0] = to_unorm8(px[0] * lit);
+        out[1] = to_unorm8(px[1] * lit);
+        out[2] = to_unorm8(px[2] * lit);
+        out[3] = 255;
+    };
+    // The signed doubled area of (a, b, c) — the edge function driving barycentrics.
+    auto edge = [](double ax, double ay, double bx, double by, double cx, double cy) {
+        return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+    };
+
+    const unsigned long tris = d.index_count / 3;
+    for (unsigned long t = 0; t < tris; ++t) {
+        unsigned long idx[3];
+        bool idx_ok = true;
+        for (int j = 0; j < 3; ++j) {
+            const std::size_t k = t * 3 + j;
+            if (u16) {
+                if ((k + 1) * sizeof(std::uint16_t) > ib_size) { idx_ok = false; break; }
+                idx[j] = reinterpret_cast<const std::uint16_t*>(ib)[k];
+            } else {
+                if ((k + 1) * sizeof(std::uint32_t) > ib_size) { idx_ok = false; break; }
+                idx[j] = reinterpret_cast<const std::uint32_t*>(ib)[k];
+            }
+        }
+        V v0, v1, v2;
+        if (!idx_ok || !fetch(idx[0], v0) || !fetch(idx[1], v1) || !fetch(idx[2], v2)) { continue; }
+
+        if (d.fill_mode == static_cast<unsigned long>(MTL::TriangleFillModeLines)) {
+            // Wireframe: DDA the three edges, depth-tested, attributes lerped along each edge.
+            const V* e[3][2] = {{&v0, &v1}, {&v1, &v2}, {&v2, &v0}};
+            for (auto& ed : e) {
+                const V& a = *ed[0];
+                const V& b = *ed[1];
+                const float dx = b.sx - a.sx, dy = b.sy - a.sy;
+                const int steps = static_cast<int>(std::max(std::fabs(dx), std::fabs(dy))) + 1;
+                for (int s = 0; s <= steps; ++s) {
+                    const float f = static_cast<float>(s) / static_cast<float>(steps);
+                    shade_write(static_cast<long>(a.sx + dx * f), static_cast<long>(a.sy + dy * f),
+                                a.sz + (b.sz - a.sz) * f, a.nx + (b.nx - a.nx) * f,
+                                a.ny + (b.ny - a.ny) * f, a.nz + (b.nz - a.nz) * f,
+                                a.u + (b.u - a.u) * f, a.v + (b.v - a.v) * f);
+                }
+            }
+            continue;
+        }
+
+        // Filled: bounding box + edge functions, both windings accepted (the contract culls nothing),
+        // perspective-correct attribute interpolation via 1/w, screen-linear depth.
+        double area = edge(v0.sx, v0.sy, v1.sx, v1.sy, v2.sx, v2.sy);
+        if (std::fabs(area) < 1e-9) { continue; }
+        double sign = 1.0;
+        if (area < 0.0) { sign = -1.0; area = -area; }
+        const long x0 = std::max(0L, static_cast<long>(std::floor(std::min({v0.sx, v1.sx, v2.sx}))));
+        const long x1 = std::min(w - 1, static_cast<long>(std::ceil(std::max({v0.sx, v1.sx, v2.sx}))));
+        const long y0 = std::max(0L, static_cast<long>(std::floor(std::min({v0.sy, v1.sy, v2.sy}))));
+        const long y1 = std::min(h - 1, static_cast<long>(std::ceil(std::max({v0.sy, v1.sy, v2.sy}))));
+        for (long y = y0; y <= y1; ++y) {
+            for (long x = x0; x <= x1; ++x) {
+                const double px = x + 0.5, py = y + 0.5;
+                const double w0 = sign * edge(v1.sx, v1.sy, v2.sx, v2.sy, px, py);  // v0's weight
+                const double w1 = sign * edge(v2.sx, v2.sy, v0.sx, v0.sy, px, py);  // v1's weight
+                const double w2 = sign * edge(v0.sx, v0.sy, v1.sx, v1.sy, px, py);  // v2's weight
+                if (w0 < 0.0 || w1 < 0.0 || w2 < 0.0) { continue; }
+                const double l0 = w0 / area, l1 = w1 / area, l2 = w2 / area;
+                const float z = static_cast<float>(l0 * v0.sz + l1 * v1.sz + l2 * v2.sz);
+                const double denom = l0 * v0.iw + l1 * v1.iw + l2 * v2.iw;
+                if (denom <= 0.0) { continue; }
+                const double q0 = l0 * v0.iw / denom, q1 = l1 * v1.iw / denom, q2 = l2 * v2.iw / denom;
+                shade_write(x, y, z,
+                            static_cast<float>(q0 * v0.nx + q1 * v1.nx + q2 * v2.nx),
+                            static_cast<float>(q0 * v0.ny + q1 * v1.ny + q2 * v2.ny),
+                            static_cast<float>(q0 * v0.nz + q1 * v1.nz + q2 * v2.nz),
+                            static_cast<float>(q0 * v0.u + q1 * v1.u + q2 * v2.u),
+                            static_cast<float>(q0 * v0.v + q1 * v1.v + q2 * v2.v));
+            }
+        }
+    }
 }
 
 // Function-local statics dodge the static-init-order fiasco: metal-cpp registers its classes/selectors
@@ -111,6 +314,8 @@ inline void track(Base*) {}
 inline void untrack(Base*) {}
 #endif
 
+void release(Base* b);  // forward: destroying an encoder releases the pass it retained
+
 // Destroy by tag so the right (non-trivial) destructor runs.
 void destroy(Base* b) {
     untrack(b);
@@ -126,7 +331,12 @@ void destroy(Base* b) {
         case T_TEXDESC: delete static_cast<TexDesc*>(b); break;
         case T_TEX:    delete static_cast<Tex*>(b); break;
         case T_RPDESC: delete static_cast<RPDesc*>(b); break;  // frees its attachment array
-        case T_RENC:   delete static_cast<REnc*>(b); break;
+        case T_RENC: {
+            REnc* e = static_cast<REnc*>(b);
+            if (e->pass != nullptr) { release(e->pass); }  // drop the retain taken at encoder creation
+            delete e;
+            break;
+        }
         default:       delete b; break;
     }
 }
@@ -249,8 +459,21 @@ id objc_msgSend(id self, SEL op, ...) {
                     if (d != nullptr) {
                         t->width = d->width; t->height = d->height; t->pixel_format = d->pixel_format;
                     }
+                    // 4 bytes/pixel covers both emulated formats: RGBA8 and Depth32Float (a float).
                     t->data.assign(t->width * t->height * kBytesPerPixel, 0);
                     ret = reinterpret_cast<id>(t);
+                } else if (s == "newRenderPipelineStateWithDescriptor:error:") {
+                    // The raster IS the pipeline (the fixed interleaved-mesh contract), so the state
+                    // object only needs to exist; the descriptor's functions/formats are not consulted.
+                    va_arg(ap, id);                       // the descriptor
+                    void** err = va_arg(ap, void**);      // NS::Error** out-param
+                    if (err != nullptr) { *err = nullptr; }
+                    ret = reinterpret_cast<id>(make<Base>(T_OBJ));
+                } else if (s == "newDepthStencilStateWithDescriptor:" ||
+                           s == "newSamplerStateWithDescriptor:") {
+                    // Depth is always LESS + write and sampling always nearest in the raster — the
+                    // contract's fixed state — so these are existence-only objects too.
+                    ret = reinterpret_cast<id>(make<Base>(T_OBJ));
                 }
                 break;
             case T_LIB:
@@ -272,6 +495,41 @@ id objc_msgSend(id self, SEL op, ...) {
                     REnc* e = make<REnc>(T_RENC);
                     e->cb = c;
                     e->pass = reinterpret_cast<RPDesc*>(va_arg(ap, id));
+                    retain(e->pass);  // real Metal semantics: the encoder outlives the caller's release
+                                      // of the descriptor (a draw reads the pass's attachments later)
+                    // The pass's LOAD ACTIONS queue at encoder CREATION (a snapshot, as real Metal
+                    // takes), so a Clear runs before any draw this encoder records — queueing at
+                    // endEncoding would misorder the clear after the draws.
+                    if (e->pass != nullptr && e->pass->colors != nullptr) {
+                        for (auto& kv : e->pass->colors->attachments) {
+                            RPCA* att = kv.second;
+                            if (att->texture == nullptr || att->load_action != MTL::LoadActionClear) {
+                                continue;
+                            }
+                            Tex* t = att->texture;
+                            const std::array<unsigned char, kBytesPerPixel> px = {
+                                to_unorm8(att->clear_color[0]), to_unorm8(att->clear_color[1]),
+                                to_unorm8(att->clear_color[2]), to_unorm8(att->clear_color[3])};
+                            c->work.push_back([t, px]() {
+                                for (std::size_t i = 0; i + kBytesPerPixel <= t->data.size();
+                                     i += kBytesPerPixel) {
+                                    std::memcpy(t->data.data() + i, px.data(), kBytesPerPixel);
+                                }
+                            });
+                        }
+                    }
+                    if (e->pass != nullptr && e->pass->depth != nullptr &&
+                        e->pass->depth->texture != nullptr &&
+                        e->pass->depth->load_action == MTL::LoadActionClear) {
+                        Tex* t = e->pass->depth->texture;
+                        const float cd = static_cast<float>(e->pass->depth->clear_depth);
+                        c->work.push_back([t, cd]() {
+                            float* depths = reinterpret_cast<float*>(t->data.data());
+                            for (std::size_t i = 0; i < t->data.size() / sizeof(float); ++i) {
+                                depths[i] = cd;
+                            }
+                        });
+                    }
                     autorelease(e);
                     ret = reinterpret_cast<id>(e);
                 } else if (s == "commit") {
@@ -366,7 +624,21 @@ id objc_msgSend(id self, SEL op, ...) {
                         untrack(d->colors);  // an unowned view to metal-cpp; the descriptor frees it
                     }
                     ret = reinterpret_cast<id>(d->colors);
+                } else if (s == "depthAttachment") {
+                    if (d->depth == nullptr) {
+                        d->depth = make<RPDA>(T_RPDA);
+                        untrack(d->depth);  // unowned view; the descriptor frees it
+                    }
+                    ret = reinterpret_cast<id>(d->depth);
                 }
+                break;
+            }
+            case T_RPDA: {
+                RPDA* att = static_cast<RPDA*>(b);
+                if (s == "setTexture:") att->texture = reinterpret_cast<Tex*>(va_arg(ap, id));
+                else if (s == "setLoadAction:") att->load_action = va_arg(ap, unsigned long);
+                else if (s == "setStoreAction:") att->store_action = va_arg(ap, unsigned long);
+                else if (s == "setClearDepth:") att->clear_depth = va_arg(ap, double);
                 break;
             }
             case T_RPCAA: {
@@ -395,24 +667,57 @@ id objc_msgSend(id self, SEL op, ...) {
                 break;
             }
             case T_RENC: {
+                // Load actions were queued when the encoder was created; endEncoding has nothing left
+                // to do. The set* selectors accumulate draw state, and each drawIndexedPrimitives
+                // snapshots that state into a queued raster_draw (run in order at commit).
                 REnc* e = static_cast<REnc*>(b);
-                if (s == "endEncoding" && e->pass != nullptr && e->pass->colors != nullptr) {
-                    // A clear-only render pass: at commit, every attachment whose loadAction is Clear
-                    // fills its texture with the clear colour. (Draw calls arrive with the mesh work.)
-                    for (auto& kv : e->pass->colors->attachments) {
-                        RPCA* att = kv.second;
-                        if (att->texture == nullptr || att->load_action != MTL::LoadActionClear) { continue; }
-                        Tex* t = att->texture;
-                        const std::array<unsigned char, kBytesPerPixel> px = {
-                            to_unorm8(att->clear_color[0]), to_unorm8(att->clear_color[1]),
-                            to_unorm8(att->clear_color[2]), to_unorm8(att->clear_color[3])};
-                        e->cb->work.push_back([t, px]() {
-                            for (std::size_t i = 0; i + kBytesPerPixel <= t->data.size(); i += kBytesPerPixel) {
-                                std::memcpy(t->data.data() + i, px.data(), kBytesPerPixel);
-                            }
-                        });
+                if (s == "setTriangleFillMode:") {
+                    e->fill_mode = va_arg(ap, unsigned long);
+                } else if (s == "setVertexBuffer:offset:atIndex:") {
+                    Buf* bf = reinterpret_cast<Buf*>(va_arg(ap, id));
+                    unsigned long off = va_arg(ap, unsigned long);
+                    unsigned long idx = va_arg(ap, unsigned long);
+                    e->vbufs[idx] = {bf, off};
+                } else if (s == "setVertexBytes:length:atIndex:") {
+                    const unsigned char* p = static_cast<const unsigned char*>(va_arg(ap, void*));
+                    unsigned long len = va_arg(ap, unsigned long);
+                    unsigned long idx = va_arg(ap, unsigned long);
+                    e->vbytes[idx].assign(p, p + len);
+                } else if (s == "setFragmentBytes:length:atIndex:") {
+                    const unsigned char* p = static_cast<const unsigned char*>(va_arg(ap, void*));
+                    unsigned long len = va_arg(ap, unsigned long);
+                    unsigned long idx = va_arg(ap, unsigned long);
+                    e->fbytes[idx].assign(p, p + len);
+                } else if (s == "setFragmentTexture:atIndex:") {
+                    Tex* t = reinterpret_cast<Tex*>(va_arg(ap, id));
+                    unsigned long idx = va_arg(ap, unsigned long);
+                    e->ftex[idx] = t;
+                } else if (s == "drawIndexedPrimitives:indexCount:indexType:indexBuffer:indexBufferOffset:") {
+                    va_arg(ap, unsigned long);  // primitive type — triangles are all the raster knows
+                    DrawState st;
+                    st.index_count = va_arg(ap, unsigned long);
+                    st.index_type = va_arg(ap, unsigned long);
+                    st.ibuf = reinterpret_cast<Buf*>(va_arg(ap, id));
+                    st.ioff = va_arg(ap, unsigned long);
+                    st.fill_mode = e->fill_mode;
+                    if (e->pass != nullptr && e->pass->colors != nullptr) {
+                        auto it = e->pass->colors->attachments.find(0);
+                        if (it != e->pass->colors->attachments.end()) { st.color = it->second->texture; }
                     }
+                    if (e->pass != nullptr && e->pass->depth != nullptr) {
+                        st.depth = e->pass->depth->texture;
+                    }
+                    auto vit = e->vbufs.find(1);                       // buffer(1): the stage_in vertices
+                    if (vit != e->vbufs.end()) { st.vbuf = vit->second.first; st.voff = vit->second.second; }
+                    auto pit = e->vbytes.find(0);                      // buffer(0): the 80-byte constant
+                    if (pit != e->vbytes.end()) { st.push = pit->second; }
+                    auto tit = e->ftex.find(0);                        // texture(0): the base color
+                    if (tit != e->ftex.end()) { st.tex = tit->second; }
+                    e->cb->work.push_back([st]() { raster_draw(st); });
                 }
+                // setRenderPipelineState:/setDepthStencilState:/setCullMode:/setFragmentSamplerState:
+                // atIndex: carry state the raster fixes by contract (LESS+write, no cull, nearest) —
+                // accepted and ignored.
                 break;
             }
             case T_STR: {
