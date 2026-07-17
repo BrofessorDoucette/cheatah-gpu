@@ -32,6 +32,11 @@ kernel void mul_arrays(device const float* A [[buffer(0)]],
                        device const float* B [[buffer(1)]],
                        device float* C       [[buffer(2)]],
                        uint i [[thread_position_in_grid]]) { C[i] = A[i] * B[i]; }
+kernel void iota3d(device float* C [[buffer(0)]],
+                   uint3 p [[thread_position_in_grid]],
+                   uint3 g [[threads_per_grid]]) {
+    C[p.z * g.x * g.y + p.y * g.x + p.x] = float(p.z * g.x * g.y + p.y * g.x + p.x);
+}
 )MSL";
 
 #ifndef __APPLE__
@@ -45,6 +50,18 @@ static void mul_arrays(void** b, unsigned n, unsigned long w) {
     if (n < 3) return;
     auto* A = static_cast<const float*>(b[0]); auto* B = static_cast<const float*>(b[1]); auto* C = static_cast<float*>(b[2]);
     for (std::uint64_t i = 0; i < w; ++i) C[i] = A[i] * B[i];
+}
+// 3-D stand-in via the DispatchShape registration overload: one write per thread of the full
+// (normalized) grid, so it observes exactly the thread volume either dispatch form launches.
+static void iota3d(void** b, unsigned n, const emu::DispatchShape& shape) {
+    if (n < 1) return;
+    auto* C = static_cast<float*>(b[0]);
+    const auto& t = shape.threads;
+    for (unsigned long z = 0; z < t.depth; ++z)
+        for (unsigned long y = 0; y < t.height; ++y)
+            for (unsigned long x = 0; x < t.width; ++x)
+                C[z * t.width * t.height + y * t.width + x] =
+                    float(z * t.width * t.height + y * t.width + x);
 }
 #endif
 
@@ -90,10 +107,48 @@ static bool run_kernel(mtl::Device* dev, mtl::Library* lib, mtl::CommandQueue* q
 static float add(float a, float b) { return a + b; }
 static float mul(float a, float b) { return a * b; }
 
+// Run the 3-D iota kernel over an 8x8x1 thread volume through ONE of the two dispatch forms and
+// check every element — proves y/z extents reach the kernel, and that dispatchThreadgroups
+// launches groups x threadsPerThreadgroup threads (not group counts).
+static bool run_iota3d(mtl::Device* dev, mtl::Library* lib, mtl::CommandQueue* queue, bool by_groups) {
+    const std::uint32_t W = 8, H = 8;
+    mtl::Error* err = nullptr;
+    mtl::String* fname = mtl::String::string("iota3d", mtl::UTF8StringEncoding);
+    mtl::Function* fn = lib->newFunction(fname);
+    mtl::ComputePipelineState* pso = dev->newComputePipelineState(fn, &err);
+
+    mtl::Buffer* bc = dev->newBuffer(W * H * sizeof(float), mtl::ResourceStorageModeShared);
+
+    mtl::CommandBuffer* cb = queue->commandBuffer();
+    mtl::ComputeCommandEncoder* enc = cb->computeCommandEncoder();
+    enc->setComputePipelineState(pso);
+    enc->setBuffer(bc, 0, 0);
+    if (by_groups) {
+        enc->dispatchThreadgroups(mtl::Size(2, 2, 1), mtl::Size(4, 4, 1));  // 2x2 groups of 4x4 = 8x8
+    } else {
+        enc->dispatchThreads(mtl::Size(W, H, 1), mtl::Size(4, 4, 1));
+    }
+    enc->endEncoding();
+    cb->commit();
+    cb->waitUntilCompleted();
+
+    auto* C = static_cast<const float*>(bc->contents());
+    bool ok = true;
+    for (std::uint32_t i = 0; i < W * H; ++i) {
+        if (C[i] != float(i)) { ok = false; std::printf("  iota3d mismatch[%u]: %g != %g\n", i, C[i], double(i)); }
+    }
+    std::printf("  iota3d (%s): %s\n", by_groups ? "dispatchThreadgroups" : "dispatchThreads",
+                ok ? "ok" : "FAIL");
+
+    bc->release(); pso->release(); fn->release();
+    return ok;
+}
+
 int main() {
 #ifndef __APPLE__
     emu::register_kernel("add_arrays", &add_arrays);
     emu::register_kernel("mul_arrays", &mul_arrays);
+    emu::register_kernel("iota3d", &iota3d);
     std::printf("Metal compute on the SOFTWARE-EMULATED device:\n");
 #else
     std::printf("Metal compute on REAL Apple hardware:\n");
@@ -111,6 +166,8 @@ int main() {
 
         ok &= run_kernel(dev, lib, queue, "add_arrays", &add);
         ok &= run_kernel(dev, lib, queue, "mul_arrays", &mul);
+        ok &= run_iota3d(dev, lib, queue, false);  // dispatchThreads with a 2-D grid
+        ok &= run_iota3d(dev, lib, queue, true);   // dispatchThreadgroups, normalized to threads
 
         lib->release(); queue->release(); dev->release();
         pool->release();

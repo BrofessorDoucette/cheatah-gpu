@@ -20,13 +20,15 @@ fail() { printf '\n\033[31m[metal-gate] FAILED: %s\033[0m\n' "$*"; exit 1; }
 CXX="${CXX:-clang++}"
 command -v "$CXX" >/dev/null 2>&1 || fail "no C++ compiler ($CXX)"
 
-# 1. metal-cpp (fetched + cached) -----------------------------------------------------------------
-MCPP="${CHEATAH_GPU_METAL_CPP:-$PWD/build/metal-cpp}"
+# 1. metal-cpp (Apple's official C++ Metal bindings — you provide it; NO third-party download) -----
+# Search: $CHEATAH_GPU_METAL_CPP, then the in-repo vendored copy third_party/metal-cpp. Get metal-cpp
+# from Apple at https://developer.apple.com/metal/cpp/ (MIT-licensed) and point CHEATAH_GPU_METAL_CPP
+# at it, or vendor it at third_party/metal-cpp/. We never clone it from a mirror.
+MCPP="${CHEATAH_GPU_METAL_CPP:-$PWD/third_party/metal-cpp}"
 if [ ! -f "$MCPP/Metal/Metal.hpp" ]; then
-    bold "Fetching metal-cpp -> $MCPP"
-    mkdir -p "$(dirname "$MCPP")"
-    git clone --depth 1 https://github.com/bkaradzic/metal-cpp.git "$MCPP" >/tmp/metalcpp_clone.log 2>&1 \
-        || { cat /tmp/metalcpp_clone.log; fail "could not fetch metal-cpp"; }
+    fail "metal-cpp not found at '$MCPP'. Download it from https://developer.apple.com/metal/cpp/ and
+    set CHEATAH_GPU_METAL_CPP=/path/to/metal-cpp, or vendor it at third_party/metal-cpp/ (needs
+    Metal/Metal.hpp + Foundation/Foundation.hpp)."
 fi
 
 TEST="tests/metal/metal_compute_test.cpp"
@@ -110,7 +112,55 @@ else
     fi
 fi
 
-# 4. Backend auto-resolution: force the WRONG backend for THIS OS and prove it switches + warns -----
+# 4. Pure-cheatah Metal system tests: drive the compute pipeline FROM CHEATAH (tokens through the
+#    handles.hpp model; constants via `import gpu.metal`). Off Apple the module links the emulator
+#    objects built here, so the same .purr runs on the software device; on Apple it links the real
+#    frameworks and the embedded MSL runs on the GPU.
+shopt -s nullglob
+mtests=(systests/metal/test_*.purr)
+if [ ${#mtests[@]} -gt 0 ]; then
+    CHEATAH_DIR="${CHEATAH_DIR:-$PWD/../cheatah}"
+    PURRC=""; CHEATAH=""
+    for c in release debug asan; do
+        [ -z "$PURRC" ]   && [ -x "$CHEATAH_DIR/build/$c/bin/purrc" ]   && PURRC="$CHEATAH_DIR/build/$c/bin/purrc"
+        [ -z "$CHEATAH" ] && [ -x "$CHEATAH_DIR/build/$c/bin/cheatah" ] && CHEATAH="$CHEATAH_DIR/build/$c/bin/cheatah"
+    done
+    # The signed gpu umbrella includes the Vulkan surface too, so resolve the newest SDK's headers
+    # the same way vulkan_gate.sh does (the distro's vulkan_core.h is often too old).
+    SDK_INC="$(ls -d "$HOME"/Tools/vulkan-sdk/*/x86_64/include "$HOME"/VulkanSDK/*/x86_64/include "$HOME"/Tools/vulkan-sdk/*/macOS/include "$HOME"/VulkanSDK/*/macOS/include 2>/dev/null | sort -V | tail -1)"
+    if [ -x "$PURRC" ] && [ -x "$CHEATAH" ] && [ -n "$SDK_INC" ]; then
+        bold "Running pure-cheatah Metal system tests…"
+        PWRK="$(mktemp -d)"; trap 'rm -rf "$W" "$PWRK"' EXIT  # extend the earlier trap: keep both cleanups
+        MCF=(--cxxflag -fblocks --cxxflag -include --cxxflag cmath --cxxflag "-I$MCPP" --cxxflag "-I$PWD")
+        MLNK=()
+        if [ "$(uname -s)" = "Darwin" ]; then
+            MLNK=(--link "-framework" --link "Metal" --link "-framework" --link "Foundation" \
+                  --link "-framework" --link "QuartzCore")
+        else
+            # The emulator objects the module links against (same TUs the C++ tests use).
+            MCF+=(--cxxflag "-Igpu/metal/shim")
+            $CXX -std=c++20 -fPIC -fblocks -include cmath -I"$MCPP" -Igpu/metal/shim -I"$PWD" -O1 -c \
+                gpu/metal/emulated/emulated_metal.cpp -o "$PWRK/emu.o" >"$PWRK/emu_build.log" 2>&1 \
+                || { cat "$PWRK/emu_build.log"; fail "emulator object build for systests"; }
+            $CXX -std=c++20 -fPIC -fblocks -include cmath -I"$MCPP" -Igpu/metal/shim -I"$PWD" -O1 -c \
+                gpu/metal/emulated/block_stubs.cpp -o "$PWRK/stubs.o" >>"$PWRK/emu_build.log" 2>&1 \
+                || { cat "$PWRK/emu_build.log"; fail "block-stub object build for systests"; }
+            ar rcs "$PWRK/emu.a" "$PWRK/emu.o" "$PWRK/stubs.o"
+            MLNK=(--link "$PWRK/emu.a")
+        fi
+        for t in "${mtests[@]}"; do
+            nm="$(basename "$t" .purr)"
+            CPATH="$SDK_INC" "$PURRC" --import-root "$PWD" "$t" -o "$PWRK/$nm.so" "${MCF[@]}" "${MLNK[@]}" \
+                >"$PWRK/$nm.log" 2>&1 || { sed 's/^/    /' "$PWRK/$nm.log"; fail "compile $t"; }
+            out="$("$CHEATAH" "$PWRK/$nm.so" 2>&1)"; echo "$out" | sed 's/^/    /'
+            echo "$out" | grep -q "RESULT: PASS" || fail "$t did not pass"
+        done
+    else
+        bold "Skipping pure-cheatah Metal system tests (no cheatah toolchain at $CHEATAH_DIR / no Vulkan SDK include)."
+    fi
+fi
+
+# 5. Backend auto-resolution: force the WRONG backend for THIS OS and prove it switches + warns -----
 bold "Verifying backend auto-resolution (forced backend must switch + warn, never silent)…"
 cat > "$W/backend_switch.cpp" <<'EOF'
 #include "gpu/backend.hpp"

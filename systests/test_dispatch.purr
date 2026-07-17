@@ -19,4 +19,23 @@ f += check.eq_int("groups 0@256",    dispatch.group_count_1d(0, 256),       0)
 # the dispatch must cover every item: groups * local_size >= items.
 f += check.is_true("dispatch covers items", dispatch.group_count_1d(1000, 256) * 256 >= 1000)
 
+# 3-D extents: unused Dim3 axes default to 1 (one slice, not zero).
+let one_d = dispatch.Dim3({.x = 1000})
+f += check.eq_int("Dim3 default y", one_d.y, 1)
+f += check.eq_int("Dim3 default z", one_d.z, 1)
+
+# group_count_3d is ceil_div per axis: exact multiple / one-over / partial in one call.
+let g = dispatch.group_count_3d(dispatch.Dim3({.x = 256, .y = 65, .z = 1000}),
+                                dispatch.Dim3({.x = 256, .y = 64, .z = 256}))
+f += check.eq_int("groups3d x", g.x, 1)
+f += check.eq_int("groups3d y", g.y, 2)
+f += check.eq_int("groups3d z", g.z, 4)
+
+# per-axis clamp vs maxComputeWorkGroupCount[3]: under / over / at the cap.
+let c = dispatch.clamp_group_count(dispatch.Dim3({.x = 10, .y = 70000, .z = 65535}),
+                                   dispatch.Dim3({.x = 65535, .y = 65535, .z = 65535}))
+f += check.eq_int("clamp3d under", c.x, 10)
+f += check.eq_int("clamp3d over",  c.y, 65535)
+f += check.eq_int("clamp3d at",    c.z, 65535)
+
 check.result(f)

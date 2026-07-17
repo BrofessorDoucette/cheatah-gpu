@@ -21,6 +21,8 @@
 #define CA_PRIVATE_IMPLEMENTATION
 #include <Metal/Metal.hpp>
 
+#include "emulated.hpp"
+
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -302,7 +304,10 @@ std::set<std::string>& sel_pool() { static std::set<std::string> s; return s; }
 std::map<std::string, ClassObj*>& classes() { static std::map<std::string, ClassObj*> m; return m; }
 std::vector<std::vector<Base*>>& autorelease_stack() { static std::vector<std::vector<Base*>> v; return v; }
 
-using Kernel = std::function<void(void**, unsigned, unsigned long)>;
+// Stand-in kernels run with the full DispatchShape; the legacy width-only registration form is
+// adapted into this signature at registration (see register_kernel below).
+using DispatchShape = cheatah::gpu::metal::emulated::DispatchShape;
+using Kernel = std::function<void(void**, unsigned, const DispatchShape&)>;
 std::map<std::string, Kernel>& kernels() { static std::map<std::string, Kernel> k; return k; }
 
 #if defined(CHEATAH_GPU_METAL_LEAKCHECK) && CHEATAH_GPU_METAL_LEAKCHECK
@@ -352,7 +357,17 @@ void autorelease(Base* b) { if (b && !autorelease_stack().empty()) autorelease_s
 // a stand-in compute kernel by name, and query live objects to assert leak-freedom. See emulated.hpp.
 namespace cheatah::gpu::metal::emulated {
 
-void register_kernel(const char* name, void (*fn)(void**, unsigned, unsigned long)) { kernels()[name] = fn; }
+void register_kernel(const char* name, void (*fn)(void**, unsigned, unsigned long)) {
+    // Adapt the width-only form into the shared table: a 1-D kernel sees exactly what it always
+    // did — the total thread count along x — whichever dispatch form launched it.
+    kernels()[name] = [fn](void** bufs, unsigned n, const DispatchShape& shape) {
+        fn(bufs, n, shape.threads.width);
+    };
+}
+
+void register_kernel(const char* name, void (*fn)(void**, unsigned, const DispatchShape&)) {
+    kernels()[name] = fn;
+}
 
 unsigned long live_objects() {
 #if defined(CHEATAH_GPU_METAL_LEAKCHECK) && CHEATAH_GPU_METAL_LEAKCHECK
@@ -547,16 +562,25 @@ id objc_msgSend(id self, SEL op, ...) {
                     unsigned long idx = va_arg(ap, unsigned long);
                     e->bufs[idx] = {bf, off};
                 } else if (s.rfind("dispatchThreads:", 0) == 0 || s.rfind("dispatchThreadgroups:", 0) == 0) {
-                    MTL::Size grid = va_arg(ap, MTL::Size); va_arg(ap, MTL::Size);
-                    unsigned long grid_width = grid.width;
+                    MTL::Size grid = va_arg(ap, MTL::Size);
+                    MTL::Size tptg = va_arg(ap, MTL::Size);
+                    // Normalize both forms to the TOTAL thread grid, like real Metal launches:
+                    // dispatchThreads passes threads directly; dispatchThreadgroups passes GROUP
+                    // counts, so the thread grid is groups x threadsPerThreadgroup per axis.
+                    DispatchShape shape;
+                    const bool by_groups = s.rfind("dispatchThreadgroups:", 0) == 0;
+                    shape.threads = {by_groups ? grid.width * tptg.width : grid.width,
+                                     by_groups ? grid.height * tptg.height : grid.height,
+                                     by_groups ? grid.depth * tptg.depth : grid.depth};
+                    shape.threads_per_threadgroup = {tptg.width, tptg.height, tptg.depth};
                     std::string fn = e->fn; auto bufs = e->bufs;
-                    e->cb->work.push_back([fn, bufs, grid_width]() mutable {
+                    e->cb->work.push_back([fn, bufs, shape]() mutable {
                         auto it = kernels().find(fn);
                         if (it == kernels().end()) return;
                         unsigned long maxi = 0; for (auto& kv : bufs) if (kv.first > maxi) maxi = kv.first;
                         std::vector<void*> ptrs(maxi + 1, nullptr);
                         for (auto& kv : bufs) ptrs[kv.first] = kv.second.first->data.data() + kv.second.second;
-                        it->second(ptrs.data(), static_cast<unsigned>(ptrs.size()), grid_width);
+                        it->second(ptrs.data(), static_cast<unsigned>(ptrs.size()), shape);
                     });
                 }
                 break;

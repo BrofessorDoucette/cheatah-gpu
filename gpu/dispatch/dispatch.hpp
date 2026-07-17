@@ -69,4 +69,66 @@ inline constexpr std::uint32_t clamp_group_count(std::uint32_t want, std::uint32
     return want < device_max ? want : device_max;
 }
 
+/**
+ * Three-dimensional dispatch extents — the (x, y, z) triple every GPU dispatch interface
+ * takes, whether it is `vkCmdDispatch(x, y, z)` or Metal's `MTLSize`. Also spells problem
+ * sizes and per-axis device limits (`maxComputeWorkGroupCount[3]`), so one type serves items,
+ * local sizes, workgroup counts, and clamps. Unused axes default to 1 — a 1-D dispatch is
+ * `Dim3{items}` — matching how the hardware treats a missing axis (one slice, not zero).
+ * @test Dispatch.Dim3Defaults
+ * @systest DispatchSys.Dim3
+ */
+struct Dim3 {
+    std::uint32_t x = 1u;  ///< extent on X — the only axis a 1-D dispatch sizes.
+    std::uint32_t y = 1u;  ///< extent on Y; 1 when unused.
+    std::uint32_t z = 1u;  ///< extent on Z; 1 when unused.
+};
+
+/**
+ * Per-axis equality of two extents (all of x, y, and z match).
+ * @param a,b the extents to compare.
+ * @return true when every axis is equal.
+ * @complexity O(1).
+ * @alloc none.
+ * @test Dispatch.Dim3Equality
+ */
+inline constexpr bool operator==(Dim3 a, Dim3 b) {
+    return a.x == b.x && a.y == b.y && a.z == b.z;
+}
+
+/**
+ * Three-dimensional workgroup count for a compute dispatch: the (groupCountX, groupCountY,
+ * groupCountZ) you pass to `vkCmdDispatch` so an @p items volume is covered at @p local_size
+ * threads per group on each axis — @ref ceil_div applied per axis, with its overflow safety
+ * and `0`-on-zero-denominator semantics.
+ * @param items total invocations to cover on each axis (e.g. an image's width × height).
+ * @param local_size the shader's (local_size_x, local_size_y, local_size_z).
+ * @return the per-axis workgroup counts; an axis is 0 when its @p local_size axis is 0.
+ * @complexity O(1).
+ * @alloc none.
+ * @test Dispatch.GroupCount3d
+ * @systest DispatchSys.GroupCount3d
+ */
+inline constexpr Dim3 group_count_3d(Dim3 items, Dim3 local_size) {
+    return Dim3{ceil_div(items.x, local_size.x), ceil_div(items.y, local_size.y),
+                ceil_div(items.z, local_size.z)};
+}
+
+/**
+ * Clamp a desired workgroup count to the device's per-axis limits, so a 3-D dispatch never
+ * exceeds `VkPhysicalDeviceLimits::maxComputeWorkGroupCount[3]` on any axis — the scalar
+ * @ref clamp_group_count applied per axis.
+ * @param want the workgroup counts the problem size asks for.
+ * @param device_max the device's maximum workgroup count per axis.
+ * @return @p want with each axis clamped to its @p device_max axis.
+ * @complexity O(1).
+ * @alloc none.
+ * @test Dispatch.ClampGroupCount3d
+ * @systest DispatchSys.ClampGroupCount3d
+ */
+inline constexpr Dim3 clamp_group_count(Dim3 want, Dim3 device_max) {
+    return Dim3{clamp_group_count(want.x, device_max.x), clamp_group_count(want.y, device_max.y),
+                clamp_group_count(want.z, device_max.z)};
+}
+
 }  // namespace cheatah::gpu::dispatch

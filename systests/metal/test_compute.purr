@@ -1,0 +1,163 @@
+# test_compute.purr — the Metal COMPUTE flow driven from cheatah. The .purr program owns the
+# whole pipeline as `long long` tokens (the handles.hpp model: a .purr program never sees a
+# native object) — device -> queue -> library -> function -> pipeline -> buffer -> dispatch ->
+# readback — while a cpp{} shim does only the token<->pointer boundary. On Apple the embedded
+# MSL compiles and runs on the GPU; off Apple the software-emulated device (gpu/metal/emulated)
+# runs the registered C++ stand-in instead, and the leak counter must end at zero.
+# Run by scripts/metal_gate.sh (which links the emulator objects off Apple).
+
+import io
+import gpu.metal as mtl
+
+cpp {
+#include "gpu/metal/types.hpp"
+#include "gpu/metal/handles.hpp"
+#ifndef __APPLE__
+#  include "gpu/metal/emulated/emulated.hpp"
+#endif
+
+#include <concepts>
+
+namespace m = ::cheatah::gpu::metal;
+
+// Real MSL — compiled by Metal on Apple; ignored by the emulator (dispatch is by function name).
+static const char* kComputeSrc = R"MSL(
+#include <metal_stdlib>
+using namespace metal;
+kernel void double_up(device float* A [[buffer(0)]],
+                      uint i [[thread_position_in_grid]]) { A[i] = A[i] * 2.0f; }
+)MSL";
+
+#ifndef __APPLE__
+// CPU stand-in for the emulator, matched to the MSL kernel above by name.
+static void double_up(void** b, unsigned n, unsigned long w) {
+    if (n < 1) { return; }
+    float* A = static_cast<float*>(b[0]);
+    for (unsigned long i = 0; i < w; ++i) { A[i] *= 2.0f; }
+}
+#endif
+
+// The token<->pointer boundary (see gpu/metal/handles.hpp): each helper converts the cheatah
+// tokens at the edge and makes the native Metal calls; ownership stays with the .purr caller.
+static long long compute_boot() {
+#ifndef __APPLE__
+    m::emulated::register_kernel("double_up", &double_up);
+#endif
+    return m::token(m::CreateSystemDefaultDevice());
+}
+
+static long long new_queue(long long dev) {
+    return m::token(m::handle<m::Device*>(dev)->newCommandQueue());
+}
+
+static long long new_library(long long dev) {
+    m::AutoreleasePool* pool = m::AutoreleasePool::alloc()->init();
+    m::Error* err = nullptr;
+    m::String* src = m::String::string(kComputeSrc, m::UTF8StringEncoding);
+    m::Library* lib = m::handle<m::Device*>(dev)->newLibrary(
+        src, static_cast<const m::CompileOptions*>(nullptr), &err);
+    pool->release();
+    return m::token(lib);
+}
+
+static long long new_pipeline(long long dev, long long lib) {
+    m::AutoreleasePool* pool = m::AutoreleasePool::alloc()->init();
+    m::Error* err = nullptr;
+    m::String* name = m::String::string("double_up", m::UTF8StringEncoding);
+    m::Function* fn = m::handle<m::Library*>(lib)->newFunction(name);
+    m::ComputePipelineState* pso =
+        m::handle<m::Device*>(dev)->newComputePipelineState(fn, &err);
+    fn->release();
+    pool->release();
+    return m::token(pso);
+}
+
+static long long new_buffer(long long dev, long long floats, long long options) {
+    return m::token(m::handle<m::Device*>(dev)->newBuffer(
+        static_cast<unsigned long>(floats) * sizeof(float),
+        static_cast<m::ResourceOptions>(options)));
+}
+
+// One templated verb over cheatah's sized types (write<f32> / read<f32>), not type-suffixed names.
+template <std::floating_point T>
+static void write(long long buf, long long i, T v) {
+    static_cast<T*>(m::handle<m::Buffer*>(buf)->contents())[i] = v;
+}
+
+template <std::floating_point T>
+static T read(long long buf, long long i) {
+    return static_cast<const T*>(m::handle<m::Buffer*>(buf)->contents())[i];
+}
+
+// Encode + dispatch the pipeline over `threads` grid threads on buffer 0, and block until done.
+static void run_compute(long long queue, long long pso, long long buf, long long threads) {
+    m::AutoreleasePool* pool = m::AutoreleasePool::alloc()->init();
+    m::CommandBuffer* cb = m::handle<m::CommandQueue*>(queue)->commandBuffer();
+    m::ComputeCommandEncoder* enc = cb->computeCommandEncoder();
+    enc->setComputePipelineState(m::handle<m::ComputePipelineState*>(pso));
+    enc->setBuffer(m::handle<m::Buffer*>(buf), 0, 0);
+    const unsigned long n = static_cast<unsigned long>(threads);
+    enc->dispatchThreads(m::Size(n, 1, 1), m::Size(n, 1, 1));
+    enc->endEncoding();
+    cb->commit();
+    cb->waitUntilCompleted();
+    pool->release();
+}
+
+// Release any owned Metal object by token (every token is an NS::Object).
+static void drop(long long obj) { m::handle<::NS::Object*>(obj)->release(); }
+
+// Emulator leak counter (always 0 on real Apple Metal).
+static long long leaked() {
+#ifndef __APPLE__
+    return static_cast<long long>(m::emulated::live_objects());
+#else
+    return 0;
+#endif
+}
+}
+
+io.print("== gpu.metal: compute pipeline from cheatah (tokens) ==")
+
+let dev = compute_boot()
+if dev == 0 {
+    io.print("RESULT: FAIL (no Metal device)")
+} else {
+    let queue = new_queue(dev)
+    let lib = new_library(dev)
+    let pso = new_pipeline(dev, lib)
+    # 8 floats in a shared-storage buffer — the mode constant comes through `import gpu.metal`.
+    let n = 8
+    let buf = new_buffer(dev, n, mtl.ResourceStorageModeShared)
+    for i in range(n) {
+        write<f32>(buf, i, 1.0 + i)
+    }
+
+    run_compute(queue, pso, buf, n)
+
+    let fails = 0
+    for i in range(n) {
+        let want = (1.0 + i) * 2.0
+        if read<f32>(buf, i) != want {
+            io.print("  FAIL element", i, "got", read<f32>(buf, i), "want", want)
+            fails += 1
+        }
+    }
+    io.print("  double_up over", n, "elements:", fails, "mismatches")
+
+    drop(buf)
+    drop(pso)
+    drop(lib)
+    drop(queue)
+    drop(dev)
+    if leaked() != 0 {
+        io.print("  LEAK:", leaked(), "emulator objects still alive")
+        fails += 1
+    }
+
+    if fails == 0 {
+        io.print("RESULT: PASS")
+    } else {
+        io.print("RESULT: FAIL", fails)
+    }
+}

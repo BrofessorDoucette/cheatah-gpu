@@ -12,6 +12,10 @@ import gpu.dispatch as dispatch
 # cover 1,000,000 items at local_size_x = 256
 let groups = dispatch.group_count_1d(1000000, 256)        # 3907
 let safe   = dispatch.clamp_group_count(groups, 65535)    # clamp to maxComputeWorkGroupCount[0]
+
+# a 2-D image dispatch: 1920x1080 pixels at 16x16 threads per group
+let g = dispatch.group_count_3d(dispatch.Dim3({.x = 1920, .y = 1080}),
+                                dispatch.Dim3({.x = 16,   .y = 16}))   # {120, 68, 1}
 ```
 
 ## Why `uint32_t` everywhere
@@ -26,9 +30,9 @@ registers.
 | `ceil_div(numerator, denom)` | groups to cover `numerator` items at `denom`/group (overflow-safe; `denom==0 → 0`) |
 | `group_count_1d(items, local_size)` | the `groupCountX` for a 1-D dispatch |
 | `clamp_group_count(want, device_max)` | clamp one axis to the device's workgroup-count limit |
-
-3-D extents (`Dim3`, `group_count_3d`, per-axis clamp) land with the Vulkan backend, where the GPU
-struct binding is defined.
+| `Dim3{x, y, z}` | 3-D dispatch extents; unused axes default to **1** (one slice, not zero) |
+| `group_count_3d(items, local_size)` | the (groupCountX, groupCountY, groupCountZ) for a 3-D dispatch — `ceil_div` per axis |
+| `clamp_group_count(want, device_max)` (`Dim3` overload) | clamp all three axes to `maxComputeWorkGroupCount[3]` |
 
 ## Tests
 - **Unit** (C++ GoogleTest): [`../../tests/dispatch_test.cpp`](../../tests/dispatch_test.cpp) — drives 100% line + function coverage.
