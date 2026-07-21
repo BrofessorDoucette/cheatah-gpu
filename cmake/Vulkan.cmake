@@ -32,11 +32,14 @@ foreach(_root IN LISTS _vk_roots)
             if(NOT _v MATCHES "^[0-9]")            # only version-named dirs (skip "Releases", etc.)
                 continue()
             endif()
-            # The headers live in <ver>/x86_64/include (Linux SDK) or <ver>/include. Require the real
-            # vulkan_core.h so we never pick an installer/stub dir.
+            # The headers live in <ver>/x86_64/include (Linux SDK), <ver>/macOS/include (macOS SDK,
+            # where MoltenVK ships), or <ver>/include. Require the real vulkan_core.h so we never pick
+            # an installer/stub dir.
             set(_inc "")
             if(EXISTS "${_root}/${_v}/x86_64/include/vulkan/vulkan_core.h")
                 set(_inc "${_root}/${_v}/x86_64/include")
+            elseif(EXISTS "${_root}/${_v}/macOS/include/vulkan/vulkan_core.h")
+                set(_inc "${_root}/${_v}/macOS/include")
             elseif(EXISTS "${_root}/${_v}/include/vulkan/vulkan_core.h")
                 set(_inc "${_root}/${_v}/include")
             endif()
@@ -77,9 +80,10 @@ endif()
 # layer when the better native path exists.
 if(APPLE)
     if(NOT DEFINED CHEATAH_GPU_METAL_OK)
-        # Until the native Metal backend (gpu.metal) lands and verifies, Metal is "not OK" yet, so
-        # Apple builds use the MoltenVK Vulkan path.
-        set(CHEATAH_GPU_METAL_OK OFF)
+        # The native Metal backend (gpu.metal) has landed and verifies (cmake/Metal.cmake + the
+        # metal_gate / mtl:* tests), so Apple builds use it by default and NOT the MoltenVK translation
+        # layer. Set -DCHEATAH_GPU_METAL_OK=OFF to force the MoltenVK Vulkan path instead.
+        set(CHEATAH_GPU_METAL_OK ON)
     endif()
     if(NOT CHEATAH_GPU_METAL_OK)
         message(STATUS "cheatah-gpu: native Metal backend unavailable — using MoltenVK (Vulkan on Metal).")

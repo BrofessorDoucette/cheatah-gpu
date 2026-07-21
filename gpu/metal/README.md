@@ -1,4 +1,4 @@
-# gpu.metal — native Metal backend for Apple platforms  ·  status: **roadmap**
+# gpu.metal — native Metal backend for Apple platforms  ·  status: **shipped**
 
 `import gpu.metal` is the Apple **native interface**: a native **Metal** backend kept **as true
 to the Metal API as possible**, so Apple users get first-class performance and Metal-only features
@@ -7,7 +7,11 @@ the **typing fix**, so a cheatah program passes plain numbers and object tokens 
 (see [`handles.hpp`](handles.hpp)). Thin bindings over the Metal C/Objective-C API; Slang authoring
 → Metal via Slang's Metal target.
 
-> Outline only — no compiled headers yet (keeps the QA gate scoped to the tested seed).
+The backend builds and runs under CMake via `-DCHEATAH_GPU_BUILD_METAL=ON` (ON by default on Apple):
+`cmake/Metal.cmake` uses the vendored Apple metal-cpp in [`../../third_party/metal-cpp`](../../third_party/metal-cpp)
+(no download), and the `mtl:compute` / `mtl:multiline` / `mtl:texture` ctests run on the GPU on Apple
+and on the software emulator ([`emulated/`](emulated)) off Apple. `scripts/metal_gate.sh` runs the same
+suite.
 
 ## Why native Metal first on Apple
 On Apple platforms the native Metal path is preferred over running Vulkan through **MoltenVK**:

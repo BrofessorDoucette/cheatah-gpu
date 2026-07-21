@@ -18,7 +18,7 @@ fail() { printf '\033[31m[window] FAIL: %s\033[0m\n' "$*"; exit 1; }
 [ -n "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ] || skip "no display (DISPLAY/WAYLAND_DISPLAY unset)"
 command -v slangc >/dev/null 2>&1 || skip "slangc not found (install the Vulkan SDK)"
 command -v c++ >/dev/null 2>&1 || skip "no C++ compiler"
-SDK_INC="$(ls -d "$HOME"/Tools/vulkan-sdk/*/x86_64/include "$HOME"/VulkanSDK/*/x86_64/include 2>/dev/null | sort -V | tail -1)"
+SDK_INC="$(ls -d "$HOME"/Tools/vulkan-sdk/*/x86_64/include "$HOME"/VulkanSDK/*/x86_64/include "$HOME"/Tools/vulkan-sdk/*/macOS/include "$HOME"/VulkanSDK/*/macOS/include 2>/dev/null | sort -V | tail -1)"
 [ -n "$SDK_INC" ] || skip "no Vulkan SDK include found"
 CHEATAH_DIR="${CHEATAH_DIR:-$PWD/../cheatah}"
 PURRC=""; CHEATAH=""

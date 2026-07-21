@@ -95,7 +95,7 @@ tests=("$REPO_ROOT"/systests/test_*.purr)
 # `import gpu` pulls the Vulkan surface (gpu.hpp -> commands.hpp -> types.hpp), generated from the
 # vendored registry. Compile against the NEWEST installed SDK headers (what cheatah-gpu provisions and
 # what a biome user gets), not the box's possibly-stale /usr/include — same as the Vulkan gate.
-SDK_INC="$(ls -d "$HOME"/Tools/vulkan-sdk/*/x86_64/include "$HOME"/VulkanSDK/*/x86_64/include 2>/dev/null | sort -V | tail -1)"
+SDK_INC="$(ls -d "$HOME"/Tools/vulkan-sdk/*/x86_64/include "$HOME"/VulkanSDK/*/x86_64/include "$HOME"/Tools/vulkan-sdk/*/macOS/include "$HOME"/VulkanSDK/*/macOS/include 2>/dev/null | sort -V | tail -1)"
 [ -n "$SDK_INC" ] && bold "Using Vulkan SDK headers: $SDK_INC"
 sfails=0; sran=0
 for t in "${tests[@]}"; do

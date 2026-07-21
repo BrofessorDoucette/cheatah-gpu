@@ -51,7 +51,7 @@ PURR
 #    ONLY wiring is CHEATAH_MODULE_PATH -> the fetched package (what cheatah_add_program EXTENSIONS does).
 #    `import gpu` pulls the Vulkan surface; a real biome user has the SDK headers (install-deps.sh /
 #    CMake-provisioned), so put the newest installed SDK include on CPATH to mirror that.
-SDK_INC="$(ls -d "$HOME"/Tools/vulkan-sdk/*/x86_64/include "$HOME"/VulkanSDK/*/x86_64/include 2>/dev/null | sort -V | tail -1)"
+SDK_INC="$(ls -d "$HOME"/Tools/vulkan-sdk/*/x86_64/include "$HOME"/VulkanSDK/*/x86_64/include "$HOME"/Tools/vulkan-sdk/*/macOS/include "$HOME"/VulkanSDK/*/macOS/include 2>/dev/null | sort -V | tail -1)"
 clean_env=(env -u CHEATAH_ROOT -u CHEATAH_LIB_DIR -u CHEATAH_TRUST -u CHEATAH_DIR
            CHEATAH_MODULE_PATH="$INSTALL" CPATH="${SDK_INC:-}")
 if ! out="$(cd "$PROJ" && "${clean_env[@]}" "$PURRC" src/main.purr -o app.so 2>&1)"; then

@@ -55,10 +55,18 @@ set(CHEATAH_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../cheatah" CACHE PATH "cheatah too
 option(CHEATAH_GPU_BUILD_TESTS "Build the C++ unit tests (fetches GoogleTest)" OFF)
 option(CHEATAH_GPU_SANITIZE    "Build the unit tests with ASan + UBSan" OFF)
 option(CHEATAH_GPU_BUILD_VULKAN "Build the Vulkan backend (fetches volk + VMA, provisions the GPU stack)" OFF)
+# Native Metal backend: ON by default on Apple (where it's the preferred path), OFF elsewhere unless
+# asked — off Apple it still builds + runs against the software emulator, so a non-Apple dev/CI can
+# exercise it (fetches metal-cpp). See cmake/Metal.cmake.
+option(CHEATAH_GPU_BUILD_METAL "Build the native Metal backend + tests (fetches metal-cpp)" ${APPLE})
 
 # --- The Vulkan backend's dependencies (roadmap; OFF by default so the gate needs no GPU) -------
 if(CHEATAH_GPU_BUILD_VULKAN)
     include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Vulkan.cmake)
+endif()
+# --- The Metal backend's dependencies (metal-cpp; native frameworks on Apple, emulator elsewhere) --
+if(CHEATAH_GPU_BUILD_METAL)
+    include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Metal.cmake)
 endif()
 
 # --- C++ unit tests: GoogleTest, fetched ONLY under this option --------------------------------

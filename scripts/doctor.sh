@@ -25,7 +25,17 @@ echo "cheatah-gpu doctor — checking the GPU userspace stack:"
 # Robust check: macOS ships its own; else ldconfig, else any libvulkan.so on the usual paths
 # (glob in a for-loop so an unmatched pattern doesn't error the way `ls glob1 glob2` does).
 loader_present() {
-    [ "$(uname -s)" = "Darwin" ] && return 0
+    if [ "$(uname -s)" = "Darwin" ]; then
+        # macOS has no system Vulkan; the loader is MoltenVK's libvulkan.dylib, from Homebrew
+        # (molten-vk) or the LunarG SDK. Check the real dylib rather than assuming it is present.
+        for f in "${VULKAN_SDK:-}"/lib/libvulkan.dylib \
+                 /opt/homebrew/lib/libvulkan.dylib /usr/local/lib/libvulkan.dylib \
+                 /opt/homebrew/lib/libMoltenVK.dylib /usr/local/lib/libMoltenVK.dylib \
+                 "$HOME"/VulkanSDK/*/macOS/lib/libvulkan.dylib; do
+            [ -e "$f" ] && return 0
+        done
+        return 1
+    fi
     ldconfig -p 2>/dev/null | grep -q 'libvulkan\.so' && return 0
     for f in /usr/lib/libvulkan.so* /usr/lib/*/libvulkan.so* /usr/local/lib/libvulkan.so* /lib/*/libvulkan.so*; do
         [ -e "$f" ] && return 0
@@ -77,7 +87,7 @@ else
 fi
 
 # 4. GLFW — optional, test/presentation only ---------------------------------------------------
-if pkg-config --exists glfw3 2>/dev/null || ls /usr/lib/*/libglfw* /usr/local/lib/libglfw* >/dev/null 2>&1; then
+if pkg-config --exists glfw3 2>/dev/null || ls /usr/lib/*/libglfw* /usr/local/lib/libglfw* /opt/homebrew/lib/libglfw* >/dev/null 2>&1; then
     ok "GLFW present (used only by the presentation tests)"
 else
     warn "GLFW not found — optional; only the presentation tests need it (scripts/install-deps.sh)"
