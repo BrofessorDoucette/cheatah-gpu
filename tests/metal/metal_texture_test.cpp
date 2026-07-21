@@ -116,8 +116,12 @@ int main() {
     device->release();
     pool->release();
 
-    // The emulator counts live objects when built with -DCHEATAH_GPU_METAL_LEAKCHECK=1.
+    // The emulator counts live objects when built with -DCHEATAH_GPU_METAL_LEAKCHECK=1. On real Apple
+    // there is no emulator device — emu::live_objects() isn't linked — so the leak check is emulator-
+    // only, exactly as in the compute and multiline tests. (Real hardware CI caught the missing guard.)
+#ifndef __APPLE__
     check(emu::live_objects() == 0, "no emulator objects leaked");
+#endif
 
     std::printf(failures == 0 ? "RESULT: PASS\n" : "RESULT: FAIL\n");
     return failures == 0 ? 0 : 1;
