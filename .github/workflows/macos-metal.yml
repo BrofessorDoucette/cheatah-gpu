@@ -1,0 +1,32 @@
+# The native Metal backend, proven on REAL Apple Silicon — the verification the pre-push gate cannot do
+# from a Linux box. metal_gate.sh runs the same bindings there via the software emulator; here they run
+# on the runner's actual GPU. This is what turns "Metal is shipped" from a Linux-emulator claim into a
+# checked fact on the hardware it targets.
+name: macOS Metal
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  metal-gate:
+    # macos-14 is Apple Silicon (arm64) with a Metal-capable GPU — the target this backend exists for.
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain
+        # Xcode's clang++ is all metal_gate.sh's C++ tier needs; metal-cpp is vendored in-repo, and the
+        # embedded MSL compiles on-device at runtime (no slangc). Record the versions for the log.
+        run: |
+          clang++ --version
+          xcodebuild -version || true
+
+      - name: Metal gate (compute + render + readback on the GPU)
+        # Runs the C++ Metal tier against the real GPU. valgrind is absent on the runner (ASan still
+        # runs), and the pure-cheatah systests skip without the cheatah toolchain — both are gated
+        # skips inside the script, so this stays a focused hardware proof rather than a full toolchain
+        # build.
+        run: scripts/metal_gate.sh
