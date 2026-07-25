@@ -18,10 +18,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Toolchain
-        # Xcode's clang++ is all metal_gate.sh's C++ tier needs; metal-cpp is vendored in-repo, and the
-        # embedded MSL compiles on-device at runtime (no slangc). Record the versions for the log.
+        # metal_gate.sh builds the GoogleTest suite through the CMake presets (cmake + ninja are on
+        # the runner image); metal-cpp is vendored in-repo, and the embedded MSL compiles on-device
+        # at runtime (no slangc). Record the versions for the log.
         run: |
           clang++ --version
+          cmake --version
+          ninja --version
           xcodebuild -version || true
 
       - name: Metal gate (compute + render + readback on the GPU)

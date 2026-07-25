@@ -18,7 +18,7 @@ namespace cheatah::gpu::metal::emulated {
 
 /**
  * A three-axis extent, mirroring `MTL::Size` — width × height × depth, unused axes 1.
- * @test MetalEmulated.Grid3d
+ * @test MetalCompute.Grid3d
  */
 struct Extent {
     unsigned long width = 1;   ///< threads along x.
@@ -33,8 +33,8 @@ struct Extent {
  * launches) — so a kernel loops `threads` without caring which form dispatched it. There is no
  * threadgroup-memory emulation: a C++ stand-in shares the whole address space and needs none
  * (MSL `threadgroup` tiles are an Apple-hardware concern).
- * @test MetalEmulated.Grid3d
- * @test MetalEmulated.Threadgroups
+ * @test MetalCompute.Grid3d
+ * @test MetalCompute.Threadgroups
  */
 struct DispatchShape {
     Extent threads;                  ///< total threads per axis (normalized, both dispatch forms).
@@ -48,7 +48,7 @@ struct DispatchShape {
  *             buffer at index `i` (or null), `grid_width` is the dispatched thread count along x.
  * @complexity O(1) registration.
  * @alloc none (stores the function pointer).
- * @test MetalEmulated.AddArrays
+ * @test MetalCompute.AddArrays
  * @systest systests/metal/test_compute.purr
  */
 void register_kernel(const char* name, void (*fn)(void** buffers, unsigned buffer_count, unsigned long grid_width));
@@ -62,8 +62,8 @@ void register_kernel(const char* name, void (*fn)(void** buffers, unsigned buffe
  *             buffer at index `i` (or null), `shape` the dispatch's full @ref DispatchShape.
  * @complexity O(1) registration.
  * @alloc none (stores the function pointer).
- * @test MetalEmulated.Grid3d
- * @test MetalEmulated.Threadgroups
+ * @test MetalCompute.Grid3d
+ * @test MetalCompute.Threadgroups
  */
 void register_kernel(const char* name,
                      void (*fn)(void** buffers, unsigned buffer_count, const DispatchShape& shape));
@@ -75,7 +75,7 @@ void register_kernel(const char* name,
  * @return count of live emulated Metal objects.
  * @complexity O(1).
  * @alloc none.
- * @test MetalEmulated.LeakClean
+ * @test MetalCompute.LeakClean
  * @systest systests/metal/test_compute.purr
  */
 unsigned long live_objects();

@@ -47,10 +47,12 @@ if(CHEATAH_GPU_BUILD_VULKAN)
 endif()
 
 # --- Metal tests (native Metal on Apple; software emulator elsewhere) -----------------------------
-# The SAME test sources scripts/metal_gate.sh drives, now built by CMake under CHEATAH_GPU_BUILD_METAL.
-# Each is a standalone program (own main, prints "RESULT: PASS"/"RESULT: FAIL", exits 0/1) — NOT a
-# gtest binary. On Apple they link the Metal frameworks and run on the GPU; off Apple they compile the
-# software emulator + Objective-C/CoreFoundation shim and run the same flow on the CPU, bit-identically.
+# One GoogleTest binary — the ecosystem standard, the same shape as the Vulkan suite; the gtest exit
+# code is the truth (no output-grepping). scripts/metal_gate.sh drives this SAME binary (plus its
+# Valgrind/Helgrind tiers). On Apple it links the Metal frameworks and runs on the GPU; off Apple it
+# compiles the software emulator + Objective-C/CoreFoundation shim and runs the same flow on the CPU,
+# bit-identically. The emulator's leak counter is compiled in (CHEATAH_GPU_METAL_LEAKCHECK) so every
+# fixture's TearDown can assert leak-cleanliness — a check that would otherwise be a constant 0.
 # metal-cpp headers + flags come from cmake/Metal.cmake (CHEATAH_GPU_METAL_CPP_INCLUDE / _CXXFLAGS).
 if(CHEATAH_GPU_BUILD_METAL)
     if(APPLE)
@@ -60,27 +62,41 @@ if(CHEATAH_GPU_BUILD_METAL)
             ${CMAKE_SOURCE_DIR}/gpu/metal/emulated/emulated_metal.cpp
             ${CMAKE_SOURCE_DIR}/gpu/metal/emulated/block_stubs.cpp)
     endif()
-    foreach(_mt compute multiline texture)
-        set(_tgt cheatah_gpu_metal_${_mt}_test)
-        add_executable(${_tgt} metal/metal_${_mt}_test.cpp ${_metal_backend})
-        target_include_directories(${_tgt} PRIVATE
-            ${CMAKE_SOURCE_DIR}                           # for "gpu/metal/types.hpp"
-            ${CHEATAH_GPU_METAL_CPP_INCLUDE})             # metal-cpp headers
-        target_compile_options(${_tgt} PRIVATE ${CHEATAH_GPU_METAL_CXXFLAGS})
-        if(APPLE)
-            target_link_libraries(${_tgt} PRIVATE
-                "-framework Metal" "-framework Foundation" "-framework QuartzCore")
-        else()
-            target_include_directories(${_tgt} PRIVATE ${CMAKE_SOURCE_DIR}/gpu/metal/shim)
-        endif()
-        if(CHEATAH_GPU_SANITIZE)
-            # -fno-sanitize=function: metal-cpp calls objc_msgSend through a typed function-pointer
-            # cast (its documented mechanism, not a bug), which the UBSan `function` check would flag.
-            target_compile_options(${_tgt} PRIVATE
-                -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize=function)
-            target_link_options(${_tgt} PRIVATE -fsanitize=address,undefined)
-        endif()
-        add_test(NAME mtl:${_mt} COMMAND ${_tgt})
-        set_tests_properties(mtl:${_mt} PROPERTIES FAIL_REGULAR_EXPRESSION "RESULT: FAIL")
+    add_executable(cheatah_gpu_metal_tests
+        metal/metal_compute_test.cpp
+        metal/metal_multiline_test.cpp
+        metal/metal_texture_test.cpp
+        ${_metal_backend})
+    target_include_directories(cheatah_gpu_metal_tests PRIVATE
+        ${CMAKE_SOURCE_DIR}                               # for "gpu/metal/types.hpp"
+        ${CMAKE_CURRENT_SOURCE_DIR}/metal                 # for "harness.hpp"
+        ${CHEATAH_GPU_METAL_CPP_INCLUDE})                 # metal-cpp headers
+    target_compile_options(cheatah_gpu_metal_tests PRIVATE ${CHEATAH_GPU_METAL_CXXFLAGS})
+    target_compile_definitions(cheatah_gpu_metal_tests PRIVATE CHEATAH_GPU_METAL_LEAKCHECK=1)
+    target_link_libraries(cheatah_gpu_metal_tests PRIVATE GTest::gtest_main)
+    if(APPLE)
+        target_link_libraries(cheatah_gpu_metal_tests PRIVATE
+            "-framework Metal" "-framework Foundation" "-framework QuartzCore")
+    else()
+        target_include_directories(cheatah_gpu_metal_tests PRIVATE ${CMAKE_SOURCE_DIR}/gpu/metal/shim)
+    endif()
+    if(CHEATAH_GPU_SANITIZE)
+        # -fno-sanitize=function: metal-cpp calls objc_msgSend through a typed function-pointer
+        # cast (its documented mechanism, not a bug), which the UBSan `function` check would flag.
+        target_compile_options(cheatah_gpu_metal_tests PRIVATE
+            -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize=function)
+        target_link_options(cheatah_gpu_metal_tests PRIVATE -fsanitize=address,undefined)
+    endif()
+    # The historical mtl:* ctest names, each scoped to one gtest suite of the binary. (The vk: tests
+    # use gtest_discover_tests; here the three stable names are part of the gate's interface, so they
+    # are registered by hand as filter-scoped invocations.)
+    # A filter that matches nothing exits 0, so each entry also fails on gtest's own zero-selection
+    # banner — the one output check kept, guarding a suite rename from silently emptying a ctest.
+    foreach(_suite Compute Multiline Texture)
+        string(TOLOWER ${_suite} _name)
+        add_test(NAME mtl:${_name}
+                 COMMAND cheatah_gpu_metal_tests --gtest_filter=Metal${_suite}.*)
+        set_tests_properties(mtl:${_name} PROPERTIES
+            FAIL_REGULAR_EXPRESSION "0 tests from 0 test suites")
     endforeach()
 endif()

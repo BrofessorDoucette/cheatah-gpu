@@ -1,69 +1,56 @@
 // metal_multiline_test.cpp — verbose GPU code spreads a call's arguments across many lines. This
-// system test drives the generated mtl.* surface (cheatah::gpu::metal) with multi-line arguments —
-// the Metal counterpart to systests/vulkan/test_multiline.purr — and runs on the software emulator
-// (so it is checkable here) or on a real Apple GPU. Leak-clean: everything owned is released.
-#include "gpu/metal/types.hpp"
+// suite drives the generated mtl.* surface (cheatah::gpu::metal) with multi-line arguments — the
+// Metal counterpart to systests/vulkan/test_multiline.purr — and runs on the software emulator (so
+// it is checkable everywhere) or on a real Apple GPU. Leak-clean: everything owned is released, and
+// the fixture's TearDown asserts it (emulator builds).
+#include "harness.hpp"
 
 #include <cstdint>
-#include <cstdio>
 
-namespace mtl = cheatah::gpu::metal;
+namespace cheatah::gpu::mtltest {
+namespace {
 
-#ifndef __APPLE__
-#  include "gpu/metal/emulated/emulated.hpp"
-namespace emu = cheatah::gpu::metal::emulated;
-#endif
+class MetalMultiline : public MetalTest {};
 
-int main() {
-    bool ok = true;
-    std::printf("gpu.metal: multi-line arguments\n");
-    {
-        mtl::AutoreleasePool* pool = mtl::AutoreleasePool::alloc()->init();
+TEST_F(MetalMultiline, DeviceQueueBuffersViaMultiLineCalls) {
+    // newBuffer with its arguments on separate lines, closing `)` on the last argument.
+    mtl::Buffer* a = device_->newBuffer(
+        64 * sizeof(float),
+        mtl::ResourceStorageModeShared);
 
-        mtl::Device* dev = mtl::CreateSystemDefaultDevice();
-        if (!dev) { std::printf("RESULT: FAIL (no Metal device)\n"); return 1; }
-        mtl::CommandQueue* queue = dev->newCommandQueue();
+    // and with the closing `)` on its own line.
+    mtl::Buffer* b = device_->newBuffer(
+        64 * sizeof(float),
+        mtl::ResourceStorageModeShared
+    );
+    ASSERT_NE(a, nullptr);
+    ASSERT_NE(b, nullptr);
 
-        // newBuffer with its arguments on separate lines, closing `)` on the last argument.
-        mtl::Buffer* a = dev->newBuffer(
-            64 * sizeof(float),
-            mtl::ResourceStorageModeShared);
+    // Fill, encode a (trivial) command buffer with multi-line setBuffer calls, and read back.
+    auto* ap = static_cast<float*>(a->contents());
+    for (int i = 0; i < 64; ++i) ap[i] = float(i);
 
-        // and with the closing `)` on its own line.
-        mtl::Buffer* b = dev->newBuffer(
-            64 * sizeof(float),
-            mtl::ResourceStorageModeShared
-        );
+    mtl::CommandBuffer* cb = queue_->commandBuffer();
+    mtl::ComputeCommandEncoder* enc = cb->computeCommandEncoder();
+    enc->setBuffer(
+        a,
+        0,
+        0);
+    enc->setBuffer(
+        b,
+        0,
+        1);
+    enc->endEncoding();
+    cb->commit();
+    cb->waitUntilCompleted();
 
-        // Fill, encode a (trivial) command buffer with multi-line setBuffer calls, and read back.
-        auto* ap = static_cast<float*>(a->contents());
-        for (int i = 0; i < 64; ++i) ap[i] = float(i);
+    EXPECT_EQ(a->length(), 64 * sizeof(float));
+    EXPECT_EQ(b->length(), 64 * sizeof(float));
+    EXPECT_EQ(static_cast<float*>(a->contents())[63], 63.0f);
 
-        mtl::CommandBuffer* cb = queue->commandBuffer();
-        mtl::ComputeCommandEncoder* enc = cb->computeCommandEncoder();
-        enc->setBuffer(
-            a,
-            0,
-            0);
-        enc->setBuffer(
-            b,
-            0,
-            1);
-        enc->endEncoding();
-        cb->commit();
-        cb->waitUntilCompleted();
-
-        ok = (a->length() == 64 * sizeof(float)) && (b->length() == 64 * sizeof(float)) &&
-             (static_cast<float*>(a->contents())[63] == 63.0f);
-        std::printf("  device+queue+buffers via multi-line calls: %s\n", ok ? "ok" : "FAIL");
-
-        a->release(); b->release(); queue->release(); dev->release();
-        pool->release();
-    }
-#ifndef __APPLE__
-    const unsigned long leaked = emu::live_objects();
-    if (leaked != 0) { ok = false; std::printf("  LEAK: %lu objects still alive\n", leaked); }
-#endif
-    std::printf("RESULT: %s\n", ok ? "PASS" : "FAIL");
-    return ok ? 0 : 1;
+    a->release();
+    b->release();
 }
+
+}  // namespace
+}  // namespace cheatah::gpu::mtltest

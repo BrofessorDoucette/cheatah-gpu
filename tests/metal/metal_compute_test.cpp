@@ -1,27 +1,21 @@
-// metal_compute_test.cpp — Metal compute, the SAME test on real Apple hardware and on the software
-// emulator. It carries real Metal Shading Language (MSL) source: on Apple, Metal compiles it and the
+// metal_compute_test.cpp — Metal compute, the SAME tests on real Apple hardware and on the software
+// emulator. They carry real Metal Shading Language (MSL) source: on Apple, Metal compiles it and the
 // kernels run on the GPU; off Apple, the software device (gpu/metal/emulated) ignores the MSL and runs
 // the registered C++ stand-ins on the CPU instead. Either way the canonical flow is exercised — device
 // -> library -> function -> pipeline -> queue -> command buffer -> compute encoder -> setBuffer ->
 // dispatchThreads -> commit -> read contents() — and the results are checked bit-for-bit. Two kernels
-// (add, multiply) give "a couple" of real-hardware checks. Leak-clean: everything owned is released.
-// Drive Metal through the cheatah-facing facade (cheatah::gpu::metal, the `mtl.*` surface) — the exact
-// parallel to the Vulkan systest using vk.* — so the generated surface is exercised end-to-end.
-#include "gpu/metal/types.hpp"
+// (add, multiply) give "a couple" of real-hardware checks; iota3d proves the 3-D dispatch extents.
+// Leak-clean: everything owned is released, and the fixture's TearDown asserts it (emulator builds).
+#include "harness.hpp"
 
+#include <array>
 #include <cstdint>
-#include <cstdio>
-#include <vector>
 
-namespace mtl = cheatah::gpu::metal;
-
-#ifndef __APPLE__
-#  include "gpu/metal/emulated/emulated.hpp"
-namespace emu = cheatah::gpu::metal::emulated;
-#endif
+namespace cheatah::gpu::mtltest {
+namespace {
 
 // Real MSL — compiled by Metal on Apple; ignored by the emulator (which dispatches by function name).
-static const char* kSource = R"MSL(
+const char* kSource = R"MSL(
 #include <metal_stdlib>
 using namespace metal;
 kernel void add_arrays(device const float* A [[buffer(0)]],
@@ -40,20 +34,22 @@ kernel void iota3d(device float* C [[buffer(0)]],
 )MSL";
 
 #ifndef __APPLE__
+namespace emu = cheatah::gpu::metal::emulated;
+
 // CPU stand-ins for the emulator, matched to the kernels above by name.
-static void add_arrays(void** b, unsigned n, unsigned long w) {
+void add_arrays(void** b, unsigned n, unsigned long w) {
     if (n < 3) return;
     auto* A = static_cast<const float*>(b[0]); auto* B = static_cast<const float*>(b[1]); auto* C = static_cast<float*>(b[2]);
     for (std::uint64_t i = 0; i < w; ++i) C[i] = A[i] + B[i];
 }
-static void mul_arrays(void** b, unsigned n, unsigned long w) {
+void mul_arrays(void** b, unsigned n, unsigned long w) {
     if (n < 3) return;
     auto* A = static_cast<const float*>(b[0]); auto* B = static_cast<const float*>(b[1]); auto* C = static_cast<float*>(b[2]);
     for (std::uint64_t i = 0; i < w; ++i) C[i] = A[i] * B[i];
 }
 // 3-D stand-in via the DispatchShape registration overload: one write per thread of the full
 // (normalized) grid, so it observes exactly the thread volume either dispatch form launches.
-static void iota3d(void** b, unsigned n, const emu::DispatchShape& shape) {
+void iota3d(void** b, unsigned n, const emu::DispatchShape& shape) {
     if (n < 1) return;
     auto* C = static_cast<float*>(b[0]);
     const auto& t = shape.threads;
@@ -65,117 +61,137 @@ static void iota3d(void** b, unsigned n, const emu::DispatchShape& shape) {
 }
 #endif
 
-// Run one named kernel of the library over A,B -> C and check against `expect(a,b)`.
-static bool run_kernel(mtl::Device* dev, mtl::Library* lib, mtl::CommandQueue* queue,
-                       const char* name, float (*expect)(float, float)) {
-    const std::uint32_t N = 8;
-    mtl::Error* err = nullptr;
-    mtl::String* fname = mtl::String::string(name, mtl::UTF8StringEncoding);
-    mtl::Function* fn = lib->newFunction(fname);
-    mtl::ComputePipelineState* pso = dev->newComputePipelineState(fn, &err);
+class MetalCompute : public MetalTest {
+  protected:
+    static constexpr std::uint32_t kN = 8;        // 1-D kernels: elements per array
+    static constexpr std::uint32_t kW = 8, kH = 8; // iota3d: the 8x8x1 thread volume
 
-    mtl::Buffer* ba = dev->newBuffer(N * sizeof(float), mtl::ResourceStorageModeShared);
-    mtl::Buffer* bb = dev->newBuffer(N * sizeof(float), mtl::ResourceStorageModeShared);
-    mtl::Buffer* bc = dev->newBuffer(N * sizeof(float), mtl::ResourceStorageModeShared);
-    auto* A = static_cast<float*>(ba->contents());
-    auto* B = static_cast<float*>(bb->contents());
-    for (std::uint32_t i = 0; i < N; ++i) { A[i] = float(i) + 1.0f; B[i] = float(i) * 3.0f; }
-
-    mtl::CommandBuffer* cb = queue->commandBuffer();
-    mtl::ComputeCommandEncoder* enc = cb->computeCommandEncoder();
-    enc->setComputePipelineState(pso);
-    enc->setBuffer(ba, 0, 0); enc->setBuffer(bb, 0, 1); enc->setBuffer(bc, 0, 2);
-    enc->dispatchThreads(mtl::Size(N, 1, 1), mtl::Size(N, 1, 1));
-    enc->endEncoding();
-    cb->commit();
-    cb->waitUntilCompleted();
-
-    auto* C = static_cast<const float*>(bc->contents());
-    bool ok = true;
-    for (std::uint32_t i = 0; i < N; ++i) {
-        const float want = expect(A[i], B[i]);
-        if (C[i] != want) { ok = false; std::printf("  %s mismatch[%u]: %g != %g\n", name, i, C[i], want); }
-    }
-    std::printf("  %s: ", name);
-    for (std::uint32_t i = 0; i < N; ++i) std::printf("%g ", C[i]);
-    std::printf("%s\n", ok ? "(ok)" : "(FAIL)");
-
-    ba->release(); bb->release(); bc->release(); pso->release(); fn->release();
-    return ok;
-}
-
-static float add(float a, float b) { return a + b; }
-static float mul(float a, float b) { return a * b; }
-
-// Run the 3-D iota kernel over an 8x8x1 thread volume through ONE of the two dispatch forms and
-// check every element — proves y/z extents reach the kernel, and that dispatchThreadgroups
-// launches groups x threadsPerThreadgroup threads (not group counts).
-static bool run_iota3d(mtl::Device* dev, mtl::Library* lib, mtl::CommandQueue* queue, bool by_groups) {
-    const std::uint32_t W = 8, H = 8;
-    mtl::Error* err = nullptr;
-    mtl::String* fname = mtl::String::string("iota3d", mtl::UTF8StringEncoding);
-    mtl::Function* fn = lib->newFunction(fname);
-    mtl::ComputePipelineState* pso = dev->newComputePipelineState(fn, &err);
-
-    mtl::Buffer* bc = dev->newBuffer(W * H * sizeof(float), mtl::ResourceStorageModeShared);
-
-    mtl::CommandBuffer* cb = queue->commandBuffer();
-    mtl::ComputeCommandEncoder* enc = cb->computeCommandEncoder();
-    enc->setComputePipelineState(pso);
-    enc->setBuffer(bc, 0, 0);
-    if (by_groups) {
-        enc->dispatchThreadgroups(mtl::Size(2, 2, 1), mtl::Size(4, 4, 1));  // 2x2 groups of 4x4 = 8x8
-    } else {
-        enc->dispatchThreads(mtl::Size(W, H, 1), mtl::Size(4, 4, 1));
-    }
-    enc->endEncoding();
-    cb->commit();
-    cb->waitUntilCompleted();
-
-    auto* C = static_cast<const float*>(bc->contents());
-    bool ok = true;
-    for (std::uint32_t i = 0; i < W * H; ++i) {
-        if (C[i] != float(i)) { ok = false; std::printf("  iota3d mismatch[%u]: %g != %g\n", i, C[i], double(i)); }
-    }
-    std::printf("  iota3d (%s): %s\n", by_groups ? "dispatchThreadgroups" : "dispatchThreads",
-                ok ? "ok" : "FAIL");
-
-    bc->release(); pso->release(); fn->release();
-    return ok;
-}
-
-int main() {
+    static void SetUpTestSuite() {
 #ifndef __APPLE__
-    emu::register_kernel("add_arrays", &add_arrays);
-    emu::register_kernel("mul_arrays", &mul_arrays);
-    emu::register_kernel("iota3d", &iota3d);
-    std::printf("Metal compute on the SOFTWARE-EMULATED device:\n");
-#else
-    std::printf("Metal compute on REAL Apple hardware:\n");
+        emu::register_kernel("add_arrays", &add_arrays);
+        emu::register_kernel("mul_arrays", &mul_arrays);
+        emu::register_kernel("iota3d", &iota3d);
 #endif
-    bool ok = true;
-    {
-        mtl::AutoreleasePool* pool = mtl::AutoreleasePool::alloc()->init();
-        mtl::Device* dev = mtl::CreateSystemDefaultDevice();
-        if (!dev) { std::printf("RESULT: FAIL (no Metal device)\n"); return 1; }
-        mtl::CommandQueue* queue = dev->newCommandQueue();
+    }
+
+    void SetUp() override {
+        MetalTest::SetUp();
         mtl::Error* err = nullptr;
         mtl::String* src = mtl::String::string(kSource, mtl::UTF8StringEncoding);
-        mtl::Library* lib = dev->newLibrary(src, static_cast<const mtl::CompileOptions*>(nullptr), &err);
-        if (!lib) { std::printf("RESULT: FAIL (library did not compile)\n"); return 1; }
-
-        ok &= run_kernel(dev, lib, queue, "add_arrays", &add);
-        ok &= run_kernel(dev, lib, queue, "mul_arrays", &mul);
-        ok &= run_iota3d(dev, lib, queue, false);  // dispatchThreads with a 2-D grid
-        ok &= run_iota3d(dev, lib, queue, true);   // dispatchThreadgroups, normalized to threads
-
-        lib->release(); queue->release(); dev->release();
-        pool->release();
+        library_ = device_->newLibrary(src, static_cast<const mtl::CompileOptions*>(nullptr), &err);
+        ASSERT_NE(library_, nullptr) << "MSL library did not compile";
     }
-#ifndef __APPLE__
-    const unsigned long leaked = emu::live_objects();
-    if (leaked != 0) { ok = false; std::printf("  LEAK: %lu emulator objects still alive\n", leaked); }
-#endif
-    std::printf("RESULT: %s\n", ok ? "PASS" : "FAIL");
-    return ok ? 0 : 1;
+
+    void TearDown() override {
+        if (library_ != nullptr) library_->release();
+        MetalTest::TearDown();
+    }
+
+    // Run one named kernel of the library over A,B -> C (kN elements) and return all three arrays.
+    void RunKernel(const char* name, std::array<float, kN>& A_out, std::array<float, kN>& B_out,
+                   std::array<float, kN>& C_out) {
+        mtl::Error* err = nullptr;
+        mtl::String* fname = mtl::String::string(name, mtl::UTF8StringEncoding);
+        mtl::Function* fn = library_->newFunction(fname);
+        ASSERT_NE(fn, nullptr) << name;
+        mtl::ComputePipelineState* pso = device_->newComputePipelineState(fn, &err);
+        ASSERT_NE(pso, nullptr) << name;
+
+        mtl::Buffer* ba = device_->newBuffer(kN * sizeof(float), mtl::ResourceStorageModeShared);
+        mtl::Buffer* bb = device_->newBuffer(kN * sizeof(float), mtl::ResourceStorageModeShared);
+        mtl::Buffer* bc = device_->newBuffer(kN * sizeof(float), mtl::ResourceStorageModeShared);
+        auto* A = static_cast<float*>(ba->contents());
+        auto* B = static_cast<float*>(bb->contents());
+        for (std::uint32_t i = 0; i < kN; ++i) { A[i] = float(i) + 1.0f; B[i] = float(i) * 3.0f; }
+
+        mtl::CommandBuffer* cb = queue_->commandBuffer();
+        mtl::ComputeCommandEncoder* enc = cb->computeCommandEncoder();
+        enc->setComputePipelineState(pso);
+        enc->setBuffer(ba, 0, 0); enc->setBuffer(bb, 0, 1); enc->setBuffer(bc, 0, 2);
+        enc->dispatchThreads(mtl::Size(kN, 1, 1), mtl::Size(kN, 1, 1));
+        enc->endEncoding();
+        cb->commit();
+        cb->waitUntilCompleted();
+
+        auto* C = static_cast<const float*>(bc->contents());
+        for (std::uint32_t i = 0; i < kN; ++i) { A_out[i] = A[i]; B_out[i] = B[i]; C_out[i] = C[i]; }
+
+        ba->release(); bb->release(); bc->release(); pso->release(); fn->release();
+    }
+
+    // Run the 3-D iota kernel over an 8x8x1 thread volume through ONE of the two dispatch forms and
+    // return every element — proves y/z extents reach the kernel, and that dispatchThreadgroups
+    // launches groups x threadsPerThreadgroup threads (not group counts).
+    void RunIota3d(bool by_groups, std::array<float, kW * kH>& C_out) {
+        mtl::Error* err = nullptr;
+        mtl::String* fname = mtl::String::string("iota3d", mtl::UTF8StringEncoding);
+        mtl::Function* fn = library_->newFunction(fname);
+        ASSERT_NE(fn, nullptr);
+        mtl::ComputePipelineState* pso = device_->newComputePipelineState(fn, &err);
+        ASSERT_NE(pso, nullptr);
+
+        mtl::Buffer* bc = device_->newBuffer(kW * kH * sizeof(float), mtl::ResourceStorageModeShared);
+
+        mtl::CommandBuffer* cb = queue_->commandBuffer();
+        mtl::ComputeCommandEncoder* enc = cb->computeCommandEncoder();
+        enc->setComputePipelineState(pso);
+        enc->setBuffer(bc, 0, 0);
+        if (by_groups) {
+            enc->dispatchThreadgroups(mtl::Size(2, 2, 1), mtl::Size(4, 4, 1));  // 2x2 groups of 4x4 = 8x8
+        } else {
+            enc->dispatchThreads(mtl::Size(kW, kH, 1), mtl::Size(4, 4, 1));
+        }
+        enc->endEncoding();
+        cb->commit();
+        cb->waitUntilCompleted();
+
+        auto* C = static_cast<const float*>(bc->contents());
+        for (std::uint32_t i = 0; i < kW * kH; ++i) C_out[i] = C[i];
+
+        bc->release(); pso->release(); fn->release();
+    }
+
+    mtl::Library* library_ = nullptr;
+};
+
+TEST_F(MetalCompute, AddArrays) {
+    std::array<float, kN> A{}, B{}, C{};
+    ASSERT_NO_FATAL_FAILURE(RunKernel("add_arrays", A, B, C));
+    for (std::uint32_t i = 0; i < kN; ++i) EXPECT_EQ(C[i], A[i] + B[i]) << "index " << i;
 }
+
+TEST_F(MetalCompute, MulArrays) {
+    std::array<float, kN> A{}, B{}, C{};
+    ASSERT_NO_FATAL_FAILURE(RunKernel("mul_arrays", A, B, C));
+    for (std::uint32_t i = 0; i < kN; ++i) EXPECT_EQ(C[i], A[i] * B[i]) << "index " << i;
+}
+
+// dispatchThreads with a 2-D grid: every element of the 8x8 volume written with its linear index.
+TEST_F(MetalCompute, Grid3d) {
+    std::array<float, kW * kH> C{};
+    ASSERT_NO_FATAL_FAILURE(RunIota3d(false, C));
+    for (std::uint32_t i = 0; i < kW * kH; ++i) EXPECT_EQ(C[i], float(i)) << "index " << i;
+}
+
+// dispatchThreadgroups, normalized to threads: 2x2 groups of 4x4 must launch the SAME 8x8 volume.
+TEST_F(MetalCompute, Threadgroups) {
+    std::array<float, kW * kH> C{};
+    ASSERT_NO_FATAL_FAILURE(RunIota3d(true, C));
+    for (std::uint32_t i = 0; i < kW * kH; ++i) EXPECT_EQ(C[i], float(i)) << "index " << i;
+}
+
+#ifndef __APPLE__
+// The emulator's leak counter itself: creating an object raises live_objects() by exactly one,
+// releasing it restores the count. (The ==0 end-state check runs in every test's TearDown.)
+TEST_F(MetalCompute, LeakClean) {
+    const unsigned long base = emu::live_objects();
+    EXPECT_GT(base, 0ul) << "pool/device/queue/library should be alive and counted";
+    mtl::Buffer* b = device_->newBuffer(16, mtl::ResourceStorageModeShared);
+    EXPECT_EQ(emu::live_objects(), base + 1);
+    b->release();
+    EXPECT_EQ(emu::live_objects(), base);
+}
+#endif
+
+}  // namespace
+}  // namespace cheatah::gpu::mtltest
