@@ -14,6 +14,22 @@ if [ ! -x "$GATE" ]; then
     exit 1
 fi
 
+# Private-reference scan on the commit MESSAGES this push would publish. Once a
+# message reaches the remote it cannot be fixed without rewriting history (which
+# would invalidate every release tag), so this is the last chance to catch one.
+SCAN="$REPO_ROOT/scripts/check_no_private_refs.sh"
+if [ -x "$SCAN" ]; then
+    while read -r _local_ref local_sha remote_ref remote_sha; do
+        [ -n "${local_sha:-}" ] || continue
+        [ "$local_sha" = "0000000000000000000000000000000000000000" ] && continue
+        case "${remote_sha:-}" in
+            ""|0000000000000000000000000000000000000000) range="$local_sha" ;;
+            *) range="$remote_sha..$local_sha" ;;
+        esac
+        bash "$SCAN" --range "$range" || exit 1
+    done
+fi
+
 echo "pre-push: running qa_gate before allowing the push…"
 if "$GATE"; then
     echo "pre-push: qa_gate passed — push allowed."

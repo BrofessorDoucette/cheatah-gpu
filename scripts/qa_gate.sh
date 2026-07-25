@@ -148,6 +148,8 @@ fi
 # 8. Static analysis: cppcheck (hard gate) -------------------------------------------------------
 bold "Running cppcheck (performance + security)…"
 bash scripts/cppcheck.sh || fail "cppcheck (performance/security findings)"
+# Private-reference scan — sibling-project names must not reach the public tree.
+bash scripts/check_no_private_refs.sh || fail "a private-project reference reached the public tree"
 
 bold "QA gate PASSED — push may proceed."
 exit 0
