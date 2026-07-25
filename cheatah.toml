@@ -9,7 +9,9 @@ name = "cheatah-gpu"
 
 [cheatah]
 # Toolchain version this extension targets (git tag of the cheatah repo). Bump deliberately.
-version = "1.5.0-alpha"
+# v0.5.0-alpha is tested against (and released alongside) the 1.7.0-alpha toolchain, as part of
+# Biome Standard 0.1.0-alpha.
+version = "1.7.0-alpha"
 
 # [system-dependencies] — the painless-install convention (NEW; biome has no native hook yet, so
 # scripts/install-deps.sh consumes this today and a future `biome install`/`biome doctor` will too).
