@@ -1,4 +1,4 @@
-# gpu.vulkan — the native Vulkan surface  ·  status: **roadmap**
+# gpu.vulkan — the native Vulkan surface  ·  status: **shipped** (generated + release-gated)
 
 `import gpu.vulkan` is the **native interface**: kept **as true to the native Vulkan C API as
 possible** so developers who want to be picky get the real thing, not a lowest-common-denominator
@@ -8,9 +8,16 @@ and casting them to the exact Vulkan widths and handles, so a caller writes no c
 [`handles.hpp`](handles.hpp) for the reverse direction). It exposes **as much of the modern Vulkan
 API as possible** so a user feels free.
 
-> This directory is an **outline**. No compiled headers live here yet, so the QA gate stays scoped
-> to the documented, tested seed ([`../dispatch`](../dispatch)). The decisions below are locked so
-> implementation can proceed directly.
+> This directory carries the **generated surface as committed source**: `commands.hpp` (one inline
+> forwarder per Vulkan command — plus its cheatah-friendly overload — calling the real `vk*` entry
+> point through volk), `types.hpp` (the `vk.<Name>` cheatah-interface aliases), `handles.hpp` (the
+> native-handle ⇄ cheatah-`long long` token boundary), and `loader.hpp` (volk). It is regenerated at
+> release time by `tools/vulkan-gen/generate.purr` from the vendored registry
+> (`tools/vulkan-gen/vk.xml`) and gated by `scripts/vulkan_gate.sh`: a generated presence test per
+> forwarder (counts must match 1:1), the handwritten behavioral tests, and the pure-cheatah system
+> tests, run across every enumerated device. The host QA gate stays scoped to the hand-written
+> headers ([`../dispatch`](../dispatch), [`../backend.hpp`](../backend.hpp)) because this surface
+> needs a Vulkan-capable machine; `CHEATAH_GPU_BUILD_VULKAN` (default OFF) opts the build in.
 
 ## Architecture decisions (locked)
 
@@ -33,7 +40,7 @@ API as possible** so a user feels free.
   access to buffers), descriptor indexing (bindless), synchronization2 + timeline semaphores, and
   frames-in-flight with persistently-mapped staging buffers.
 
-## Bring-up order (what the backend automates)
+## Bring-up order (the canonical sequence a consumer writes on this surface)
 1. `vkCreateInstance` (+ extensions) → `volkLoadInstance`
 2. enumerate + select `VkPhysicalDevice` (prefer discrete; require the 1.3 features)
 3. `vkCreateDevice` → `volkLoadDevice`

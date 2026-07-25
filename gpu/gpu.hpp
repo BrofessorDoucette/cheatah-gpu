@@ -23,7 +23,7 @@
  * Submodules:
  *   - gpu.backend  — compile-time backend selection + the shared-interface conventions.  [working]
  *   - gpu.dispatch — compute-shader dispatch-dimensioning math (pure integer).            [working]
- *   - gpu.vulkan   — Vulkan backend, true to the Vulkan C API (volk + VMA).      [surface; device roadmap]
+ *   - gpu.vulkan   — Vulkan backend, true to the Vulkan C API (volk + VMA).               [shipped]
  *   - gpu.metal    — native Metal backend for Apple platforms.                            [shipped]
  *
  * The backend is chosen at COMPILE TIME (see @ref backend.hpp), so a binary only ever carries the

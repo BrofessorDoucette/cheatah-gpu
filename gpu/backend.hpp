@@ -18,8 +18,8 @@
  *     cheatah::gpu::backend_from_name.
  *
  * This header is the working seed of that pattern; the real surfaces plug in behind the same
- * compile-time switch — Metal shipped (native on Apple, gated by metal_gate.sh), the Vulkan surface
- * generated with its device backend still roadmap.
+ * compile-time switch — Metal shipped (native on Apple, gated by metal_gate.sh) and the generated
+ * Vulkan surface shipped (release-gated by vulkan_gate.sh across the device matrix).
  */
 
 #include <concepts>

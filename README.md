@@ -4,16 +4,18 @@
 > One shared interface over the native GPU APIs — **Vulkan** and **Metal** — so you can start doing
 > things with your GPU, for *any* reason, without the usual bring-up pain.
 
-**Version: `v0.4.0-prealpha`** &nbsp;·&nbsp; 🚧 early, pre-alpha work in progress.
+**Version: `v0.5.0-alpha`** &nbsp;·&nbsp; 🚧 alpha — expect breaking changes between releases.
 
 The compute-dimensioning core and the compile-time backend-selection layer are working and fully
 tested. The **native Metal backend is shipped** — built by default on Apple, and gated by
 `scripts/metal_gate.sh` plus the `mtl:compute`/`mtl:multiline`/`mtl:texture` ctests (an end-to-end,
 bit-correct compute+texture pipeline that runs on the GPU on Apple and on the software-emulated device
-off it). The full Vulkan surface is generated (in cheatah) from the registry and committed under
-`gpu/vulkan/` as source, but its **device backend is still roadmap** (`CHEATAH_GPU_BUILD_VULKAN`
-defaults OFF); its tests + 3-device coverage land in a later release. Source under `gpu/` is
-hand-authored or generated, header-only C++20.
+off it). The **full Vulkan surface is shipped too**: generated (in cheatah) from the vendored registry
+and committed under `gpu/vulkan/` as source — one inline forwarder per command, each calling the real
+`vk*` entry point through volk — and release-gated by `scripts/vulkan_gate.sh`, which builds the
+surface, runs a generated presence test per forwarder, and exercises the handwritten behavioral tests
+across the 3-device matrix below. `CHEATAH_GPU_BUILD_VULKAN` defaults OFF only so the host QA gate
+builds on a machine with no GPU. Source under `gpu/` is hand-authored or generated, header-only C++20.
 
 ## What it is
 
@@ -97,7 +99,7 @@ the convention a future `biome install`/`biome doctor` will consume directly.
 |--------|------|--------|
 | [`gpu.backend`](gpu/backend.hpp) | compile-time backend selection + shared-interface conventions | **working** |
 | [`gpu.dispatch`](gpu/dispatch/) | compute-shader dispatch-dimensioning math (GPU-native `uint32`) | **working** |
-| [`gpu.vulkan`](gpu/vulkan/) | Vulkan backend (C API · volk · VMA · Slang · 1.3 features) | surface generated; device backend roadmap |
+| [`gpu.vulkan`](gpu/vulkan/) | Vulkan backend (C API · volk · VMA · Slang · 1.3 features) | **shipped** (generated surface; release-gated by `vulkan_gate.sh` on 3 devices; build opt-in via `CHEATAH_GPU_BUILD_VULKAN`) |
 | [`gpu.metal`](gpu/metal/) | native Metal backend for Apple platforms | **shipped** (default on Apple; `metal_gate.sh` + `mtl:*` ctests) |
 
 ## Layout

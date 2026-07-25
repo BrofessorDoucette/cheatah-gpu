@@ -4,12 +4,12 @@
  * @file dispatch.hpp
  * @brief gpu.dispatch — compute-shader dispatch-dimensioning math.
  *
- * SCAFFOLD / OUTLINE. This is the seed module for cheatah-gpu: the small, backend-agnostic
- * core every GPU compute backend needs to turn a problem size into a workgroup launch. It is
- * pure C++20 integer arithmetic — header-only, allocation-free, zero dependencies, and no
- * platform headers — so it builds, tests, and documents to 100% on a machine with no GPU. The
- * real backends (gpu.vulkan, gpu.metal) are roadmap; they will feed these counts straight into
- * `vkCmdDispatch` / `MTLComputeCommandEncoder`.
+ * This is the seed module of cheatah-gpu: the small, backend-agnostic core every GPU compute
+ * backend needs to turn a problem size into a workgroup launch. It is pure C++20 integer
+ * arithmetic — header-only, allocation-free, zero dependencies, and no platform headers — so it
+ * builds, tests, and documents to 100% on a machine with no GPU. Both shipped backends consume
+ * these counts: the generated Vulkan surface feeds them straight into `vkCmdDispatch`, and the
+ * native Metal backend into `MTLComputeCommandEncoder` dispatches.
  *
  * Types are deliberately GPU-native: workgroup counts and local sizes are `std::uint32_t`,
  * because that is exactly what the hardware dispatch interface uses — `vkCmdDispatch(uint32_t,

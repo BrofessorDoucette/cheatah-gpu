@@ -1,8 +1,10 @@
 # cheatah-gpu — design & architecture agreements
 
 These are the load-bearing decisions cheatah-gpu honors **at all times**. They are intentionally
-recorded here (outside `gpu/`, so the doc-coverage gate doesn't treat prose as API) because the code
-under `gpu/` is currently an **outline** — these notes are the contract the implementation fills in.
+recorded here (outside `gpu/`, so the doc-coverage gate doesn't treat prose as API). The code under
+`gpu/` now implements them — the generated Vulkan surface, the native Metal backend, and the
+dispatch/backend core are all shipped — and these notes remain the binding contract that
+implementation honors.
 
 ## The native surfaces, and nothing above them
 

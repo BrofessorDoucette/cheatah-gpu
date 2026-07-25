@@ -9,9 +9,9 @@
 # `import gpu.dispatch` (etc.).
 #
 # ZERO runtime dependencies for the core: like cheatah itself, the seed pulls in nothing external.
-# The Vulkan backend (roadmap) adds volk + VMA (CMake-fetched) and the system Vulkan loader/driver;
-# those are wired behind CHEATAH_GPU_BUILD_VULKAN (default OFF) so the library + QA gate build with
-# no GPU present. Windowing is intentionally NOT here (a consumer concern — GLFW/SDL); GLFW is a
+# The Vulkan backend adds volk + VMA (CMake-fetched) and the system Vulkan loader/driver; those are
+# wired behind CHEATAH_GPU_BUILD_VULKAN (default OFF only so the library + QA gate build with no GPU
+# present — the surface itself is shipped and release-gated by scripts/vulkan_gate.sh). Windowing is intentionally NOT here (a consumer concern — GLFW/SDL); GLFW is a
 # test-only dependency for the presentation tests.
 cmake_minimum_required(VERSION 3.24)
 project(cheatah-gpu LANGUAGES CXX)
@@ -60,7 +60,7 @@ option(CHEATAH_GPU_BUILD_VULKAN "Build the Vulkan backend (fetches volk + VMA, p
 # exercise it (fetches metal-cpp). See cmake/Metal.cmake.
 option(CHEATAH_GPU_BUILD_METAL "Build the native Metal backend + tests (fetches metal-cpp)" ${APPLE})
 
-# --- The Vulkan backend's dependencies (roadmap; OFF by default so the gate needs no GPU) -------
+# --- The Vulkan backend's dependencies (OFF by default so the host gate needs no GPU) -----------
 if(CHEATAH_GPU_BUILD_VULKAN)
     include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Vulkan.cmake)
 endif()

@@ -3,8 +3,9 @@
 The backend-agnostic core every GPU compute path needs: turn a problem size into a workgroup
 launch. Pure C++20 integer arithmetic — header-only, allocation-free, **zero dependencies, no
 platform headers** — so it builds, tests, and documents to 100% on a machine with no GPU. It is the
-CPU-side math the Vulkan backend (roadmap, see [`../vulkan`](../vulkan)) feeds straight into
-`vkCmdDispatch`.
+CPU-side math both shipped backends consume: the Vulkan surface (see [`../vulkan`](../vulkan)) feeds
+it straight into `vkCmdDispatch`, the Metal backend (see [`../metal`](../metal)) into
+`MTLComputeCommandEncoder` dispatches.
 
 ```purr
 import gpu.dispatch as dispatch

@@ -17,5 +17,5 @@ suite.
 On Apple platforms the native Metal path is preferred over running Vulkan through **MoltenVK**:
 lower overhead, full access to Metal-only features, and no translation surprises. The build reflects
 this precedence: [`../../cmake/Vulkan.cmake`](../../cmake/Vulkan.cmake) only falls back to **MoltenVK**
-when this backend is unavailable or not yet working (`CHEATAH_GPU_METAL_OK` is false). Until this
-lands, macOS runs Vulkan via MoltenVK so nothing is blocked.
+when this backend is unavailable or explicitly disabled (`-DCHEATAH_GPU_METAL_OK=OFF`). With the
+native backend shipped, macOS runs Metal by default; MoltenVK remains the deliberate opt-out path.
