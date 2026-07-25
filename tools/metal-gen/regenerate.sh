@@ -5,15 +5,18 @@
 #
 #   bash tools/metal-gen/regenerate.sh
 #
-# metal-cpp is fetched + cached the same way scripts/metal_gate.sh does it.
+# metal-cpp is resolved the same way scripts/metal_gate.sh and cmake/Metal.cmake do it: the
+# VENDORED copy at third_party/metal-cpp (or $CHEATAH_GPU_METAL_CPP pointing at a copy you got
+# from Apple). NO third-party download, ever — the policy the Metal gate enforces holds here too.
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
-MCPP="${CHEATAH_GPU_METAL_CPP:-$PWD/build/metal-cpp}"
+MCPP="${CHEATAH_GPU_METAL_CPP:-$PWD/third_party/metal-cpp}"
 if [ ! -f "$MCPP/Metal/Metal.hpp" ]; then
-    echo "[metal-gen] fetching metal-cpp -> $MCPP"
-    mkdir -p "$(dirname "$MCPP")"
-    git clone --depth 1 https://github.com/bkaradzic/metal-cpp.git "$MCPP" >/dev/null 2>&1
+    echo "[metal-gen] metal-cpp not found at '$MCPP'. Download it from" >&2
+    echo "  https://developer.apple.com/metal/cpp/ and set CHEATAH_GPU_METAL_CPP=/path/to/metal-cpp," >&2
+    echo "  or vendor it at third_party/metal-cpp/. We never clone it from a mirror." >&2
+    exit 1
 fi
 
 # The generator reads two concatenated, single-namespace blobs (MTL from Metal/, NS from Foundation/).
