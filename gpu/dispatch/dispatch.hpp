@@ -32,6 +32,7 @@ namespace cheatah::gpu::dispatch {
  * @complexity O(1).
  * @alloc none.
  * @test Dispatch.CeilDiv
+ * @crtest systests/test_dispatch_cr_ceil_div.purr
  * @systest systests/test_dispatch.purr
  */
 inline constexpr std::uint32_t ceil_div(std::uint32_t numerator, std::uint32_t denom) {
@@ -48,6 +49,7 @@ inline constexpr std::uint32_t ceil_div(std::uint32_t numerator, std::uint32_t d
  * @complexity O(1).
  * @alloc none.
  * @test Dispatch.GroupCount1d
+ * @crtest systests/test_dispatch_cr_group_count_1d.purr
  * @systest systests/test_dispatch.purr
  * @systest systests/test_dispatch_limits.purr
  */
@@ -64,6 +66,8 @@ inline constexpr std::uint32_t group_count_1d(std::uint32_t items, std::uint32_t
  * @complexity O(1).
  * @alloc none.
  * @test Dispatch.ClampGroupCount
+
+ * @crtest systests/test_dispatch_cr_clamp_group_count.purr
  * @systest systests/test_dispatch_limits.purr
  */
 inline constexpr std::uint32_t clamp_group_count(std::uint32_t want, std::uint32_t device_max) {
@@ -77,6 +81,7 @@ inline constexpr std::uint32_t clamp_group_count(std::uint32_t want, std::uint32
  * local sizes, workgroup counts, and clamps. Unused axes default to 1 — a 1-D dispatch is
  * `Dim3{items}` — matching how the hardware treats a missing axis (one slice, not zero).
  * @test Dispatch.Dim3Defaults
+ * @crtest systests/test_dispatch_cr_dim3.purr
  * @systest systests/test_dispatch.purr
  */
 struct Dim3 {
@@ -92,6 +97,7 @@ struct Dim3 {
  * @complexity O(1).
  * @alloc none.
  * @test Dispatch.Dim3Equality
+ * @crtest systests/test_dispatch_cr_dim3.purr
  */
 inline constexpr bool operator==(Dim3 a, Dim3 b) {
     return a.x == b.x && a.y == b.y && a.z == b.z;
@@ -108,6 +114,7 @@ inline constexpr bool operator==(Dim3 a, Dim3 b) {
  * @complexity O(1).
  * @alloc none.
  * @test Dispatch.GroupCount3d
+ * @crtest systests/test_dispatch_cr_group_count_3d.purr
  * @systest systests/test_dispatch.purr
  */
 inline constexpr Dim3 group_count_3d(Dim3 items, Dim3 local_size) {
@@ -125,6 +132,7 @@ inline constexpr Dim3 group_count_3d(Dim3 items, Dim3 local_size) {
  * @complexity O(1).
  * @alloc none.
  * @test Dispatch.ClampGroupCount3d
+ * @crtest systests/test_dispatch_cr_clamp_group_count_3d.purr
  * @systest systests/test_dispatch.purr
  */
 inline constexpr Dim3 clamp_group_count(Dim3 want, Dim3 device_max) {

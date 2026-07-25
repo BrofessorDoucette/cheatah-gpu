@@ -1,0 +1,33 @@
+# Compile-run test for the backend-selection notice machinery in an OPTIMALLY selected build —
+# which is what this gate builds on every platform (Vulkan on Linux, native Metal on Apple), so
+# the checks are deterministic on both: nothing was switched, nothing is suboptimal, the notice
+# never fires, and the user-owned silence switch toggles both ways.
+import io
+import gpu
+import check
+
+io.print("== CR gpu.backend: selection notice + silence switch ==")
+let f = 0
+
+# The default build requests the platform's preferred backend, so resolution is a no-op.
+f += check.is_true("nothing was switched",   not gpu.backend_was_switched)
+f += check.is_true("nothing is suboptimal",  not gpu.backend_is_suboptimal)
+f += check.is_true("requested == active",    gpu.requested_backend == gpu.active_backend)
+
+# warn_backend_selection is a no-op on an optimal selection: prints nothing, returns false,
+# and never trips the one-shot guard. (The switched path is exercised by metal_gate.sh, which
+# force-compiles the wrong backend for the platform.)
+f += check.is_true("no notice fires",        not gpu.warn_backend_selection())
+f += check.is_true("guard stays clear",      not gpu.backend_warning_emitted())
+
+# The silence switch is the user's: on (explicit), off, and on again via the default argument.
+gpu.silence_backend_warning(true)
+f += check.is_true("silenced on",            gpu.backend_warning_silenced())
+f += check.is_true("still no notice",        not gpu.warn_backend_selection())
+gpu.silence_backend_warning(false)
+f += check.is_true("silenced off",           not gpu.backend_warning_silenced())
+gpu.silence_backend_warning()
+f += check.is_true("default arg silences",   gpu.backend_warning_silenced())
+gpu.silence_backend_warning(false)
+
+check.result(f)

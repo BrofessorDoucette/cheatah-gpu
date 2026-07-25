@@ -109,6 +109,7 @@ concept BackendKind = std::same_as<T, Backend>;
  * @complexity O(1).
  * @alloc none.
  * @test Backend.Name
+ * @crtest systests/test_backend_cr_query.purr
  */
 constexpr std::string_view backend_name(Backend backend) {
     return backend == Backend::metal ? "metal" : "vulkan";
@@ -120,6 +121,7 @@ constexpr std::string_view backend_name(Backend backend) {
  * @complexity O(1).
  * @alloc none.
  * @test Backend.Active
+ * @crtest systests/test_backend_cr_query.purr
  */
 constexpr std::string_view active_backend_name() { return backend_name(active_backend); }
 
@@ -131,6 +133,7 @@ constexpr std::string_view active_backend_name() { return backend_name(active_ba
  * @complexity O(1).
  * @alloc none.
  * @test Backend.FromName
+ * @crtest systests/test_backend_cr_query.purr
  */
 constexpr std::optional<Backend> backend_from_name(std::string_view name) {
     if (name == "vulkan") { return Backend::vulkan; }
@@ -146,6 +149,7 @@ constexpr std::optional<Backend> backend_from_name(std::string_view name) {
  * @complexity O(1).
  * @alloc none.
  * @test Backend.IsActive
+ * @crtest systests/test_backend_cr_query.purr
  */
 template <BackendKind B>
 constexpr bool is_active(B backend) {
@@ -205,6 +209,7 @@ inline bool& backend_warning_silenced() {
  * @complexity O(1).
  * @alloc none.
  * @test Backend.Silence
+ * @crtest systests/test_backend_cr_warn.purr
  */
 inline void silence_backend_warning(bool silence = true) { backend_warning_silenced() = silence; }
 
@@ -224,6 +229,7 @@ inline void silence_backend_warning(bool silence = true) { backend_warning_silen
  *             `std::getenv` lookup, linear in the process environment size.
  * @alloc none.
  * @test Backend.WarnSwitched
+ * @crtest systests/test_backend_cr_warn.purr
  */
 inline bool warn_backend_selection(std::FILE* out = stderr) {
 #if !defined(CHEATAH_GPU_NO_BACKEND_WARNING)

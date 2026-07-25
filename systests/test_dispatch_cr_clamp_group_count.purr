@@ -1,0 +1,21 @@
+# Compile-run test for the scalar gpu.dispatch.clamp_group_count — one axis clamped to the
+# device's maxComputeWorkGroupCount limit: under, at, and over the cap, plus a real launch
+# (dimension then clamp) staying inside the limit.
+import io
+import gpu.dispatch as dispatch
+import check
+
+io.print("== CR gpu.dispatch.clamp_group_count (scalar) ==")
+let f = 0
+
+f += check.eq_int("under cap", dispatch.clamp_group_count(10, 65535), 10)
+f += check.eq_int("at cap",    dispatch.clamp_group_count(65535, 65535), 65535)
+f += check.eq_int("over cap",  dispatch.clamp_group_count(70000, 65535), 65535)
+f += check.eq_int("zero want", dispatch.clamp_group_count(0, 65535), 0)
+f += check.eq_int("zero cap",  dispatch.clamp_group_count(10, 0), 0)
+# Dimension a real problem, then clamp — the launch never exceeds the device limit.
+let want = dispatch.group_count_1d(100000000, 64)
+f += check.eq_int("1e8@64 groups", want, 1562500)
+f += check.eq_int("clamped",       dispatch.clamp_group_count(want, 65535), 65535)
+
+check.result(f)

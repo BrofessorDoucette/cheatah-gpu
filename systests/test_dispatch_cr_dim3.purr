@@ -1,0 +1,28 @@
+# Compile-run test for gpu.dispatch.Dim3 and its operator== — the (x, y, z) dispatch triple:
+# unused axes default to 1 (one slice, not zero — the hardware's view of a missing axis), and
+# equality is per-axis (all three must match).
+import io
+import gpu.dispatch as dispatch
+import check
+
+io.print("== CR gpu.dispatch.Dim3 ==")
+let f = 0
+
+# Defaults: a 1-D dispatch is Dim3{items}; y and z stay 1, never 0.
+let one_d = dispatch.Dim3({.x = 1920})
+f += check.eq_int("1-D keeps x",     one_d.x, 1920)
+f += check.eq_int("default y is 1",  one_d.y, 1)
+f += check.eq_int("default z is 1",  one_d.z, 1)
+let empty = dispatch.Dim3()
+f += check.eq_int("all-default x",   empty.x, 1)
+f += check.eq_int("all-default y",   empty.y, 1)
+f += check.eq_int("all-default z",   empty.z, 1)
+
+# operator==: per-axis, every axis must match; each axis alone can break equality.
+let a = dispatch.Dim3({.x = 1, .y = 2, .z = 3})
+f += check.is_true("equal to same",  a == dispatch.Dim3({.x = 1, .y = 2, .z = 3}))
+f += check.is_true("x differs",  not (a == dispatch.Dim3({.x = 9, .y = 2, .z = 3})))
+f += check.is_true("y differs",  not (a == dispatch.Dim3({.x = 1, .y = 9, .z = 3})))
+f += check.is_true("z differs",  not (a == dispatch.Dim3({.x = 1, .y = 2, .z = 9})))
+
+check.result(f)

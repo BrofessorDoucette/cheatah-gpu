@@ -37,7 +37,8 @@ registers.
 
 ## Tests
 - **Unit** (C++ GoogleTest): [`../../tests/dispatch_test.cpp`](../../tests/dispatch_test.cpp) — drives 100% line + function coverage.
+- **Compile-run** (cheatah `.purr`, one per function): `../../systests/test_dispatch_cr_*.purr` — each compiles via purrc against the imported library and must print `RESULT: PASS`.
 - **System** (cheatah `.purr`): [`../../systests/test_dispatch.purr`](../../systests/test_dispatch.purr), [`test_dispatch_limits.purr`](../../systests/test_dispatch_limits.purr) — exercise `import gpu.dispatch` end-to-end.
 
 Every public function documents `@param`, `@return`, `@complexity`, `@alloc`, and a `@test` /
-`@systest`; the QA gate enforces 100% Javadoc + 100% coverage.
+`@crtest` / `@systest`; the QA gate enforces 100% Javadoc + 100% coverage.

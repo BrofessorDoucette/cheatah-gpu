@@ -1,0 +1,35 @@
+# Compile-run test for the gpu.backend query surface, driven from cheatah through `import gpu`
+# (backend.hpp lives in the cheatah::gpu package namespace). Platform-agnostic on purpose: the
+# same checks pass whether this build selected Vulkan (Linux/Windows) or Metal (Apple).
+import io
+import gpu
+import check
+
+io.print("== CR gpu.backend: query surface ==")
+let f = 0
+
+# active_backend_name / backend_name(active_backend) agree, and name a real backend.
+let name = gpu.active_backend_name()
+f += check.is_true("active name is a backend", name == "vulkan" or name == "metal")
+f += check.is_true("backend_name(active) agrees", gpu.backend_name(gpu.active_backend) == name)
+
+# is_active: the active backend is active (the concept-constrained compile-time comparison).
+f += check.is_true("is_active(active_backend)", gpu.is_active(gpu.active_backend))
+
+# backend_from_name: both known names parse and round-trip through backend_name.
+let v = gpu.backend_from_name("vulkan")
+f += check.is_true("'vulkan' parses",     v)
+f += check.is_true("'vulkan' round-trips", gpu.backend_name(v.value()) == "vulkan")
+let m = gpu.backend_from_name("metal")
+f += check.is_true("'metal' parses",      m)
+f += check.is_true("'metal' round-trips",  gpu.backend_name(m.value()) == "metal")
+
+# The optional pattern: an unknown name is an empty optional, never a sentinel or a throw.
+let unknown = gpu.backend_from_name("d3d12")
+f += check.is_true("unknown name -> empty optional", not unknown)
+
+# Full round trip: parsing the active backend's own name yields the active backend.
+f += check.is_true("active name -> active backend",
+                   gpu.backend_from_name(name).value() == gpu.active_backend)
+
+check.result(f)

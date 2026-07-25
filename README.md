@@ -161,7 +161,8 @@ bash scripts/qa_gate.sh                          # the full gate
 ```
 
 Every public function documents `@param`, `@return`, `@complexity`, `@alloc`, and a `@test`
-(unit) / `@systest` (cheatah) — enforced by the gate.
+(unit) / `@crtest` (per-function cheatah compile-run, `systests/test_*_cr_*.purr`) / `@systest`
+(cheatah end-to-end) — enforced by the gate.
 
 ## License
 

@@ -1,0 +1,21 @@
+# Compile-run test for gpu.dispatch.ceil_div — the documented contract, edge by edge:
+# ceiling division, the denom==0 guard, and the overflow-safety claim (the naive
+# (n + d - 1) / d would wrap for numerator near UINT32_MAX; the shipped form must not).
+import io
+import gpu.dispatch as dispatch
+import check
+
+io.print("== CR gpu.dispatch.ceil_div ==")
+let f = 0
+
+f += check.eq_int("empty:       0/64", dispatch.ceil_div(0, 64), 0)
+f += check.eq_int("exact:      64/64", dispatch.ceil_div(64, 64), 1)
+f += check.eq_int("one over:   65/64", dispatch.ceil_div(65, 64), 2)
+f += check.eq_int("one under:  63/64", dispatch.ceil_div(63, 64), 1)
+f += check.eq_int("unit denom:  7/1",  dispatch.ceil_div(7, 1), 7)
+f += check.eq_int("zero denom: 10/0",  dispatch.ceil_div(10, 0), 0)
+# The overflow-safety promise: UINT32_MAX/2 must be exact, not wrapped.
+f += check.eq_int("no overflow: UINT32_MAX/2", dispatch.ceil_div(4294967295, 2), 2147483648)
+f += check.eq_int("no overflow: UINT32_MAX/1", dispatch.ceil_div(4294967295, 1), 4294967295)
+
+check.result(f)

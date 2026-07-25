@@ -1,0 +1,21 @@
+# Compile-run test for gpu.dispatch.group_count_1d — the groupCountX for a 1-D dispatch:
+# composes ceil_div, so it inherits the 0-on-zero-local-size guard, and its result must
+# always cover every item (groups * local_size >= items).
+import io
+import gpu.dispatch as dispatch
+import check
+
+io.print("== CR gpu.dispatch.group_count_1d ==")
+let f = 0
+
+f += check.eq_int("1e6 items @256", dispatch.group_count_1d(1000000, 256), 3907)
+f += check.eq_int("exact multiple", dispatch.group_count_1d(4096, 256), 16)
+f += check.eq_int("zero items",     dispatch.group_count_1d(0, 256), 0)
+f += check.eq_int("zero local",     dispatch.group_count_1d(1000, 0), 0)
+f += check.eq_int("one item",       dispatch.group_count_1d(1, 256), 1)
+# The covering property the whole module exists for.
+f += check.is_true("covers 1000@256",    dispatch.group_count_1d(1000, 256) * 256 >= 1000)
+f += check.is_true("covers 999999@64",   dispatch.group_count_1d(999999, 64) * 64 >= 999999)
+f += check.is_true("tight 1000@256",     (dispatch.group_count_1d(1000, 256) - 1) * 256 < 1000)
+
+check.result(f)

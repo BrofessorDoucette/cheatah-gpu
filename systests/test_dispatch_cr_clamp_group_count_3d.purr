@@ -1,0 +1,32 @@
+# Compile-run test for the Dim3 overload of gpu.dispatch.clamp_group_count — the scalar clamp
+# applied per axis against maxComputeWorkGroupCount[3]: under/over/at the cap in one call, and
+# a dimension-then-clamp pipeline staying inside an asymmetric device limit.
+import io
+import gpu.dispatch as dispatch
+import check
+
+io.print("== CR gpu.dispatch.clamp_group_count (Dim3) ==")
+let f = 0
+
+let c = dispatch.clamp_group_count(dispatch.Dim3({.x = 10, .y = 70000, .z = 65535}),
+                                   dispatch.Dim3({.x = 65535, .y = 65535, .z = 65535}))
+f += check.eq_int("under its cap", c.x, 10)
+f += check.eq_int("over its cap",  c.y, 65535)
+f += check.eq_int("at its cap",    c.z, 65535)
+
+# Per-axis independence: each axis clamps against ITS limit, not a shared one.
+let a = dispatch.clamp_group_count(dispatch.Dim3({.x = 100, .y = 100, .z = 100}),
+                                   dispatch.Dim3({.x = 50,  .y = 200, .z = 100}))
+f += check.eq_int("asym x clamped", a.x, 50)
+f += check.eq_int("asym y kept",    a.y, 100)
+f += check.eq_int("asym z at cap",  a.z, 100)
+
+# Dimension a volume, then clamp: an oversized axis is capped, in-range axes pass through.
+let want = dispatch.group_count_3d(dispatch.Dim3({.x = 100000000, .y = 1000}),
+                                   dispatch.Dim3({.x = 64, .y = 8}))
+let safe = dispatch.clamp_group_count(want, dispatch.Dim3({.x = 65535, .y = 65535, .z = 65535}))
+f += check.eq_int("pipeline x clamped", safe.x, 65535)
+f += check.eq_int("pipeline y kept",    safe.y, 125)
+f += check.eq_int("pipeline z one",     safe.z, 1)
+
+check.result(f)

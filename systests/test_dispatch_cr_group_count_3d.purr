@@ -1,0 +1,31 @@
+# Compile-run test for gpu.dispatch.group_count_3d — ceil_div per axis: the classic 2-D image
+# dispatch, mixed exact/one-over/partial axes, and the per-axis 0-on-zero-local-size guard.
+import io
+import gpu.dispatch as dispatch
+import check
+
+io.print("== CR gpu.dispatch.group_count_3d ==")
+let f = 0
+
+# A 1920x1080 image at 16x16 threads per group -> {120, 68, 1}.
+let img = dispatch.group_count_3d(dispatch.Dim3({.x = 1920, .y = 1080}),
+                                  dispatch.Dim3({.x = 16,   .y = 16}))
+f += check.eq_int("image x", img.x, 120)
+f += check.eq_int("image y (68 covers 1080)", img.y, 68)
+f += check.eq_int("image z (unused axis)",    img.z, 1)
+
+# Exact multiple, one-over, and partial — one per axis, in one call.
+let g = dispatch.group_count_3d(dispatch.Dim3({.x = 256, .y = 65, .z = 1000}),
+                                dispatch.Dim3({.x = 256, .y = 64, .z = 256}))
+f += check.eq_int("exact axis",    g.x, 1)
+f += check.eq_int("one-over axis", g.y, 2)
+f += check.eq_int("partial axis",  g.z, 4)
+
+# A zero local_size axis zeroes exactly that axis (ceil_div's guard, per axis).
+let z = dispatch.group_count_3d(dispatch.Dim3({.x = 100, .y = 100, .z = 100}),
+                                dispatch.Dim3({.x = 10,  .y = 0,   .z = 10}))
+f += check.eq_int("live axis x",   z.x, 10)
+f += check.eq_int("zeroed axis y", z.y, 0)
+f += check.eq_int("live axis z",   z.z, 10)
+
+check.result(f)
