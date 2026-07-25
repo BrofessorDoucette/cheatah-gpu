@@ -215,12 +215,15 @@ inline void silence_backend_warning(bool silence = true) { backend_warning_silen
  * was called, if `CHEATAH_GPU_SILENCE_BACKEND_WARNING` is set in the environment, or if built with
  * `CHEATAH_GPU_NO_BACKEND_WARNING` — and the message itself says how. No-op when the selection is
  * optimal.
+ * The switched/suboptimal message paths cannot run in an optimally-selected build; they are
+ * exercised by scripts/metal_gate.sh's backend auto-resolution stage, which compiles this header
+ * with the wrong backend forced for the platform and asserts the warning is raised.
  * @param out where to write the notice (defaults to stderr).
  * @return true iff a notice was printed by this call.
- * @complexity O(1).
+ * @complexity O(1) — the constant-length notice; the first switched/suboptimal call also does one
+ *             `std::getenv` lookup, linear in the process environment size.
  * @alloc none.
  * @test Backend.WarnSwitched
- * @systest systests/backend/test_backend_switch.purr
  */
 inline bool warn_backend_selection(std::FILE* out = stderr) {
 #if !defined(CHEATAH_GPU_NO_BACKEND_WARNING)
