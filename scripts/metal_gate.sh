@@ -57,7 +57,17 @@ bold "Building + running the Metal GoogleTest suite under ASan + UBSan…"
 cmake --preset asan >"$W/cfg_asan.log" 2>&1 || { tail -20 "$W/cfg_asan.log"; fail "configure (asan)"; }
 cmake --build --preset asan --target cheatah_gpu_metal_tests >"$W/build_asan.log" 2>&1 \
     || { tail -30 "$W/build_asan.log"; fail "asan build"; }
-ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS="print_stacktrace=1:halt_on_error=1" \
+# LeakSanitizer does NOT exist in Apple's ASan runtime, and asking for it is not a no-op: the
+# runtime aborts at startup with "detect_leaks is not supported on this platform", so every test
+# fails before it runs. That is what had this gate red on macOS from 2026-07-25. Ask for leak
+# detection only where it exists — the same shape the Valgrind block below already uses, and the
+# same one cheatah's own qa_gate uses for Darwin.
+ASAN_LEAKS="detect_leaks=1"
+if [ "$(uname -s)" = "Darwin" ]; then
+    ASAN_LEAKS="detect_leaks=0"
+    bold "LeakSanitizer is unavailable on Apple's ASan runtime — running ASan+UBSan without it"
+fi
+ASAN_OPTIONS="$ASAN_LEAKS" UBSAN_OPTIONS="print_stacktrace=1:halt_on_error=1" \
     build/asan/bin/cheatah_gpu_metal_tests | sed 's/^/    /' || fail "Metal GoogleTest suite (ASan/UBSan)"
 
 # Valgrind memcheck (no definite/indirect leaks) + Helgrind (no races) over the SAME debug binary.
